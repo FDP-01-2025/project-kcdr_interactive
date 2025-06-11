@@ -1,4 +1,4 @@
-# Proyecto de C++ - [Nombre del Juego]
+# Proyecto de C++ - Brothers of the Dawn: Fragments of the Alba
 
 ## Descripción del Proyecto
 
@@ -9,20 +9,21 @@ Este proyecto consiste en un juego de aventuras donde el jugador debe explorar u
 
 ## Equipo
 
-- **Nombre del equipo:** [Nombre del equipo]
+- **Nombre del equipo:** KCDR Interactive
 
 ### Integrantes del equipo
 
-1. **Nombre completo:** [Nombre del estudiante 1]  
-   **Carnet:** [Carnet del estudiante 1]
+1. **Nombre completo:** [Diego Fernando Villegas Gómez]  
+   **Carnet:** [00109825]
 
-2. **Nombre completo:** [Nombre del estudiante 2]  
-   **Carnet:** [Carnet del estudiante 2]
+2. **Nombre completo:** [Rodrigo Javier Mendoza Alvarado]  
+   **Carnet:** [00110125]
 
-3. **Nombre completo:** [Nombre del estudiante 3]  
-   **Carnet:** [Carnet del estudiante 3]
+3. **Nombre completo:** [Christopher Alessandro Juárez Ponce]  
+   **Carnet:** [00127525]
 
-(Agregar más integrantes si es necesario)
+3. **Nombre completo:** [Kevin Vladimir Rodriguez Alvarado]  
+   **Carnet:** [00039425]
 
 ## Instrucciones de Ejecución
 
