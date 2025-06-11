@@ -2,7 +2,9 @@
 
 ## Descripción del Proyecto
 
-Breve descripción del juego, su propósito, cómo se juega y cualquier otro detalle importante que describa la idea general del proyecto.
+El proyecto consiste en un juego de tipo RPG llamado **Brothers of the Dawn: Fragments of the Alba**. El jugador va a contar con la habilidad de explorar el mapa, recolectar objetos, interactuar con eventos aleatorios que beneficien/perjudiquen al jugador y luchar contra enemigos. 
+
+Se van a utilizar estructuras de control (`if`, `switch`) pa
 
 **Por ejemplo:**
 Este proyecto consiste en un juego de aventuras donde el jugador debe explorar un mundo virtual, recoger objetos, resolver acertijos y enfrentar enemigos. El juego utiliza estructuras de control como `if`, `switch`, y bucles `while` y `for` para generar interacciones dinámicas.
