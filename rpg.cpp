@@ -1,8 +1,11 @@
-#include "Jugador.h" // incluimos el .h de jugador para poder mandar a llamar los valores que creamos
-#include <iostream>  // Libreria para poder usar la consola
+#include ".h/Enemigo.h"
+#include ".h/Jugador.h"
+#include ".h/Combate.h"
+#include <iostream> // Para poder usar cout y endl
 
-using namespace std; // incluimos para evitar el uso de ::std en cada linea de codigo (Aca no hay problema en usarlo)
+using namespace std;
 
+// ========== Jugador.cpp ==========
 // Mandamos a llamar los datos que declaramos en el .h
 Jugador::Jugador(int vida, int ataque, int defensa, int ataque_especial)
     : nombre("Jugador1"), vida(vida), ataque(ataque), defensa(defensa), ataque_especial(ataque_especial) {}
@@ -10,11 +13,11 @@ Jugador::Jugador(int vida, int ataque, int defensa, int ataque_especial)
 // Muestra los atributos del jugador
 void Jugador::mostrarStats() const
 {
-    cout << "Nombre: " << nombre
-         << "\nVida: " << vida
-         << "\nAtaque: " << ataque
-         << "\nDefensa" << defensa
-         << "\n---------------------------\n";
+    cout << "Jugador: " << nombre
+         << " | Vida: " << vida
+         << " | Ataque: " << ataque
+         << " | Defensa: " << defensa
+         << " | Especial: " << ataque_especial << endl;
 }
 
 void Jugador::recibirDanio(int danio)
@@ -47,3 +50,4 @@ int Jugador::getDefensa() const
 {
     return defensa; // Devuelve el valor de la variable privada 'defensa'
 }
+
