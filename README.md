@@ -31,4 +31,4 @@ Este proyecto consiste en un juego de aventuras donde el jugador debe explorar u
 
 1. Clona este repositorio en tu máquina local:
    ```bash
-   git clone [URL del repositorio]
+   git clone [https://github.com/FDP-01-2025/project-kcdr_interactive.git]
