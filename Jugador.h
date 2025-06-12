@@ -28,6 +28,7 @@
         // Funciones publicas "Getters" para obtener datos de una clase privada
         int getAtaque() const;
         int getVida() const;
+        int getAtaqueEspecial() const;
         int getDefensa() const;
         std::string getNombre() const;
     };
