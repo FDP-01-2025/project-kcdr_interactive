@@ -1,8 +1,7 @@
-#include "Jugador.h"
-#include "Enemigo.h"
-#include "Enemigo.h"
-#include "TownMap.h"
-#include "rpg.cpp"
+#include "src/Player.h" // Incluir el archivo Jugador.h para poder usar la clase Jugador
+#include "src/Enemy.h" // Incluir el archivo Enemigo.h para poder usar la clase Enemigo
+#include "src/EventsAleatory.h" // Incluir el archivo EventsAleatory.h para poder usar la clase EventosAleatorios
+#include "game.cpp"
 #include <iostream>
 using namespace std;
 
