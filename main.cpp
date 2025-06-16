@@ -1,13 +1,14 @@
 #include "Jugador.h"
 #include "Enemigo.h"
 #include "Enemigo.h"
+#include "TownMap.h"
 #include "rpg.cpp"
 #include <iostream>
 using namespace std;
 
 int main()
 {
-
+    /*
     int opcion;
     // Declaramos los personajes (Ahorita es una prueba)
     Jugador prueba1(200, 10, 20, 10);
@@ -44,7 +45,11 @@ int main()
 
         Enemigo enemigo(80, 1, 10);
 
-        Combate(*jugadorSeleccionado, enemigo);
+        Combate(*jugadorSeleccionado, enemigo);*/
+
+    system("cls");
+    Mapa juego;
+    juego.jugar();
 
 
     return 0;
