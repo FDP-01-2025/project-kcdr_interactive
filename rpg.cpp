@@ -1,7 +1,13 @@
 #include "Enemigo.h"
 #include "Jugador.h"
 #include "Combate.h"
+#include "EventosAleatorios.h"
+#include "TownMap.h"
 #include <iostream> // Para poder usar cout y endl
+
+#include <cctype> //Manejo de caracteres (Eje: pasar de mayusculas a mini¿usculas )
+#include <cstdlib> // Para Refrescar la consola al interactuar con el mapa
+#include <conio.h> // Para interactuar con el proyecto sin tener que darle enter 
 
 using namespace std;
 
@@ -180,4 +186,149 @@ void Combate(Jugador &jugador, Enemigo &enemigo)
     }
 
     cout << "Fin del combate" << endl;
+
+    
 }
+
+// ========== Eventos aleatorios ==========
+
+    void MostrarProbabilidad(){
+
+         //devuelve un numero del 0 al 2
+    int cantidadEnemigo = rand() % 3;
+
+        //Dependiendo del numero que devuelva se muestra un caso o otro
+    switch (cantidadEnemigo)
+    {
+    case 0:
+        std::cout << "[Enemigo 1] ha aparecido, derrotalo" << std::endl;
+        break;
+
+    case 1:
+        std::cout << "[Enemigo 2] ha aparecido, derrotalo" << std::endl;
+        break;
+
+    case 2:
+        std::cout << "[Enemigo 3] ha aparecido, derrotalo" << std::endl;
+        break;
+
+    default:
+        std::cout << "Ha ocurrido un error al generar la cantidad de enemigos" << std::endl;
+        break;
+    }
+    };
+
+
+    //============= Mapa Pueblo #1 =============
+
+    Mapa::Mapa() {
+    // Inicializa el mapa con espacios vacíos
+    for (int i = 0; i < FILAS; i++)
+        for (int j = 0; j < COLUMNAS; j++)
+            mapa[i][j] = ' ';
+
+    // Bordes del mapa
+    for (int i = 0; i < FILAS; i++) {
+        mapa[i][0] = '|';
+        mapa[i][COLUMNAS - 1] = '|';
+
+        
+    }
+    for (int j = 0; j < COLUMNAS; j++) {
+        mapa[0][j] = '-';
+        mapa[22][j] = '-';
+        mapa[FILAS - 1][j] = '-';
+
+        
+    }
+
+    // Casa 1 (techo y cuerpo)
+    mapa[4][2] = '/'; mapa[3][3] = '_'; mapa[3][4] = '_'; mapa[3][5] = '_'; mapa[3][6] = '_'; mapa[3][7] = '_'; mapa[3][8] = '_';mapa[4][9] = '\\';
+    mapa[5][2] = '|'; mapa[5][3] = '#'; mapa[5][4] = ' '; mapa[5][5] = '_'; mapa[5][6] = ' '; mapa[5][7] = ' '; mapa[5][8] = ' ';mapa[5][9] = '|';
+    mapa[6][2] = '|'; mapa[6][3] = '_'; mapa[6][4] = '|'; mapa[6][5] = ' '; mapa[6][6] = '|'; mapa[6][7] = '_'; mapa[6][8] = '_';mapa[6][9] = '|';
+    
+    //Casa 2
+    // Casa 1 (techo y cuerpo)
+    mapa[13][15] = '/'; mapa[12][16] = '_'; mapa[12][17] = '_'; mapa[12][18] = '_'; mapa[12][19] = '_'; mapa[12][20] = '_'; mapa[12][21] = '_';mapa[13][22] = '\\';
+    mapa[14][15] = '|'; mapa[14][16] = '#'; mapa[14][17] = ' '; mapa[14][18] = '_'; mapa[14][19] = ' '; mapa[14][20] = ' '; mapa[14][21] = ' ';mapa[14][22] = '|';
+    mapa[15][15] = '|'; mapa[15][16] = '_'; mapa[15][17] = '|'; mapa[15][18] = ' '; mapa[15][19] = '|'; mapa[15][20] = '_'; mapa[15][21] = '_';mapa[15][22] = '|';
+
+
+    // Jugador al centro
+    jugadorX = 9;
+    jugadorY = 9;
+    mapa[jugadorX][jugadorY] = 'O';
+}
+
+void Mapa::mostrarMapa() const {
+    for (int i = 0; i < FILAS; i++) {
+        for (int j = 0; j < COLUMNAS; j++) {
+            cout << mapa[i][j] << ' ';
+        }
+        cout << endl;
+    }
+}
+
+void Mapa::moverJugador(char direccion) {
+    int nuevaX = jugadorX;
+    int nuevaY = jugadorY;
+
+    switch (direccion) {
+        case 'w': nuevaX--; break;
+        case 's': nuevaX++; break;
+        case 'a': nuevaY--; break;
+        case 'd': nuevaY++; break;
+        default: return;
+    }
+
+    if (nuevaX >= 0 && nuevaX < FILAS &&
+        nuevaY >= 0 && nuevaY < COLUMNAS) {
+
+        char destino = mapa[nuevaX][nuevaY];
+        if (destino == ' ' || destino == '.') {
+            mapa[jugadorX][jugadorY] = ' ';
+            jugadorX = nuevaX;
+            jugadorY = nuevaY;
+            mapa[jugadorX][jugadorY] = 'O';
+        }
+    }
+}
+
+void Mapa::interactuar() {
+    char adyacentes[4] = {
+        mapa[jugadorX - 1][jugadorY],
+        mapa[jugadorX + 1][jugadorY],
+        mapa[jugadorX][jugadorY - 1],
+        mapa[jugadorX][jugadorY + 1]
+    };
+
+    for (char c : adyacentes) {
+        if (c == '^' || c == '|' || c == '/' || c == '\\') {
+            cout << "Es una casa, pero esta cerrada por ahora.\n";
+            return;
+        } else if (c == '(' || c == ')') {
+            cout << "Hay un arbusto. No puedes pasar.\n";
+            return;
+        }
+    }
+
+    cout << "No hay nada interesante cerca.\n";
+}
+
+void Mapa::jugar() {
+    char opcion;
+
+    while (true) {
+        cout << "\033[H";  
+        mostrarMapa();
+        cout << "\nMover: W/A/S/D | Interactuar: E | Salir: Q\n";
+        cout << "Opción: ";
+        
+        opcion = tolower(getch()); // sin necesidad de Enter
+
+        if (opcion == 'q') break;
+        else if (opcion == 'e') interactuar();
+        else moverJugador(opcion);
+    }
+}
+
