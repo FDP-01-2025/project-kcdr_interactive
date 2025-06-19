@@ -3,9 +3,10 @@
 #include "src/Enemy.h"      // To use enemy functions
 #include "src/Combat.h"     // To use combat functions
 #include "src/TownMap.h"    // To use map functions
-#include "EventsAleatory.h" // To use random event functions
 #include "src/Boss.h"       // To use Boss functions
 #include "src/BossCreation.h"
+#include "src/EventsAleatory.h" // To use random event functions
+
 
 // ========== Libraries ==========
 #include <iostream>
@@ -309,21 +310,21 @@ void ShowProbability()
 }
 
 // ========== Town Map ==========
-Map::Map()
-{
+Map::Map() {
+    // Generates an empty map
     for (int i = 0; i < ROWS; i++)
         for (int j = 0; j < COLUMNS; j++)
             map[i][j] = ' ';
 
-    for (int i = 0; i < ROWS; i++)
-    {
+    // Generates the vertical limits of the map.
+    for (int i = 0; i < ROWS; i++) {
         map[i][0] = '|';
         map[i][COLUMNS - 1] = '|';
     }
-    for (int j = 0; j < COLUMNS; j++)
-    {
+    // Generates the horizontal limits of the map.
+    for (int j = 0; j < COLUMNS; j++) {
         map[0][j] = '-';
-        map[22][j] = '-';
+        map[ROWS - 8][j] = '-';
         map[ROWS - 1][j] = '-';
     }
 
@@ -379,48 +380,39 @@ Map::Map()
     map[15][21] = '_';
     map[15][22] = '|';
 
+    //player's starting position
     playerX = 9;
     playerY = 9;
     map[playerX][playerY] = 'O';
 }
 
-void Map::displayMap() const
-{
-    for (int i = 0; i < ROWS; i++)
-    {
-        for (int j = 0; j < COLUMNS; j++)
-        {
+// shows the content of the map
+void Map::displayMap() const {
+    system("cls");
+
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLUMNS; j++) {
             cout << map[i][j] << ' ';
         }
         cout << endl;
     }
 }
 
-void Map::movePlayer(char direction)
-{
+void Map::movePlayer(char direction) {
     int newX = playerX;
     int newY = playerY;
 
-    switch (direction)
-    {
-    case 'w':
-        newX--;
-        break;
-    case 's':
-        newX++;
-        break;
-    case 'a':
-        newY--;
-        break;
-    case 'd':
-        newY++;
-        break;
-    default:
-        return;
+    //modifies the player's coordinates
+    switch (direction) {
+    case 'w': newX--; break;
+    case 's': newX++; break;
+    case 'a': newY--; break;
+    case 'd': newY++; break;
+    default: return;
     }
 
-    if (newX >= 0 && newX < ROWS && newY >= 0 && newY < COLUMNS)
-    {
+    // completes the player's movement
+    if (newX >= 0 && newX < ROWS && newY >= 0 && newY < COLUMNS) {
         char dest = map[newX][newY];
         if (dest == ' ' || dest == '.')
         {
@@ -440,10 +432,10 @@ void Map::interact()
         map[playerX][playerY - 1],
         map[playerX][playerY + 1]};
 
-    for (char c : adj)
-    {
-        if (c == '^' || c == '|' || c == '/' || c == '\\')
-        {
+
+    // message handling depending on nearby objects
+    for (char c : adj) {
+        if (c == '^' || c == '|' || c == '/' || c == '\\') {
             cout << "It's a house, but it's closed for now.\n";
             return;
         }
@@ -461,20 +453,16 @@ void Map::play()
 {
     char option;
 
-    while (true)
-    {
-        cout << "\033[H";
-        displayMap();
-        cout << "\nMove: W/A/S/D | Interact: E | Quit: Q\n";
+    while (true) {
+         // clears the screen and moves the cursor to the start
+        displayMap(); //generates the whole map
+        cout << "\nMove: W/A/S/D | Interact: E | Quit: Q\n"; //Game controls
         cout << "Option: ";
-
         option = tolower(getch());
 
-        if (option == 'q')
-            break;
-        else if (option == 'e')
-            interact();
-        else
-            movePlayer(option);
+
+        if (option == 'q') break; //if the player presses this key, the game is closed.
+        else if (option == 'e') interact();
+        else movePlayer(option);
     }
 }

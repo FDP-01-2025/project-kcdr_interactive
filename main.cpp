@@ -8,7 +8,7 @@ using namespace std;
 
 int main()
 {
-    Boss boss1 = createBoss1();
-
+    Map game;
+    game.play();
     return 0;
 }
