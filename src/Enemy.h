@@ -23,14 +23,21 @@ public:
 
     // Utility methods: only used to read and display values, they return nothing (That's why we use void = empty)
     void showStats() const;
-    void receiveDamage(int damage); 
-    // receiveDamage is not marked as const because we want this value to change — 
+    void receiveDamage(int damage);
+    // receiveDamage is not marked as const because we want this value to change —
     // depending on the player's attack, the enemy's health will decrease
 
     // Public "getter" functions to access private class data
     int getAttack() const;
     int getHealth() const;
     std::string getName() const;
+
+    // This method subtracts the specified amount from the enemy's health.
+    // It is used when the enemy receives damage from the player or other sources.
+    void receiveDamage(int amount)
+    {
+        health -= amount;
+    }
 };
 
 #endif

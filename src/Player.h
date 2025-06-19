@@ -10,13 +10,13 @@ class Player
     // We declare everything private so modifications can only be made within this header file,
     // and not from main when it's included
 private:
-    std::string name;    // Name of the player, it will be a hardcoded name
-    int health;          // Health attribute representing the player's life points
-    int attack;          // Attack attribute representing the player's attack power
-    int defense;         // Defense attribute representing the player's defense capability
-    int specialAttack;   // Special attack attribute representing the player's special attack
+    std::string name;  // Name of the player, it will be a hardcoded name
+    int health;        // Health attribute representing the player's life points
+    int attack;        // Attack attribute representing the player's attack power
+    int defense;       // Defense attribute representing the player's defense capability
+    int specialAttack; // Special attack attribute representing the player's special attack
 
-public: 
+public:
     // We allow the constructor to be public so it can be used outside the class, for example, in main.cpp
     // Constructor: creates a player with health, attack, defense, and special attack
     Player(int health, int attack, int defense, int specialAttack);
@@ -33,6 +33,12 @@ public:
     int getSpecialAttack() const;
     int getDefense() const;
     std::string getName() const;
+
+    // Method to heal the player (adds amount to health)
+    void heal(int amount)
+    {
+        health += amount;
+    }
 };
 
 #endif
