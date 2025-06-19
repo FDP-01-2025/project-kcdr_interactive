@@ -4,6 +4,7 @@
 // DO NOT INCLUDE "using namespace std;" IN A HEADER FILE BECAUSE IT COULD CAUSE CONFLICTS WITH OTHER .cpp FILES OR NAME DECLARATIONS (GOOD PRACTICE)
 
 #include <string> // to be able to use string data type
+#include <iostream>
 
 class Enemy
 {
@@ -20,7 +21,7 @@ private:
 public:
     // We allow the constructor to be public so it can be used outside the class, for example, in main.cpp
     // Constructor: creates an enemy with health, attack, and defense
-    Enemy(const std::string &name, int health, int attack, int defense,const std::string& art);
+    Enemy(const std::string &name, int health, int attack, int defense, const std::string& art);
 
     // Utility methods: only used to read and display values, they return nothing (That's why we use void = empty)
     void showStats() const;
@@ -31,10 +32,8 @@ public:
     // Public "getter" functions to access private class data
     int getAttack() const;
     int getHealth() const;
+    void showArt() const;
     std::string getName() const;
-    void showArt() const{
-            std::cout << asciiArt << std::endl;
-    }
 
     
 };

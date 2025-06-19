@@ -14,7 +14,6 @@
 #include <cstdlib> // To refresh console
 #include <conio.h> // To get character input without pressing Enter
 using namespace std;
-
 // ========== Player ==========
 
 // Constructor
@@ -50,12 +49,9 @@ int Player::getDefense() const { return defense; }
 int Player::getSpecialAttack() const { return specialAttack; }
 
 // ========== Enemy ==========
-Enemy::Enemy(const string &name, int health, int attack, int defense, const string& art)
+Enemy::Enemy(const string &name, int health, int attack, int defense, const string &art)
     : name(name), health(health), attack(attack), defense(defense), asciiArt(art) {}
 
-    void Enemy::showArt() const {
-    cout << asciiArt << endl;
-}
 void Enemy::showStats() const
 {
     cout << "Enemy: " << name
@@ -78,35 +74,43 @@ void Enemy::receiveDamage(int damage)
         health = 0;
 }
 
+
+void Enemy::showArt() const {
+    cout << asciiArt << endl;
+}
+
 int Enemy::getHealth() const { return health; }
 int Enemy::getAttack() const { return attack; }
 string Enemy::getName() const { return name; }
 
-Enemy enemy[12] = {
-    Enemy("Slime", 20, 5, 2, ""),
-    Enemy("Goblin", 25, 7, 3, ""),
-    Enemy("Orc", 35, 10, 5, ""),
-    Enemy("Bandit", 28, 8, 2, ""),
-    Enemy("Wolf", 22, 6, 1, ""),
-    Enemy("Skeleton", 18, 9, 2, ""),
-    Enemy("Bat", 15, 4, 1, ""),
-    Enemy("Spider", 17, 5, 2, ""),
-    Enemy("Zombie", 30, 6, 4, ""),
-    Enemy("Witch", 24, 11, 3, ""),
-    Enemy("Knight", 40, 12, 8, ""),
-    Enemy("Dragonling", 45, 15, 6, "")
-};
-
 // ========== Enemy Draw==========
 
-Enemy slime(
-    "Slime", 20, 5, 2,
-    R"(
+Enemy enemy[12] = {
+    Enemy("Slime", 20, 5, 2, R"(
    __
   ( oo )
   /|__|\
-)"
-);
+)"),
+    Enemy("Goblin", 25, 7, 3, R"(
+  ,      ,
+ /(.-""-.)\
+ |\  \/  /|
+ (_/    \_)
+  /      \
+  \      /
+   `----`
+)"), //si
+    Enemy("Orc", 35, 10, 5, ""), //si
+    Enemy("Bandit", 28, 8, 2, ""), //si
+    Enemy("Wolf", 22, 6, 1, ""), //no
+    Enemy("Skeleton", 18, 9, 2, ""), //si
+    Enemy("Bat", 15, 4, 1, ""), //no
+    Enemy("Spider", 17, 5, 2, ""), // no
+    Enemy("Zombie", 30, 6, 4, ""), // no
+    Enemy("Witch", 24, 11, 3, ""), //si
+    Enemy("Knight", 40, 12, 8, ""), //si
+    Enemy("Dragonling", 45, 15, 6, "")}; //si
+
 
 
 
@@ -194,9 +198,11 @@ Boss createBoss4()
 
 void Combat(Player &player, Enemy &enemy)
 {
-    cout << "Combat begins!" << endl;
+    std:: cout << "Combat begins!" << endl;
     player.showStats();
     enemy.showStats();
+    enemy.showArt(); // Muestra el arte ASCII del enemigo
+
 
     while (player.getHealth() > 0 && enemy.getHealth() > 0)
     {
@@ -212,7 +218,7 @@ void Combat(Player &player, Enemy &enemy)
         {
         case 1:
             damage = player.getAttack();
-            cout << "Normal attack used." << endl;
+           cout << "Normal attack used." << endl;
             break;
         case 2:
             damage = player.getSpecialAttack();
@@ -220,7 +226,7 @@ void Combat(Player &player, Enemy &enemy)
             break;
         default:
             damage = player.getAttack();
-            cout << "Invalid option. Using normal attack by default." << endl;
+           cout << "Invalid option. Using normal attack by default." << endl;
             break;
         }
 
@@ -240,7 +246,7 @@ void Combat(Player &player, Enemy &enemy)
 
         if (player.getHealth() <= 0)
         {
-            cout << "You have been defeated..." << endl;
+           cout << "You have been defeated..." << endl;
             break;
         }
 
@@ -248,11 +254,12 @@ void Combat(Player &player, Enemy &enemy)
         enemy.showStats();
     }
 
-    cout << "Combat ended." << endl;
+   cout << "Combat ended." << endl;
 }
 
 // ========== Combat Boss==========
 void CombatBoss(Player &player, Boss &boss)
+
 {
     cout << "Be careful, you are facing" << boss.getName() << "!" << endl; // Texto para confirmar que ha iniciado un combate con el nombre del jefe
 
