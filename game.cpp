@@ -50,9 +50,12 @@ int Player::getDefense() const { return defense; }
 int Player::getSpecialAttack() const { return specialAttack; }
 
 // ========== Enemy ==========
-Enemy::Enemy(int health, int attack, int defense)
-    : name("Enemy"), health(health), attack(attack), defense(defense) {}
+Enemy::Enemy(const string &name, int health, int attack, int defense, const string& art)
+    : name(name), health(health), attack(attack), defense(defense), asciiArt(art) {}
 
+    void Enemy::showArt() const {
+    cout << asciiArt << endl;
+}
 void Enemy::showStats() const
 {
     cout << "Enemy: " << name
@@ -78,6 +81,34 @@ void Enemy::receiveDamage(int damage)
 int Enemy::getHealth() const { return health; }
 int Enemy::getAttack() const { return attack; }
 string Enemy::getName() const { return name; }
+
+Enemy enemy[12] = {
+    Enemy("Slime", 20, 5, 2, ""),
+    Enemy("Goblin", 25, 7, 3, ""),
+    Enemy("Orc", 35, 10, 5, ""),
+    Enemy("Bandit", 28, 8, 2, ""),
+    Enemy("Wolf", 22, 6, 1, ""),
+    Enemy("Skeleton", 18, 9, 2, ""),
+    Enemy("Bat", 15, 4, 1, ""),
+    Enemy("Spider", 17, 5, 2, ""),
+    Enemy("Zombie", 30, 6, 4, ""),
+    Enemy("Witch", 24, 11, 3, ""),
+    Enemy("Knight", 40, 12, 8, ""),
+    Enemy("Dragonling", 45, 15, 6, "")
+};
+
+// ========== Enemy Draw==========
+
+Enemy slime(
+    "Slime", 20, 5, 2,
+    R"(
+   __
+  ( oo )
+  /|__|\
+)"
+);
+
+
 
 // ========== Boss ==========
 

@@ -12,6 +12,7 @@ class Enemy
 
 private:
     std::string name; // Name of the enemy to identify what type of enemy it is
+    std::string asciiArt; // Atributo para hacer dibujo del personaje
     int health;       // Health attribute representing the enemy's life points
     int attack;       // Attack attribute representing the enemy's attack power
     int defense;      // Defense attribute representing the enemy's defense capability
@@ -19,7 +20,7 @@ private:
 public:
     // We allow the constructor to be public so it can be used outside the class, for example, in main.cpp
     // Constructor: creates an enemy with health, attack, and defense
-    Enemy(int health, int attack, int defense);
+    Enemy(const std::string &name, int health, int attack, int defense,const std::string& art);
 
     // Utility methods: only used to read and display values, they return nothing (That's why we use void = empty)
     void showStats() const;
@@ -31,6 +32,13 @@ public:
     int getAttack() const;
     int getHealth() const;
     std::string getName() const;
+    void showArt() const{
+            std::cout << asciiArt << std::endl;
+    }
+
+    
 };
+
+    extern Enemy enemy[12];
 
 #endif
