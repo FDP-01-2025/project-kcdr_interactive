@@ -7,7 +7,7 @@
 #include <string> // to be able to use string data type
 
 // Include the .h files that will be used in the random events
-#include "src/Combat.h"
+#include "../src/Combat.h"
 
 // Initialize random events
 void InitializeEvent()
