@@ -14,6 +14,7 @@ private:
 
 public:
     Map();
+    void displayPrologue() const;
     void displayMap() const;
     void movePlayer(char direction);
     void interact();
