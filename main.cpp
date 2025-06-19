@@ -46,9 +46,8 @@ int main()
 
         Combate(*jugadorSeleccionado, enemigo);*/
 
-    system("cls");
-    Mapa juego;
-    juego.jugar();
+    Map game;
+    game.play();
 
 
     return 0;
