@@ -3,6 +3,7 @@
 #include "src/Enemy.h"          // To use enemy functions
 #include "src/Combat.h"         // To use combat functions
 #include "src/TownMap.h"        // To use map functions
+#include "src/Story.h"          //To use story functions and structs
 #include "src/EventsAleatory.h" // To use random event functions
 
 // ========== Libraries ==========
@@ -13,6 +14,8 @@
 #include <conio.h> // To get character input without pressing Enter
 
 using namespace std;
+
+Story story;
 
 // ========== Player ==========
 Player::Player(int health, int attack, int defense, int specialAttack)
@@ -235,30 +238,65 @@ Map::Map()
     playerX = 9;
     playerY = 9;
     map[playerX][playerY] = 'O';
+
+    
+
+    //Initialize and display the prologue 
+    Map::GeneratePrologue(story.PrologueLineCount, story.PrologueText);
+    story.PrologueIndex = 0;
+    story.ShowingPrologue = true;
+    story.textPanel = story.PrologueText[story.PrologueIndex];
 }
 
-//shows the game prologue
-void Map::displayPrologue() const
-{
+//========== Story prologue ==========
 
-    ifstream readPrologue("txt/Prologue.txt"); //Open file in read mode
+
+// Inicializa y muestra la narrativa del prólogo
+
+// shows the game prologue
+void Map::GeneratePrologue(int lineCount, string text[Story::MAX_LINES])
+{
+    lineCount = 3;
+
+    ifstream readPrologue("txt/Prologue.txt"); // Open file in read mode
     string textLine;
 
     if (readPrologue.is_open())
     {
         cout << "Prologue: \n";
-        while (getline(readPrologue, textLine)) // Read each line of the file
+
+        Story::story s; // Call the struct to handle the information of Prologue.txt
+
+        while (readPrologue >> s.index >> s.text) // Read each line of the file
+            story.PrologueIndex = s.index;
+        story.textPanel = s.text;
+
         {
-            cout << textLine << endl; // Display each line on the screen
-            cout << "Press any key to continue...";
-            //Is used to wait for the user to press enter before continuing to the next line of text
-            cin.ignore();
+            cout << s.text << endl; // Display each line on the screen
         }
         readPrologue.close();
     }
     else
     {
         cout << "Could not open file to read\n";
+    }
+}
+
+void Map::DisplayPrologue()
+{
+    if (!story.ShowingPrologue)
+        return;
+
+    story.PrologueIndex++;
+
+    if (story.PrologueIndex >= story.PrologueLineCount)
+    {
+        story.ShowingPrologue = false;
+        story.textPanel = "Use W/A/S/D to move, E to interact, Q to quit.";
+    }
+    else
+    {
+        story.textPanel = story.PrologueText[story.PrologueIndex];
     }
 }
 
@@ -275,11 +313,18 @@ void Map::displayMap() const
             {
                 string tLine = "=== ACTION PANEL ===";
                 cout << tLine;
+                // Completar el resto de la línea con espacios para que quede alineado
+                int espacios = COLUMNS - 10 - (int)tLine.length();
+                for (int k = 0; k < espacios; ++k) cout << ' ';
+                break; // Terminar línea
             }
-
             else if (i == ROWS - 6 && j == 10)
             {
-                displayPrologue();
+                cout << story.textPanel;
+                // Completar espacios para alineación
+                int espacios = COLUMNS - 10 - (int)story.textPanel.length();
+                for (int k = 0; k < espacios; ++k) cout << ' ';
+                break;
             }
             cout << map[i][j] << ' ';
         }
@@ -327,6 +372,13 @@ void Map::movePlayer(char direction)
 
 void Map::interact()
 {
+
+    if (story.ShowingPrologue)
+    {
+        DisplayPrologue();
+        return;
+    }
+
     char adj[4] = {
         map[playerX - 1][playerY],
         map[playerX + 1][playerY],
@@ -358,7 +410,16 @@ void Map::play()
     while (true)
     {
         // clears the screen and moves the cursor to the start
-        displayMap();                                        // generates the whole map
+        displayMap(); // generates the whole map
+
+        if (story.ShowingPrologue)
+        {
+            cout << "\nPress any key to continue...\n";
+            _getch();
+            DisplayPrologue();
+            continue;
+        }
+
         cout << "\nMove: W/A/S/D | Interact: E | Quit: Q\n"; // Game controls
         cout << "Option: ";
 
