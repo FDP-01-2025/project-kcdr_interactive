@@ -5,6 +5,7 @@
 #include "src/TownMap.h"    // To use map functions
 #include "EventsAleatory.h" // To use random event functions
 #include "src/Boss.h"       // To use Boss functions
+#include "src/BossCreation.h"
 
 // ========== Libraries ==========
 #include <iostream>
@@ -109,34 +110,56 @@ int Boss::getspecialAtack() const
     return specialAtack;
 }
 
-// ========== Boss setters ==========
+// Boss setters
 void Boss::setHealth(int newHealth)
 {
     health = newHealth;
 }
-// ========== Boss action ==========
-void Boss:: takeDamage(int amount){
+//  Boss action
+void Boss::takeDamage(int amount)
+{
     health -= amount; // Resta la cantidad de daño (amount) a la vida actual (health)
-    if (health < 0) // Si la vida baja de 0, la pone en 0 (no puede ser negativa)
+    if (health < 0)   // Si la vida baja de 0, la pone en 0 (no puede ser negativa)
     {
         health = 0;
     }
-    
 }
 
-int Boss:: performAttack() const{
+int Boss::performAttack() const
+{
     return attack;
 }
 
-int Boss:: performSpecialAtack() const{
+int Boss::performSpecialAtack() const
+{
     return specialAtack;
 }
 
-bool Boss:: isDefeated() const{
+bool Boss::isDefeated() const
+{
     return health <= 0;
 }
 
-// ========== Combat ==========
+// ========== Boss creation ==========
+Boss createBoss1()
+{
+    return Boss("Jefe1", 200, 40, 20, 60);
+}
+Boss createBoss2()
+{
+    return Boss("Jefe2", 200, 40, 20, 60);
+}
+Boss createBoss3()
+{
+    return Boss("Jefe3", 200, 40, 20, 60);
+}
+Boss createBoss4()
+{
+    return Boss("Jefe4", 200, 40, 20, 60);
+}
+
+// ========== Combat Enemy Common==========
+
 void Combat(Player &player, Enemy &enemy)
 {
     cout << "Combat begins!" << endl;
@@ -194,6 +217,74 @@ void Combat(Player &player, Enemy &enemy)
     }
 
     cout << "Combat ended." << endl;
+}
+
+// ========== Combat Boss==========
+void CombatBoss(Player &player, Boss &boss)
+{
+    cout << "Be careful, you are facing" << boss.getName() << "!" << endl; // Texto para confirmar que ha iniciado un combate con el nombre del jefe
+
+    // Se muestran las stats que tiene el boss
+    cout << "Boss: " << boss.getName() << " | Health: " << boss.getHealth() // Nombre del jefe
+         << " | Attack: " << boss.getAttack()                               // Ataque del jefe
+         << " | Special Attack: " << boss.getspecialAtack() << endl;        // Ataque especial
+
+    while (player.getHealth() > 0 && boss.getHealth() > 0)
+    {
+        cout << "Choose an action:" << endl;
+        cout << "1. Normal attack (" << player.getAttack() << " damage)" << endl;
+        cout << "2. Special attack (" << player.getSpecialAttack() << " damage)" << endl;
+
+        int option;
+        cin >> option;
+
+        int damage = 0;
+        switch (option)
+        {
+        case 1:
+            damage = player.getAttack();
+            cout << "Normal attack used." << endl;
+            break;
+        case 2:
+            damage = player.getSpecialAttack();
+            cout << "Special attack used." << endl;
+            break;
+        default:
+            damage = player.getAttack();
+            cout << "Invalid option. Using normal attack by default." << endl;
+            break;
+        }
+        boss.takeDamage(damage);
+        cout << boss.getName() << "'s health after attack: " << boss.getHealth() << endl;
+
+        if (boss.isDefeated())
+        {
+            cout << "You defeated the boss!" << endl;
+            break;
+        }
+
+        // Boss's turn (randomly chooses normal or special attack)
+        int bossAttackType = rand() % 2;
+        int bossDamage = (bossAttackType == 0) ? boss.getAttack() : boss.getspecialAtack();
+        if (bossAttackType == 0)
+        {
+            cout << boss.getName() << "Uses a normal attack!" << endl;
+        }else{
+            cout << boss.getName() << "Uses a special attack!" << endl;
+        }
+
+        player.receiveDamage(bossDamage);
+        cout << "Your health afther attack" << player.getHealth() << endl;
+
+        if (player.getHealth() <= 0)
+        {
+           cout << "You have been defeated by the boss..." << endl;
+           break;
+        }        
+        player.showStats();
+        cout << "Boss: " << boss.getName() << "| Health " << boss.getHealth() << endl; 
+    }   
+    cout << "Boss battle ended." << endl;
 }
 
 // ========== Random Events ==========
