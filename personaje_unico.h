@@ -1,77 +1,68 @@
-#ifndef UNIQUE_CHARACTER_H // Header guard start: prevents double inclusion
+#ifndef UNIQUE_CHARACTER_H
 #define UNIQUE_CHARACTER_H
 
-#include <iostream>          // For input/output streams
-#include <string>            // For using std::string
-#include "characters_draw.h" // Contains the drawing functions for characters
-#include "mapa.h"            // Contains the map matrix definition (map[FILAS][COLUMNAS])
-using namespace std;         // Use the standard namespace to avoid prefixing std::
+#include <iostream>
+#include <string>
+#include "characters_draw.h" // Para usar funciones de dibujo
+#include "player.h"          // Usamos esta clase en vez del struct Character
+#include "map.h"             // Para usar el mapa y sus dimensiones
 
-/* 1. Struct to define the character */
-struct Character
-{
-    string name; // Character's name
-    int health;  // Character's health points (HP)
-    int attack;  // Character's attack power (ATK)
-    int defense; // Character's defense power (DEF)
-    int special; // Character's special ability power (ESP)
+// Creamos las instancias de los personajes como objetos de la clase Player
+const Player allCharacters[4] = {
+    Player(60, 100, 40, 120),   // Rhaekor
+    Player(80, 40, 100, 60),    // Cerephios
+    Player(100, 60, 60, 90),    // Kaelren
+    Player(70, 80, 70, 100)     // Valdrik
 };
 
-/* 2. Fixed list (array) of available characters */
-const Character allCharacters[4] = {
-    {"Rhaekor", 60, 100, 40, 120},
-    {"Cerephios", 80, 40, 100, 60},
-    {"Kaelren", 100, 60, 60, 90},
-    {"Valdrik", 70, 80, 70, 100}};
+// Nombre de cada personaje, para identificar cuál se ha elegido
+const std::string characterNames[4] = {
+    "Rhaekor", "Cerephios", "Kaelren", "Valdrik"
+};
 
-/* 3. Global variable for the selected character
-      Accessible from main.cpp or other files */
-Character player;
+// Variable global que guarda el personaje elegido por el jugador
+Player playerSelected(0, 0, 0, 0); // Inicialización vacía por defecto
+std::string selectedName;         // Nombre del personaje seleccionado
 
-/* 4. Function to select and uniquely define the character */
-void chooseCharacterAndSave()
-{
-    int option; // Variable to store user's choice
+// Muestra el menú de selección y guarda el personaje elegido
+void chooseCharacterAndSave() {
+    int option;
 
-    cout << "\n=== CHARACTER SELECTION ===\n";
-    // Loop through all available characters and print their stats
-    for (int i = 0; i < 4; ++i)
-    {
-        cout << i + 1 << ". " << allCharacters[i].name
-             << " (HP: " << allCharacters[i].health
-             << ", ATK: " << allCharacters[i].attack
-             << ", DEF: " << allCharacters[i].defense
-             << ", ESP: " << allCharacters[i].special << ")\n";
-    }
-    cout << "Select (1-4): ";
-    cin >> option; // Read user input
-
-    // Check if input is invalid (outside 1-4)
-    if (option < 1 || option > 4)
-    {
-        cout << "Invalid selection. Defaulting to Rhaekor.\n";
-        player = allCharacters[0]; // Default character assigned
-    }
-    else
-    {
-        player = allCharacters[option - 1]; // Assign selected character
+    std::cout << "\n=== CHARACTER SELECTION ===\n";
+    for (int i = 0; i < 4; ++i) {
+        std::cout << i + 1 << ". " << characterNames[i]
+                  << " (HP: " << allCharacters[i].getHealth()
+                  << ", ATK: " << allCharacters[i].getAttack()
+                  << ", DEF: " << allCharacters[i].getDefense()
+                  << ", ESP: " << allCharacters[i].getSpecialAttack() << ")\n";
     }
 
-    cout << "You have selected: " << player.name << endl;
+    std::cout << "Select (1-4): ";
+    std::cin >> option;
+
+    if (option < 1 || option > 4) {
+        std::cout << "Invalid selection. Defaulting to Rhaekor.\n";
+        playerSelected = allCharacters[0];
+        selectedName = characterNames[0];
+    } else {
+        playerSelected = allCharacters[option - 1];
+        selectedName = characterNames[option - 1];
+    }
+
+    std::cout << "You have selected: " << selectedName << std::endl;
 }
 
-/* 5. Function to automatically draw the selected character on the map
-   Takes the map matrix and the coordinates where to draw */
-void drawSelectedCharacter(char map[FILAS][COLUMNAS], int row, int col)
-{
-    if (player.name == "Rhaekor")
-        drawRhaekor(map, row, col); // Call Rhaekor's drawing function
-    else if (player.name == "Cerephios")
-        drawCerephios(map, row, col); // Call Cerephios's drawing function
-    else if (player.name == "Kaelren")
-        drawKaelren(map, row, col); // Call Kaelren's drawing function
-    else if (player.name == "Valdrik")
-        drawValdrik(map, row, col); // Call Valdrik's drawing function
+// Dibuja automáticamente al personaje elegido según su nombre
+void drawSelectedCharacter(char map[ROWS][COLUMNS], int row, int col) {
+    if (selectedName == "Rhaekor")
+        drawRhaekor(map, row, col);
+    else if (selectedName == "Cerephios")
+        drawCerephios(map, row, col);
+    else if (selectedName == "Kaelren")
+        drawKaelren(map, row, col);
+    else if (selectedName == "Valdrik")
+        drawValdrik(map, row, col);
 }
 
-#endif // End of header guard
+#endif // UNIQUE_CHARACTER_H
+
