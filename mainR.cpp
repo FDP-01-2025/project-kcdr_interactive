@@ -1,15 +1,18 @@
-#include "map.h"             // Incluye la definición de la clase Map (mapa)
-#include "characters_draw.h" // Incluye las funciones para dibujar personajes
+#include "src/map.h"
+#include "src/unique_character.h"
+#include "src/enemy_draw.h"
+#include "src/Enemy.h"
+#include "src/CombatScreen.h"
+#include "src/Player.h"
 
-int main()
-{
-    Map map; // Crea un objeto de tipo Map llamado map
+int main() {
+    Map map;
+    chooseCharacterAndSave(); // El personaje se selecciona y se guarda
 
-    // Dibuja dos personajes en el mapa
-    drawRhaekor(map.getGrid(), 6, 10); // Dibuja al personaje "Rhaekor" en la posición fila 6, columna 10
-    drawValdrik(map.getGrid(), 6, 50); // Dibuja al personaje "Valdrik" en la posición fila 6, columna 50
+    Player player(100, 15, 3, 25);  // Stats de ejemplo
+    Enemy enemy1 = enemy[1];       // Slime
 
-    map.display(); // Muestra el mapa con los personajes dibujados en consola
+    drawCombatScreen(map, player, enemy1); // Mostrar combate
 
-    return 0; // Finaliza el programa
+    return 0;
 }
