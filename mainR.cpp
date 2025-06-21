@@ -10,7 +10,7 @@ int main() {
     chooseCharacterAndSave(); // El personaje se selecciona y se guarda
 
     Player player(100, 15, 3, 25);  // Stats de ejemplo
-    Enemy enemy1 = enemy[1];       // Slime
+    Enemy enemy1 = enemy[11];       // Slime
 
     drawCombatScreen(map, player, enemy1); // Mostrar combate
 
