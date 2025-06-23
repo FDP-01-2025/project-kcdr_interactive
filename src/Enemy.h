@@ -1,36 +1,111 @@
-#ifndef ENEMY_H // ifndef to check if this file has already been included in another .h
-#define ENEMY_H // if it hasn't been included anywhere else, this allows it to be used here
+#ifndef ENEMY_H // Header guard: if ENEMY_H is not defined, define it now to avoid multiple inclusions
+#define ENEMY_H // Defines ENEMY_H so that this file content is not included again elsewhere
 
-// DO NOT INCLUDE "using namespace std;" IN A HEADER FILE BECAUSE IT COULD CAUSE CONFLICTS WITH OTHER .cpp FILES OR NAME DECLARATIONS (GOOD PRACTICE)
+// NOTE: Never use "using namespace std;" in a header file, as it can lead to name conflicts 
+// across other translation units (good practice).
 
-#include <string> // to be able to use string data type
+#include <string>   // Includes the string library to use std::string for storing text
+#include <iostream> // Includes the iostream library for input and output operations
 
-class Enemy
-{
-    // We declare everything private so modifications can only be made within this header file,
-    // and not from main when it's included
-
+// Definition of the Enemy class
+class Enemy {
 private:
-    std::string name; // Name of the enemy to identify what type of enemy it is
-    int health;       // Health attribute representing the enemy's life points
-    int attack;       // Attack attribute representing the enemy's attack power
-    int defense;      // Defense attribute representing the enemy's defense capability
+    // ======== PRIVATE ATTRIBUTES ========
+    std::string name;     // Name of the enemy (used for display or identification)
+    std::string asciiArt; // ASCII art string for visual representation of the enemy
+    int health;           // Total life points or hit points (HP) of the enemy
+    int attack;           // Offensive power — how much damage the enemy can deal
+    int defense;          // Defensive strength — how much incoming damage is reduced
 
 public:
-    // We allow the constructor to be public so it can be used outside the class, for example, in main.cpp
-    // Constructor: creates an enemy with health, attack, and defense
-    Enemy(int health, int attack, int defense);
+    // ======== CONSTRUCTOR ========
+    // Public constructor that allows instantiation of the Enemy class
+    // It initializes all core attributes of the enemy: name, health, attack, defense, and art
+    Enemy(const std::string &name, int health, int attack, int defense, const std::string &art);
 
-    // Utility methods: only used to read and display values, they return nothing (That's why we use void = empty)
+    // ======== METHODS ========
+
+    // Displays the current stats of the enemy in the console
     void showStats() const;
-    void receiveDamage(int damage); 
-    // receiveDamage is not marked as const because we want this value to change — 
-    // depending on the player's attack, the enemy's health will decrease
 
-    // Public "getter" functions to access private class data
+    // Applies damage to the enemy, reducing health based on defense
+    void receiveDamage(int damage);
+    // Note: This is not a const method because it modifies the health value
+
+    // ======== GETTERS (ACCESSORS) ========
+
+    // Returns the attack value of the enemy
     int getAttack() const;
+
+    // Returns the current health of the enemy
     int getHealth() const;
+
+    // Returns the ASCII art as a string so it can be drawn externally (e.g., on a map)
+    std::string getAsciiArt() const;
+
+    // Displays the ASCII art directly in the console
+    void showArt() const;
+
+    // Returns the name of the enemy
     std::string getName() const;
 };
 
-#endif
+// ======== METHOD IMPLEMENTATIONS ========
+// Inline definitions for simplicity since this is a header file
+// These should ideally be placed in a corresponding .cpp file in large projects
+
+// Constructor: initializes all attributes using an initializer list
+inline Enemy::Enemy(const std::string &name, int health, int attack, int defense, const std::string &art)
+    : name(name), asciiArt(art), health(health), attack(attack), defense(defense) {}
+
+// Prints the enemy's name, health, attack, and defense to the console
+inline void Enemy::showStats() const {
+    std::cout << "Name: " << name
+              << "\nHP: " << health
+              << "\nAttack: " << attack
+              << "\nDefense: " << defense
+              << std::endl;
+}
+
+// Applies damage to the enemy, reducing its health by (damage - defense)
+// Ensures that health doesn't drop below 0
+inline void Enemy::receiveDamage(int damage) {
+    int netDamage = damage - defense; // Subtracts defense from incoming damage
+
+    if (netDamage > 0) {              // Only apply damage if it's positive
+        health -= netDamage;          // Subtract damage from health
+        if (health < 0)               // Prevent negative health
+            health = 0;
+    }
+}
+
+// Getter: returns the attack value of the enemy
+inline int Enemy::getAttack() const {
+    return attack;
+}
+
+// Getter: returns the current health of the enemy
+inline int Enemy::getHealth() const {
+    return health;
+}
+
+// Outputs the ASCII art to the console
+inline void Enemy::showArt() const {
+    std::cout << asciiArt << std::endl;
+}
+
+// Getter: returns the name of the enemy
+inline std::string Enemy::getName() const {
+    return name;
+}
+
+// Getter: returns the ASCII art string for external use (e.g., to draw it)
+inline std::string Enemy::getAsciiArt() const {
+    return asciiArt;
+}
+
+// Declares an external array of 12 enemies that will be defined elsewhere (e.g., in a .cpp file)
+// This allows all files including this header to access the shared enemy array
+extern Enemy enemy[12];
+
+#endif // End of the include guard
