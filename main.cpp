@@ -1,9 +1,9 @@
-#include "src/Player.h" // Incluir el archivo Jugador.h para poder usar la clase Jugador
-#include "src/Enemy.h" // Incluir el archivo Enemigo.h para poder usar la clase Enemigo
-#include "src/EventsAleatory.h" // Incluir el archivo EventsAleatory.h para poder usar la clase EventosAleatorios
-#include "src/Combat.h"
-#include "game.cpp"
-#include <iostream>
+#include "src/map.h"
+#include "src/unique_character.h"
+#include "src/enemy_draw.h"
+#include "src/Enemy.h"
+#include "src/CombatScreen.h"
+#include "src/Player.h"
 using namespace std;
 
 
@@ -11,10 +11,13 @@ using namespace std;
 int main()
 {
 
-    // Crear un jugador (puedes cambiar los stats)
-    Player player(100, 15, 5, 25);
+Map map;
+    chooseCharacterAndSave(); // El personaje se selecciona y se guarda
 
-    // Llamar a una batalla contra el primer enemigo
-    Combat(player, enemy[1]);  
-      return 0;
+    Player player(100, 15, 3, 25);  // Stats de ejemplo
+    Enemy enemy1 = enemy[11];       // Slime
+
+    drawCombatScreen(map, player, enemy1); // Mostrar combate
+
+    return 0;
 }

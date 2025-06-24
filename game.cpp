@@ -10,6 +10,15 @@
 
 // ========== Libraries ==========
 #include <iostream>
+#include <fstream> // To use ofstream and ifstream
+#include <cctype>  // To handle characters (e.g., toLower)
+#include <cstdlib> // To refresh console
+#include <conio.h> // To get character input without pressing Enter
+
+using namespace std;
+
+Story story;
+
 #include <cctype>  // To handle characters (e.g., toLower)
 #include <cstdlib> // To refresh console
 #include <conio.h> // To get character input without pressing Enter
@@ -203,7 +212,6 @@ void Combat(Player &player, Enemy &enemy)
     enemy.showStats();
     enemy.showArt(); // Muestra el arte ASCII del enemigo
 
-
     while (player.getHealth() > 0 && enemy.getHealth() > 0)
     {
         cout << "Choose an action:" << endl;
@@ -273,10 +281,9 @@ void CombatBoss(Player &player, Boss &boss)
         cout << "Choose an action:" << endl;
         cout << "1. Normal attack (" << player.getAttack() << " damage)" << endl;
         cout << "2. Special attack (" << player.getSpecialAttack() << " damage)" << endl;
-
         int option;
         cin >> option;
-
+        
         int damage = 0;
         switch (option)
         {
@@ -348,19 +355,22 @@ void ShowProbability()
 }
 
 // ========== Town Map ==========
-Map::Map() {
+Map::Map()
+{
     // Generates an empty map
     for (int i = 0; i < ROWS; i++)
         for (int j = 0; j < COLUMNS; j++)
             map[i][j] = ' ';
 
     // Generates the vertical limits of the map.
-    for (int i = 0; i < ROWS; i++) {
+    for (int i = 0; i < ROWS; i++)
+    {
         map[i][0] = '|';
         map[i][COLUMNS - 1] = '|';
     }
     // Generates the horizontal limits of the map.
-    for (int j = 0; j < COLUMNS; j++) {
+    for (int j = 0; j < COLUMNS; j++)
+    {
         map[0][j] = '-';
         map[ROWS - 8][j] = '-';
         map[ROWS - 1][j] = '-';
@@ -418,18 +428,98 @@ Map::Map() {
     map[15][21] = '_';
     map[15][22] = '|';
 
-    //player's starting position
+    // player's starting position
     playerX = 9;
     playerY = 9;
     map[playerX][playerY] = 'O';
+
+    
+
+    //Initialize and display the prologue 
+    Map::GeneratePrologue(story.PrologueLineCount, story.PrologueText);
+    story.PrologueIndex = 0;
+    story.ShowingPrologue = true;
+    story.textPanel = story.PrologueText[story.PrologueIndex];
+}
+
+//========== Story prologue ==========
+
+
+// Inicializa y muestra la narrativa del prólogo
+
+// shows the game prologue
+void Map::GeneratePrologue(int lineCount, string text[Story::MAX_LINES])
+{
+    lineCount = 3;
+
+    ifstream readPrologue("txt/Prologue.txt"); // Open file in read mode
+    string textLine;
+
+    if (readPrologue.is_open())
+    {
+        cout << "Prologue: \n";
+
+        Story::story s; // Call the struct to handle the information of Prologue.txt
+
+        while (readPrologue >> s.index >> s.text) // Read each line of the file
+            story.PrologueIndex = s.index;
+        story.textPanel = s.text;
+
+        {
+            cout << s.text << endl; // Display each line on the screen
+        }
+        readPrologue.close();
+    }
+    else
+    {
+        cout << "Could not open file to read\n";
+    }
+}
+
+void Map::DisplayPrologue()
+{
+    if (!story.ShowingPrologue)
+        return;
+
+    story.PrologueIndex++;
+
+    if (story.PrologueIndex >= story.PrologueLineCount)
+    {
+        story.ShowingPrologue = false;
+        story.textPanel = "Use W/A/S/D to move, E to interact, Q to quit.";
+    }
+    else
+    {
+        story.textPanel = story.PrologueText[story.PrologueIndex];
+    }
 }
 
 // shows the content of the map
-void Map::displayMap() const {
+void Map::displayMap() const
+{
     system("cls");
 
-    for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLUMNS; j++) {
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLUMNS; j++)
+        {
+            if (i == ROWS - 7 && j == 10)
+            {
+                string tLine = "=== ACTION PANEL ===";
+                cout << tLine;
+                // Completar el resto de la línea con espacios para que quede alineado
+                int espacios = COLUMNS - 10 - (int)tLine.length();
+                for (int k = 0; k < espacios; ++k) cout << ' ';
+                break; // Terminar línea
+            }
+            else if (i == ROWS - 6 && j == 10)
+            {
+                cout << story.textPanel;
+                // Completar espacios para alineación
+                int espacios = COLUMNS - 10 - (int)story.textPanel.length();
+                for (int k = 0; k < espacios; ++k) cout << ' ';
+                break;
+            }
             cout << map[i][j] << ' ';
         }
         cout << endl;
@@ -440,17 +530,28 @@ void Map::movePlayer(char direction) {
     int newX = playerX;
     int newY = playerY;
 
-    //modifies the player's coordinates
-    switch (direction) {
-    case 'w': newX--; break;
-    case 's': newX++; break;
-    case 'a': newY--; break;
-    case 'd': newY++; break;
-    default: return;
+    // modifies the player's coordinates
+    switch (direction)
+    {
+    case 'w':
+        newX--;
+        break;
+    case 's':
+        newX++;
+        break;
+    case 'a':
+        newY--;
+        break;
+    case 'd':
+        newY++;
+        break;
+    default:
+        return;
     }
 
     // completes the player's movement
-    if (newX >= 0 && newX < ROWS && newY >= 0 && newY < COLUMNS) {
+    if (newX >= 0 && newX < ROWS && newY >= 0 && newY < COLUMNS)
+    {
         char dest = map[newX][newY];
         if (dest == ' ' || dest == '.')
         {
@@ -470,10 +571,11 @@ void Map::interact()
         map[playerX][playerY - 1],
         map[playerX][playerY + 1]};
 
-
     // message handling depending on nearby objects
-    for (char c : adj) {
-        if (c == '^' || c == '|' || c == '/' || c == '\\') {
+    for (char c : adj)
+    {
+        if (c == '^' || c == '|' || c == '/' || c == '\\')
+        {
             cout << "It's a house, but it's closed for now.\n";
             return;
         }
@@ -491,10 +593,20 @@ void Map::play()
 {
     char option;
 
-    while (true) {
-         // clears the screen and moves the cursor to the start
-        displayMap(); //generates the whole map
-        cout << "\nMove: W/A/S/D | Interact: E | Quit: Q\n"; //Game controls
+    while (true)
+    {
+        // clears the screen and moves the cursor to the start
+        displayMap(); // generates the whole map
+
+        if (story.ShowingPrologue)
+        {
+            cout << "\nPress any key to continue...\n";
+            _getch();
+            DisplayPrologue();
+            continue;
+        }
+
+        cout << "\nMove: W/A/S/D | Interact: E | Quit: Q\n"; // Game controls
         cout << "Option: ";
         option = tolower(getch());
 
