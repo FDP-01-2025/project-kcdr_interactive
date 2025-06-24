@@ -31,7 +31,7 @@ configurationDifficulty selectDifficult()
     int option;
     do
     {
-       std::cout << "Select a difficulty: \n1) Facil\n2) Normal\n3) Dificil\n";
+       std::cout << "Select a difficulty: \n1) Easy\n2) Normal\n3) Hard\n";
     std::cin >> option;
 
     switch (option)
