@@ -18,20 +18,33 @@ public:
     Boss(const std::string &name, int health, int attack, int defense, int specialAtack);
 
     // Getters para obtener un valor de una variable privada
-    std::string getName() const; // Obtener su nombre
-    int getHealth() const;       // Obtener valor de la vida
-    int getAttack() const;       // Obtener cuanto ataque tendra
-    int getDefense() const;      // Obtener cuanta defensa tendra
-    int getspecialAtack() const; // Obtener cuanto daño hara ataque especial
+    std::string getName() const { return name; }         // Obtener su nombre
+    int getHealth() const { return health; }             // Obtener valor de la vida
+    int getAttack() const { return attack; }             // Obtener cuanto ataque tendra
+    int getDefense() const { return defense; }           // Obtener cuanta defensa tendra
+    int getspecialAtack() const { return specialAtack; } // Obtener cuanto daño hara ataque especial
 
     // Setters para poder modificar un valor de una variable privada
-    void setHealth(int healt);
+    void setHealth(int newHealt) { health = newHealt; }
 
     // Actions para regresar acciones o comportamientos que el jefe puede realizar
-    void takeDamage(int amount);     // cantidad de vida que se le pondra quitar al jefe
-    int performAttack() const;       // ataque normal que podra hacer el jefe
-    int performSpecialAtack() const; // ataque espeial que podra hacer el jefe
-    bool isDefeated() const;         // Permite saber si el jefe ha sido derrotado
+    void takeDamage(int amount) // cantidad de vida que se le pondra quitar al jefe
+    {
+        health -= amount;
+        if (health < 0)
+        {
+            health = 0;
+        }
+    }
+    int performAttack() const {return attack;}       // ataque normal que podra hacer el jefe
+    int performSpecialAtack() const {return specialAtack;} // ataque espeial que podra hacer el jefe
+    bool isDefeated() const {return health <= 0;}         // Permite saber si el jefe ha sido derrotado
 };
 
-#endif
+// ========== Boss creation ==========
+inline Boss createBoss1() { return Boss("Jefe1", 200, 40, 20, 60); }
+inline Boss createBoss2() { return Boss("Jefe2", 200, 40, 20, 60); }
+inline Boss createBoss3() { return Boss("Jefe3", 200, 40, 20, 60); }
+inline Boss createBoss4() { return Boss("Jefe4", 200, 40, 20, 60); }
+
+#endif // End of header guard
