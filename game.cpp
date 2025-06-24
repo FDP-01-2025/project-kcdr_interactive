@@ -281,10 +281,9 @@ void CombatBoss(Player &player, Boss &boss)
         cout << "Choose an action:" << endl;
         cout << "1. Normal attack (" << player.getAttack() << " damage)" << endl;
         cout << "2. Special attack (" << player.getSpecialAttack() << " damage)" << endl;
-
         int option;
         cin >> option;
-
+        
         int damage = 0;
         switch (option)
         {
