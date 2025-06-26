@@ -37,18 +37,21 @@ public:
 
     // Method to apply damage to the player based on incoming attack value
     void receiveDamage(int damage)
-    {
-        int realDamage = damage - defense; // Calculate net damage after subtracting defense
-        if (realDamage < 0)
-            realDamage = 0; // If defense fully absorbs damage, clamp to 0
+{
+    if (damage <= 0)
+        return;
 
-        if (realDamage == 0)
-            std::cout << "The player's defense was enough. No damage taken." << std::endl;
+    // Mitigación proporcional según defensa:  
+    // Daño reducido = daño * 100/(100 + defensa)
+    int mitigatedDamage = (damage * 100) / (100 + defense);
 
-        health -= realDamage; // Subtract effective damage from health
-        if (health < 0)
-            health = 0; // Prevent health from becoming negative
-    }
+    health -= mitigatedDamage;
+
+    std::cout << "Player received " << mitigatedDamage << " damage after mitigation." << std::endl;
+
+    if (health < 0)
+        health = 0;
+}
 
     // Getter for player's current health
     int getHealth() const { return health; }
