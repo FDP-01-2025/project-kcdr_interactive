@@ -138,7 +138,7 @@ Enemy enemy[12] = {
 )"),
 
     // Dragonling: baby dragon, high damage and strong defense
-    Enemy("Dragonling", 45, 15, 6, R"(
+    Enemy("Dragonling", 180, 15, 6, R"(
        / \  //\
  .-"\  \_/  //
 |    \     //
