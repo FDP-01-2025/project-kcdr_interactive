@@ -1,6 +1,6 @@
 #ifndef COMBATSCREEN_H
 #define COMBATSCREEN_H
-
+#define MESSAGE_START_ROW (ROWS - 6)
 #include "map.h"
 #include "Player.h"
 #include "Enemy.h"
@@ -8,11 +8,32 @@
 #include "unique_character.h"
 #include "enemy_draw.h"
 #include <string>
+
+#ifdef _WIN32
+#include <conio.h>
+#else
+#include <unistd.h>
+#endif
 // ===== Limpiar la pantalla =====
 void clearScreen()
 {
-    std::cout << "\033[2J\033[H";
+#ifdef _WIN32
+    system("cls");
+#else
+    std::cout << "\033[2J\033[1;1H";
+#endif
 }
+
+// ===== Esperar pulsación de tecla para avanzar =====
+void waitForKey()
+{
+#ifdef _WIN32
+    _getch();
+#else
+    std::cin.get();
+#endif
+}
+
 // ===== Draw a Decorative Health Bar (Safe for Console Width) =====
 void drawHealthBar(char map[ROWS][COLUMNS], int row, int col, int current, const std::string &label)
 {
@@ -46,24 +67,27 @@ void drawName(char map[ROWS][COLUMNS], int row, int col, const std::string &name
 // ===== Draw Simple Combat Options (No Box) =====
 void drawCombatMessage(char map[ROWS][COLUMNS], const std::string texto[], int lineCount)
 {
-    int startRow = ROWS - 6;
     int maxCols = COLUMNS - 4;
 
-    // Limpiar solo el área dentro del borde
-    for (int r = startRow; r < ROWS; ++r)
-        for (int c = 1; c < COLUMNS - 1; ++c)
-            map[r][c] = ' ';
+    // Panel superior e inferior
+    for (int r = MESSAGE_START_ROW; r < ROWS; ++r)
+        for (int c = 0; c < COLUMNS; ++c)
+            map[r][c] = (r == ROWS - 1) ? '-' : ' ';
 
     for (int i = 0; i < lineCount && i < 6; ++i)
     {
         const std::string &line = texto[i];
         for (size_t j = 0; j < line.length() && j < static_cast<size_t>(maxCols); ++j)
-            map[startRow + i][j + 2] = line[j];
+            map[MESSAGE_START_ROW + i][j + 2] = line[j];
 
-        // Asegurar bordes laterales por fila
-        map[startRow + i][0] = '|';
-        map[startRow + i][COLUMNS - 1] = '|';
+        // Bordes verticales por línea
+        map[MESSAGE_START_ROW + i][0] = '|';
+        map[MESSAGE_START_ROW + i][COLUMNS - 1] = '|';
     }
+
+    // Última línea del panel con bordes laterales
+    map[ROWS - 1][0] = '+';
+    map[ROWS - 1][COLUMNS - 1] = '+';
 }
 
 // ===== Draw a Horizontal Divider =====
@@ -74,13 +98,15 @@ void drawDivider(char map[ROWS][COLUMNS], int row)
 }
 
 // ===== Main Combat Screen Drawing Function =====
-void drawCombatScreen(Map &map, const Player &player, const Enemy &enemy)
+void drawCombatScreen(Map &map, const Player &player, const Enemy &enemy, bool pause = true)
 {
+    clearScreen();
     char (&grid)[ROWS][COLUMNS] = map.getGrid();
     map.reset();
 
     // Divider between top (UI) and combat section
     drawDivider(grid, 4);
+    drawDivider(grid, MESSAGE_START_ROW - 1);
 
     // Draw characters
     drawSelectedCharacter(grid, 8, 5); // Player character
@@ -99,6 +125,8 @@ void drawCombatScreen(Map &map, const Player &player, const Enemy &enemy)
 
     // Final render
     map.display();
+    if (pause)
+        waitForKey();
 }
 
 #endif // COMBATSCREEN_H

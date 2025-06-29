@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <limits>
 #include "Player.h"
 #include "Enemy.h"
 #include "map.h"
@@ -27,17 +28,16 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
         texto[2] = "2. Special Attack (" + std::to_string(player.getSpecialAttack()) + " dmg)";
         texto[3] = "Enter option: ";
         lineCount = 4;
-#ifdef _WIN32
-        system("cls");
-#else
-        system("clear");
-#endif
+
         // Setear texto en el mapa y mostrar pantalla
         map.setPanelTexto(lineCount, texto);
-
+        clearScreen();
         drawCombatScreen(map, player, enemy);
 
-        int option;
+        int option = 0;
+        std::cout << " > ";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         std::cin >> option;
 
         int damage = 0;
@@ -62,15 +62,14 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
 
         texto[1] = "Enemy health: " + std::to_string(enemy.getHealth());
         lineCount = 2;
+        map.setPanelTexto(lineCount, texto); 
+        drawCombatScreen(map, player, enemy, true);
 
         if (enemy.getHealth() <= 0)
         {
-            texto[lineCount++] = enemy.getName() + " was defeated!";
-            #ifdef _WIN32
-            system("cls");
-#else
-            system("clear");
-#endif
+            texto[0] = enemy.getName() + " was defeated!";
+            lineCount = 1;
+
             map.setPanelTexto(lineCount, texto);
 
             drawCombatScreen(map, player, enemy);
@@ -87,33 +86,32 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
         texto[0] = enemyAction;
         texto[1] = "Your health: " + std::to_string(player.getHealth());
         lineCount = 2;
+        map.setPanelTexto(lineCount, texto);
+        drawCombatScreen(map, player, enemy, true);
 
         if (player.getHealth() <= 0)
         {
-            texto[lineCount++] = "You were defeated in battle...";
-            #ifdef _WIN32
-            system("cls");
-#else
-            system("clear");
-#endif
+            texto[0] = "You were defeated in battle...";
+            lineCount = 1;
+
             map.setPanelTexto(lineCount, texto);
 
-            drawCombatScreen(map, player, enemy);
+            drawCombatScreen(map, player, enemy, true);
             isPlayerAlive = false;
             break;
         }
-#ifdef _WIN32
-    system("cls");
-#else
-    system("clear");
-#endif
+
         // Mostrar resultado del turno enemigo
         map.setPanelTexto(lineCount, texto);
-        
+
         drawCombatScreen(map, player, enemy);
     }
 
-    std::cout << "\nCombat ended.\n";
+    texto[0] = "Combat ended.";
+    lineCount = 1;
+    map.setPanelTexto(lineCount, texto);
+    drawCombatScreen(map, player, enemy, true);
+
     return isPlayerAlive;
 }
 
