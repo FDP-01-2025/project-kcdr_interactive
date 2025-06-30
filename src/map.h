@@ -1,66 +1,430 @@
-#ifndef MAP_H            // Include guard: Prevents the header file from being included multiple times
+#ifndef MAP_H
 #define MAP_H
 
-#define ROWS 30          // Define a constant for the number of rows in the map
-#define COLUMNS 90       // Define a constant for the number of columns in the map (width increased)
+#define ROWS 30          // Number of rows for the game map grid
+#define COLUMNS 90       // Number of columns for the game map grid
 
-#include <iostream>      // Include iostream library for input/output operations
+// ======== LIBRARIES ========
+#include <string>        // For std::string operations
+#include <iostream>      // For input/output operations (cout, cin)
+#include <cctype>        // For character manipulation functions (tolower)
+#include <cstdlib>       // For system() function to clear console
+#include <conio.h>       // For _getch() immediate key capture on Windows
 
-class Map {              // Define a class named Map
+// ======== STRUCTURE MAP CLASS ========
+// This class represents building structures (houses, church, etc.)
+class StructureMap {
 private:
-    char grid[ROWS][COLUMNS];  // 2D array of chars representing the map grid
+    std::string name;        // Name of the structure (e.g., "Church", "House")
+    std::string asciiArt;    // ASCII art representation of the structure
 
-    void drawBorders() {        // Private method to draw borders around the map
-        // Draw vertical borders
-        for (int row = 0; row < ROWS; ++row) {     // Loop through each row
-            grid[row][0] = '|';                     // Set the leftmost column of each row to '|'
-            grid[row][COLUMNS - 1] = '|';           // Set the rightmost column of each row to '|'
+public:
+    // Constructor: creates a structure with name and ASCII art
+    StructureMap(const std::string &name, const std::string &art) : name(name), asciiArt(art) {}
+    
+    // Getter methods to access private data
+    std::string getAsciiArt() const { return asciiArt; }    // Returns the ASCII art
+    std::string getName() const { return name; }            // Returns the structure name
+    void showArt() const { std::cout << asciiArt << std::endl; }  // Displays ASCII art
+};
+
+// ======== TOWN STRUCTURES ARRAY ========
+// Array containing all building structures available in the town
+StructureMap Townmap[5] = {
+    // Structure 0: Church - placed in town center
+    StructureMap("Iglesia", R"(
+     ^
+    /_\
+   /___\
+  |  +  |
+  | /_\ |
+  | |_| |
+ /_|_|_|_\
+)"),
+
+    // Structure 1: Normal house type 1
+    StructureMap("Normal house", R"(
+   ':.
+      []_____
+     /\      \
+    /  \__/\__\
+    |  |''''''|
+    |  |'|  |'|
+    "`"`"    "`
+ )"),
+
+    // Structure 2: Normal house type 2
+    StructureMap("Normal house", R"(
+
+       `'::::.
+        _____A_
+       /      /\
+      /__/\__/  \
+      |" '' "|  |
+      |"|  |"|  |
+      `"    "`"`"
+
+    )"),
+
+    // Structure 3: Big house type 1
+    StructureMap("Big house", R"(
+       ':.
+         []_____
+        /\      \
+    ___/  \__/\__\__
+   /\___\ |''''''|__\
+   ||'''| |'|  |'|''|
+   ``"""`"`"    "`""`
+        )"),
+
+    // Structure 4: Big house type 2
+    StructureMap("Big house", R"(
+       `'::::.
+        _____A_
+       /      /\
+    __/__/\__/  \___
+   /__|" '' "| /___/\
+   |''|"|  |"| |' '||
+   `""`"    "`"`""""`
+        )"),
+};
+
+// ======== MAP CLASS ========
+// This class manages the game world grid and display
+class Map {
+private:
+    char grid[ROWS][COLUMNS];    // 2D array representing the game world
+
+    // Private method to draw borders and UI elements
+    void drawBorders() {
+        // Draw vertical borders (left and right edges)
+        for (int row = 0; row < ROWS; ++row) {
+            grid[row][0] = '|';                    // Left border
+            grid[row][COLUMNS - 1] = '|';          // Right border
         }
 
-        // Draw horizontal borders
-        for (int col = 0; col < COLUMNS; ++col) {  // Loop through each column
-            grid[0][col] = '-';                      // Top row set to '-' (top border line)
-            grid[ROWS - 6][col] = '-';               // Row at ROWS - 6 set to '-' (panel separator line)
-            grid[ROWS - 1][col] = '-';               // Bottom row set to '-' (bottom border line)
+        // Draw horizontal borders (top, middle separator, bottom)
+        for (int col = 0; col < COLUMNS; ++col) {
+            grid[0][col] = '-';                    // Top border
+            grid[ROWS - 6][col] = '-';             // Separator line for UI panel
+            grid[ROWS - 1][col] = '-';             // Bottom border
+        }
+        
+        // Add control instructions in the bottom UI panel
+        std::string controls = "Move: W/A/S/D | Interact: E | Quit: Q | Map Transitions: Approach edges";
+        int startCol = 2;                          // Start position for text
+        int controlRow = ROWS - 4;                 // Row for control instructions
+        // Write control instructions character by character
+        for (int i = 0; i < controls.length() && startCol + i < COLUMNS - 1; i++) {
+            grid[controlRow][startCol + i] = controls[i];
         }
     }
 
 public:
-    // Constructor: executed when an object of Map is created
+    // Constructor: initializes the  map
     Map() {
-        clear();           // Clear the interior of the map
-        drawBorders();     // Draw the borders on the map
+        clear();         // Clear all cells
+        drawBorders();   // Draw UI borders and instructions
     }
 
-    // Clears the interior of the map (excluding borders)
+    // Provides access to the grid for external modifications
+    char (&getGrid())[ROWS][COLUMNS] { return grid; }
+
+    // Clears the interior of the map (keeps borders intact)
     void clear() {
-        for (int row = 1; row < ROWS - 1; ++row) {          // Loop from second row to second last row
-            for (int col = 1; col < COLUMNS - 1; ++col) {  // Loop from second column to second last column
-                grid[row][col] = ' ';                       // Set each cell inside borders to a space (empty)
+        for (int row = 1; row < ROWS - 1; ++row) {          // Skip top and bottom borders
+            for (int col = 1; col < COLUMNS - 1; ++col) {   // Skip left and right borders
+                grid[row][col] = ' ';                        // Fill with empty space
             }
         }
     }
 
-    // Resets the map: clears the interior and redraws the borders
+    // Resets the map: clears and redraws borders
     void reset() {
-        clear();           // Clear the interior again
-        drawBorders();     // Redraw the borders
+        clear();         // Clear interior
+        drawBorders();   // Redraw borders and UI
     }
 
-    // Displays the entire map grid on the console
+    // Displays the entire map on console
     void display() const {
-        for (int row = 0; row < ROWS; ++row) {            // For each row
-            for (int col = 0; col < COLUMNS; ++col) {    // For each column in the row
-                std::cout << grid[row][col];             // Output the character at current position
+        for (int row = 0; row < ROWS; ++row) {
+            for (int col = 0; col < COLUMNS; ++col) {
+                std::cout << grid[row][col];     // Print each character
             }
-            std::cout << '\n';                            // Move to next line after each row
+            std::cout << '\n';                   // New line after each row
         }
-    }
-
-    // Provides access to the internal map grid for modification outside the class
-    char (&getGrid())[ROWS][COLUMNS] {
-        return grid;          // Return a reference to the 2D char array
     }
 };
 
-#endif // MAP_H   // End of include guard
+// ======== UTILITY FUNCTIONS ========
+
+// Function to draw ASCII art structures on the game map
+inline void drawAsciiArt(char gameGrid[ROWS][COLUMNS], const std::string& art, int startRow, int startCol) {
+    int currentRow = 0, currentCol = 0;
+    
+    // Process each character in the ASCII art string
+    for (char ch : art) {
+        if (ch == '\n') {                        // If newline character
+            currentRow++;                        // Move to next row
+            currentCol = 0;                      // Reset column position
+            continue;
+        }
+        
+        // Check if position is within map boundaries and not a space
+        if (ch != ' ' && 
+            startRow + currentRow < ROWS - 6 &&     // Above UI panel
+            startCol + currentCol < COLUMNS - 1 &&  // Within right border
+            startRow + currentRow > 0 &&            // Below top border
+            startCol + currentCol > 0) {            // After left border
+            
+            gameGrid[startRow + currentRow][startCol + currentCol] = ch;
+        }
+        currentCol++;                            // Move to next column
+    }
+}
+
+// ======== MAP GENERATION FUNCTIONS ========
+
+// Map 1: Town Center - main hub with church and basic houses
+inline void generateCenterTown(char gameGrid[ROWS][COLUMNS]) {
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 8, 40);
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);    
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 65);   
+    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20);   
+    
+    // Add transition zones (letters that trigger map changes)
+    gameGrid[1][45] = 'N';                      // North exit (top)
+    gameGrid[ROWS-7][45] = 'S';                 // South exit (bottom)
+    gameGrid[12][1] = 'W';                      // West exit (left)
+    gameGrid[12][COLUMNS-2] = 'E';              // East exit (right)
+}
+
+// Map 2: North District - residential area with different house arrangement
+inline void generateNorthTown(char gameGrid[ROWS][COLUMNS]) {
+    // Different arrangement of structures
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 8, 40);
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 5, 10);    
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 12, 65);   
+    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20);
+        
+    
+    // Return transition to center
+    gameGrid[ROWS-7][45] = 'S';                 // South exit back to center
+}
+
+// Map 3: South District - another residential area with unique layout
+inline void generateSouthTown(char gameGrid[ROWS][COLUMNS]) {
+    // Different arrangement from other districts
+    drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 8, 40);
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);    
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 12, 65);   
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 15, 20);
+    
+    // Return transition to center
+    gameGrid[1][45] = 'N';                      // North exit back to center
+}
+
+// Map 4: East District - commercial-looking area with larger buildings
+inline void generateEastTown(char gameGrid[ROWS][COLUMNS]) {
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 8, 40);
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);    
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 65);   
+    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20);
+    
+    // Return transition to center
+    gameGrid[12][1] = 'W';                      // West exit back to center
+}
+
+// ======== PLAYER AND MAP SYSTEM ========
+
+// Global variables for player state and current map
+static int playerX = 16;                        // Player's row position
+static int playerY = 45;                        // Player's column position
+static int currentMap = 0;                      // Current map ID (0=Center, 1=North, 2=South, 3=East)
+
+// Function to generate the appropriate map based on current location
+inline void generateCurrentMap(char gameGrid[ROWS][COLUMNS]) {
+    switch(currentMap) {
+        case 0: generateCenterTown(gameGrid); break;     // Generate town center
+        case 1: generateNorthTown(gameGrid); break;  // Generate north Town
+        case 2: generateSouthTown(gameGrid); break;  // Generate south Town
+        case 3: generateEastTown(gameGrid); break;   // Generate east Town
+    }
+}
+
+// Function to get human-readable map name for display
+inline std::string getCurrentMapName() {
+    switch(currentMap) {
+        case 0: return "Town Center";
+        case 1: return "North District";
+        case 2: return "South District";
+        case 3: return "East District";
+        default: return "Unknown";
+    }
+}
+
+// Function to place player character on the map
+inline void initializePlayer(char gameGrid[ROWS][COLUMNS]) {
+    gameGrid[playerX][playerY] = 'O';           // Place player character 'O' on grid
+}
+
+// Function to handle map transitions when player approaches edges
+inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar) {
+    int newMap = currentMap;                    // Default to current map
+    int newX = playerX, newY = playerY;         // Default to current position
+    
+    // Determine destination map and spawn position based on transition character
+    switch(transitionChar) {
+        case 'N': // Going North
+            if (currentMap == 0) { 
+                newMap = 1;                     // Center -> North District
+                newX = ROWS-8; newY = 45;       // Spawn at bottom of north map
+            }
+            else if (currentMap == 2) { 
+                newMap = 0;                     // South District -> Center
+                newX = ROWS-8; newY = 45;       // Spawn at bottom of center map
+            }
+            break;
+            
+        case 'S': // Going South
+            if (currentMap == 0) { 
+                newMap = 2;                     // Center -> South District
+                newX = 2; newY = 45;            // Spawn at top of south map
+            }
+            else if (currentMap == 1) { 
+                newMap = 0;                     // North District -> Center
+                newX = 2; newY = 45;            // Spawn at top of center map
+            }
+            break;
+            
+        case 'E': // Going East
+            if (currentMap == 0) { 
+                newMap = 3;                     // Center -> East District
+                newX = 12; newY = 2;            // Spawn at left side of east map
+            }
+            break;
+            
+        case 'W': // Going West
+            if (currentMap == 3) { 
+                newMap = 0;                     // East District -> Center
+                newX = 12; newY = COLUMNS-3;    // Spawn at right side of center map
+            }
+            break;
+    }
+    
+    // If map actually changed, update player position and map
+    if (newMap != currentMap) {
+        gameGrid[playerX][playerY] = ' ';       // Clear old position
+        currentMap = newMap;                    // Update current map
+        playerX = newX;                         // Update player X position
+        playerY = newY;                         // Update player Y position
+        return true;                            // Signal that map changed
+    }
+    
+    return false;                               // No map change occurred
+}
+
+// Function to handle player movement
+inline bool movePlayer(char gameGrid[ROWS][COLUMNS], char direction) {
+    int newX = playerX;                         // Calculate new X position
+    int newY = playerY;                         // Calculate new Y position
+
+    // Determine new position based on input direction
+    switch (direction) {
+        case 'w': newX--; break;                // Move up (decrease row)
+        case 's': newX++; break;                // Move down (increase row)
+        case 'a': newY--; break;                // Move left (decrease column)
+        case 'd': newY++; break;                // Move right (increase column)
+        default: return false;                  // Invalid direction
+    }
+
+    // Check if new position is within map boundaries
+    if (newX > 0 && newX < ROWS - 6 && newY > 0 && newY < COLUMNS - 1) {
+        char dest = gameGrid[newX][newY];       // Get character at destination
+        
+        // Check if destination is a transition zone
+        if (dest == 'N' || dest == 'S' || dest == 'E' || dest == 'W') {
+            return changeMap(gameGrid, dest);    // Attempt map transition
+        }
+        
+        // Check if destination is walkable (empty space)
+        if (dest == ' ' || dest == '.') {
+            gameGrid[playerX][playerY] = ' ';    // Clear old position
+            playerX = newX;                      // Update player X
+            playerY = newY;                      // Update player Y
+            gameGrid[playerX][playerY] = 'O';   // Place player at new position
+        }
+    }
+    
+    return false;                               // No map change occurred
+}
+
+// Function to handle player interaction with environment
+inline void interact(char gameGrid[ROWS][COLUMNS]) {
+    // Check all four adjacent cells around the player
+    char adj[4] = {
+        gameGrid[playerX - 1][playerY],         // Cell above player
+        gameGrid[playerX + 1][playerY],         // Cell below player
+        gameGrid[playerX][playerY - 1],         // Cell left of player
+        gameGrid[playerX][playerY + 1]          // Cell right of player
+    };
+
+    // Check for transition zones adjacent to player
+    for (char c : adj) {
+        if (c == 'N' || c == 'S' || c == 'E' || c == 'W') {
+            if (changeMap(gameGrid, c)) {       // Attempt map transition
+                return;                         // Exit if map changed
+            }
+        }
+    }
+
+    // Check for building structures adjacent to player
+    for (char c : adj) {
+        if (c == '^' || c == '|' || c == '/' || c == '\\' || c == '_' || c == '+') {
+            std::cout << "It's a building, but it's closed for now.\n";
+            std::cout << "Press any key to continue...";
+            _getch();                           // Wait for key press
+            return;
+        }
+    }
+    
+    // No interesting objects nearby
+    std::cout << "Nothing interesting nearby.\n";
+    std::cout << "Press any key to continue...";
+    _getch();                                   // Wait for key press
+}
+
+// ======== MAIN GAME LOOP ========
+// Main function that runs the game
+inline void playGame() {
+    Map gameMap;                            // Create game map instance
+    
+    char option;                                // Variable to store player input
+    while (true) {                              // Main game loop
+        // Regenerate map for current location
+        gameMap.reset();                        // Clear map and redraw borders
+        generateCurrentMap(gameMap.getGrid());  // Generate current map structures
+        initializePlayer(gameMap.getGrid());    // Place player on map
+        
+        system("cls");                          // Clear console screen
+        gameMap.display();                      // Display current map
+        
+        // Show current game state information
+        std::cout << "Current Map: " << getCurrentMapName() << "\n";
+        std::cout << "Player Position: (" << playerX << ", " << playerY << ")\n";
+        
+        // Get player input (immediate, no Enter required)
+        option = _getch();                      // Get single character input
+        option = std::tolower(option);          // Convert to lowercase
+        
+        // Process player input
+        if (option == 'q') break;                               // Quit game
+        else if (option == 'e') interact(gameMap.getGrid());    // Interact with environment
+        else {
+            bool mapChanged = movePlayer(gameMap.getGrid(), option);  // Move player
+            // If map changed, loop will regenerate everything automatically
+        }
+    }
+}
+
+#endif // MAP_H
