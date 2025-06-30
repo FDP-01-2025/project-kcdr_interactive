@@ -1,13 +1,24 @@
 #ifndef COMBATSCREEN_H
 #define COMBATSCREEN_H
+
+#include <string>
+
+// Forward declarations
+class Map;
+class Player;
+class Enemy;
+
+#define ROWS 30
+#define COLUMNS 90
 #define MESSAGE_START_ROW (ROWS - 6)
+
+// Include headers after forward declarations
 #include "map.h"
 #include "Player.h"
 #include "Enemy.h"
 #include "characters_Draw.h"
 #include "unique_character.h"
 #include "enemy_draw.h"
-#include <string>
 
 #ifdef _WIN32
 #include <conio.h>
@@ -98,7 +109,7 @@ void drawDivider(char map[ROWS][COLUMNS], int row)
 }
 
 // ===== Main Combat Screen Drawing Function =====
-void drawCombatScreen(Map &map, const Player &player, const Enemy &enemy, bool pause = true)
+void drawCombatScreen(Map &map, const Player &player, const Enemy &enemy, bool pause)
 {
     clearScreen();
     char (&grid)[ROWS][COLUMNS] = map.getGrid();
