@@ -1,6 +1,6 @@
 #ifndef COMBATSCREEN_H
 #define COMBATSCREEN_H
-
+#define MESSAGE_START_ROW (ROWS - 6)
 #include "map.h"
 #include "Player.h"
 #include "Enemy.h"
@@ -9,18 +9,48 @@
 #include "enemy_draw.h"
 #include <string>
 
+#ifdef _WIN32
+#include <conio.h>
+#else
+#include <unistd.h>
+#endif
+// ===== Limpiar la pantalla =====
+void clearScreen()
+{
+#ifdef _WIN32
+    system("cls");
+#else
+    std::cout << "\033[2J\033[1;1H";
+#endif
+}
+
+// ===== Esperar pulsación de tecla para avanzar =====
+void waitForKey()
+{
+#ifdef _WIN32
+    _getch();
+#else
+    std::cin.get();
+#endif
+}
+
 // ===== Draw a Decorative Health Bar (Safe for Console Width) =====
-void drawHealthBar(char map[ROWS][COLUMNS], int row, int col, int current, int max, const std::string &label)
+void drawHealthBar(char map[ROWS][COLUMNS], int row, int col, int current, const std::string &label)
 {
     int barWidth = 20;
-    int filled = (current * barWidth) / max;
+
+    // Si la salud actual es mayor que el ancho, lo limitamos (protección opcional)
+    if (current > barWidth)
+        current = barWidth;
+    if (current < 0)
+        current = 0;
 
     std::string full = label + " [";
+
     for (int i = 0; i < barWidth; ++i)
-        full += (i < filled) ? '=' : ' ';
+        full += (i < current) ? '=' : ' ';
     full += ']';
 
-    // Ensure it doesn't overflow the map width
     for (size_t i = 0; i < full.length() && (col + i) < COLUMNS; ++i)
         map[row][col + i] = full[i];
 }
@@ -35,25 +65,29 @@ void drawName(char map[ROWS][COLUMNS], int row, int col, const std::string &name
 }
 
 // ===== Draw Simple Combat Options (No Box) =====
-void drawCombatOptions(char map[ROWS][COLUMNS])
+void drawCombatMessage(char map[ROWS][COLUMNS], const std::string texto[], int lineCount)
 {
-    const std::string options[] = {
-        "Choose an action:",
-        "1. Normal Attack",
-        "2. Special Attack"
-    };
+    int maxCols = COLUMNS - 4;
 
-    int startRow = ROWS - 5;
-    int startCol = 4;
+    // Panel superior e inferior
+    for (int r = MESSAGE_START_ROW; r < ROWS; ++r)
+        for (int c = 0; c < COLUMNS; ++c)
+            map[r][c] = (r == ROWS - 1) ? '-' : ' ';
 
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < lineCount && i < 6; ++i)
     {
-        for (size_t j = 0; j < options[i].length(); ++j)
-        {
-            if (startCol + j < COLUMNS)
-                map[startRow + i][startCol + j] = options[i][j];
-        }
+        const std::string &line = texto[i];
+        for (size_t j = 0; j < line.length() && j < static_cast<size_t>(maxCols); ++j)
+            map[MESSAGE_START_ROW + i][j + 2] = line[j];
+
+        // Bordes verticales por línea
+        map[MESSAGE_START_ROW + i][0] = '|';
+        map[MESSAGE_START_ROW + i][COLUMNS - 1] = '|';
     }
+
+    // Última línea del panel con bordes laterales
+    map[ROWS - 1][0] = '+';
+    map[ROWS - 1][COLUMNS - 1] = '+';
 }
 
 // ===== Draw a Horizontal Divider =====
@@ -64,31 +98,35 @@ void drawDivider(char map[ROWS][COLUMNS], int row)
 }
 
 // ===== Main Combat Screen Drawing Function =====
-void drawCombatScreen(Map &map, const Player &player, const Enemy &enemy)
+void drawCombatScreen(Map &map, const Player &player, const Enemy &enemy, bool pause = true)
 {
+    clearScreen();
     char (&grid)[ROWS][COLUMNS] = map.getGrid();
     map.reset();
 
     // Divider between top (UI) and combat section
     drawDivider(grid, 4);
+    drawDivider(grid, MESSAGE_START_ROW - 1);
 
     // Draw characters
-    drawSelectedCharacter(grid, 8, 5);      // Player character
-    drawEnemy(enemy, grid, 8, 50);          // Enemy character safely on right
+    drawSelectedCharacter(grid, 8, 5); // Player character
+    drawEnemy(enemy, grid, 8, 50);     // Enemy character safely on right
 
     // Draw names
     drawName(grid, 1, 5, player.getName());
     drawName(grid, 1, 50, enemy.getName());
 
     // Draw health bars
-    drawHealthBar(grid, 2, 5, player.getHealth(), 100, "HP");
-    drawHealthBar(grid, 2, 50, enemy.getHealth(), 20, "HP"); // stays within width
+    drawHealthBar(grid, 2, 5, (player.getHealth() * 20) / 100, "HP");
+    drawHealthBar(grid, 2, 50, (enemy.getHealth() * 20) / 100, "HP"); // stays within width
 
-    // Combat options (bottom left, no box)
-    drawCombatOptions(grid);
+    // Draw message/options in bottom part of screen
+    drawCombatMessage(grid, map.getPanelTexto(), map.getPanelLineCount());
 
     // Final render
     map.display();
+    if (pause)
+        waitForKey();
 }
 
 #endif // COMBATSCREEN_H
