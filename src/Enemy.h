@@ -40,6 +40,9 @@ public:
     // Returns the current health of the enemy
     int getHealth() const;
 
+    // Returns the current defense of the enemy
+    int getDefense() const;
+
     // Returns the ASCII art as a string so it can be drawn externally (e.g., on a map)
     std::string getAsciiArt() const;
 
@@ -87,6 +90,10 @@ inline int Enemy::getAttack() const {
 // Getter: returns the current health of the enemy
 inline int Enemy::getHealth() const {
     return health;
+}
+
+inline int Enemy::getDefense() const{
+    return defense;
 }
 
 // Outputs the ASCII art to the console
