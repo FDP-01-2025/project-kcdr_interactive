@@ -3,11 +3,20 @@
 
 #include <iostream>
 #include <string>
-#include <limits>
+#include <limits> // Required for std::numeric_limits
+
+// Forward declarations
+class Player;
+class Enemy;
+class Map;
+
+// Function declarations
+void drawCombatScreen(Map &map, const Player &player, const Enemy &enemy, bool pause = true);
+void clearScreen();
+
+// Include headers after forward declarations
 #include "Player.h"
 #include "Enemy.h"
-#include "map.h"
-#include "combatScreen.h" // Para mostrar interfaz de combate con arte ASCII
 
 const int MAX_LINES = 6; // Número máximo de líneas para mostrar en el recuadro de mensaje
 
@@ -36,9 +45,12 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
 
         int option = 0;
         std::cout << " > ";
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         std::cin >> option;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(10000, '\n');
+            option = 0;
+        }
 
         int damage = 0;
 

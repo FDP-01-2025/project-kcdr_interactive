@@ -12,6 +12,10 @@ const int MAX_LINEAS = 7; // Define a constant for the number of columns in the 
 #include <cstdlib>  // For system() function to clear console
 #include <conio.h>  // For _getch() immediate key capture on Windows
 
+// Forward declarations to avoid circular dependencies
+class Player;
+class Enemy;
+extern Player playerSelected;
 // ======== STRUCTURE MAP CLASS ========
 // This class represents building structures (houses, church, etc.)
 class StructureMap
@@ -180,33 +184,13 @@ public:
             std::cout << '\n'; // Move to next line after each row
         }
     }
-
-    // Provides access to the internal map grid for modification outside the class
-    char (&getGrid())[ROWS][COLUMNS]
-    {
-        return grid; // Return a reference to the 2D char array
-    }
-    // Resets the map: clears and redraws borders
-    void reset()
-    {
-        clear();       // Clear interior
-        drawBorders(); // Redraw borders and UI
-    }
-
-    // Displays the entire map on console
-    void display() const
-    {
-        for (int row = 0; row < ROWS; ++row)
-        {
-            for (int col = 0; col < COLUMNS; ++col)
-            {
-                std::cout << grid[row][col]; // Print each character
-            }
-            std::cout << '\n'; // New line after each row
-        }
-    }
-
 };
+
+// Include headers that depend on Map class
+#include "enemy_draw.h"
+#include "Enemy.h"
+#include "Player.h"
+#include "combat_system.h"
 
 // ======== UTILITY FUNCTIONS ========
 
@@ -417,8 +401,16 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
 }
 
 // Function to handle player movement
-inline bool movePlayer(char gameGrid[ROWS][COLUMNS], char direction)
+inline bool movePlayer(Map& gameMap, char direction)
 {
+    char gameGrid[ROWS][COLUMNS];
+    // Copy the grid from the Map object
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLUMNS; j++) {
+            gameGrid[i][j] = gameMap.getGrid()[i][j];
+        }
+    }
+    
     int newX = playerX; // Calculate new X position
     int newY = playerY; // Calculate new Y position
 
@@ -459,6 +451,13 @@ inline bool movePlayer(char gameGrid[ROWS][COLUMNS], char direction)
             playerX = newX;                   // Update player X
             playerY = newY;                   // Update player Y
             gameGrid[playerX][playerY] = 'O'; // Place player at new position
+            
+            // Copy the modified grid back to the Map object
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLUMNS; j++) {
+                    gameMap.getGrid()[i][j] = gameGrid[i][j];
+                }
+            }
         }
     }
 
@@ -466,8 +465,16 @@ inline bool movePlayer(char gameGrid[ROWS][COLUMNS], char direction)
 }
 
 // Function to handle player interaction with environment
-inline void interact(char gameGrid[ROWS][COLUMNS])
+inline void interact(Map& gameMap)
 {
+    char gameGrid[ROWS][COLUMNS];
+    // Copy the grid from the Map object
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLUMNS; j++) {
+            gameGrid[i][j] = gameMap.getGrid()[i][j];
+        }
+    }
+    
     // Check all four adjacent cells around the player
     char adj[4] = {
         gameGrid[playerX - 1][playerY], // Cell above player
@@ -493,7 +500,24 @@ inline void interact(char gameGrid[ROWS][COLUMNS])
     {
         if (c == '^' || c == '|' || c == '/' || c == '\\' || c == '_' || c == '+')
         {
+
             std::cout << "It's a building, but it's closed for now.\n";
+            Enemy enemy1 = enemy[11]; // Ejemplo: Slime
+
+            // Draw combat screen with enemy
+            bool playerAlive = Combat(playerSelected, enemy1, gameMap);
+
+            if (playerAlive)
+            {
+                std::cout << "You survived the battle! Continue exploring the map...\n";
+                // Aquí la lógica para seguir recorriendo el mapa
+            }
+            else
+            {
+                std::cout << "Game Over. Try again.\n";
+                // Aquí la lógica para reiniciar o terminar
+            }
+
             std::cout << "Press any key to continue...";
             _getch(); // Wait for key press
             return;
@@ -535,10 +559,10 @@ inline void playGame()
         if (option == 'q')
             break; // Quit game
         else if (option == 'e')
-            interact(gameMap.getGrid()); // Interact with environment
+            interact(gameMap); // Interact with environment
         else
         {
-            bool mapChanged = movePlayer(gameMap.getGrid(), option); // Move player
+            bool mapChanged = movePlayer(gameMap, option); // Move player
             // If map changed, loop will regenerate everything automatically
         }
     }
