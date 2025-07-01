@@ -15,7 +15,8 @@ private:
     int specialAtack; // Variable para manejar el ataque especial
 public:
     // Constructor para mandar a llamar a mandar a crear el jefe con salud defensa y ataque especial
-    Boss(const std::string &name, int health, int attack, int defense, int specialAtack);
+    Boss(const std::string &name, int health, int attack, int defense, int specialAtack)
+        : name(name), health(health), attack(attack), defense(defense), specialAtack(specialAtack) {};
 
     // Getters para obtener un valor de una variable privada
     std::string getName() const { return name; }         // Obtener su nombre
@@ -42,9 +43,9 @@ public:
 };
 
 // ========== Boss creation ==========
-inline Boss createBoss1() { return Boss("Jefe1", 200, 40, 20, 60); }
-inline Boss createBoss2() { return Boss("Jefe2", 200, 40, 20, 60); }
-inline Boss createBoss3() { return Boss("Jefe3", 200, 40, 20, 60); }
-inline Boss createBoss4() { return Boss("Jefe4", 200, 40, 20, 60); }
+inline Boss createBoss1() { return Boss("Queen of Shadows", 200, 40, 20, 60); }
+inline Boss createBoss2() { return Boss("Arcane Sovereign", 230, 45, 25, 70); }
+inline Boss createBoss3() { return Boss("Crystal Queen", 250, 50, 30, 80); }
+inline Boss createBoss4() { return Boss("Void Sovereign", 300, 60, 40, 100); }
 
 #endif // End of header guard
