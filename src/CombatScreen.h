@@ -16,6 +16,7 @@ class Enemy;
 #include "map.h"
 #include "Player.h"
 #include "Enemy.h"
+
 #include "characters_Draw.h"
 #include "unique_character.h"
 #include "enemy_draw.h"
@@ -130,6 +131,37 @@ void drawCombatScreen(Map &map, const Player &player, const Enemy &enemy, bool p
     // Draw health bars
     drawHealthBar(grid, 2, 5, (player.getHealth() * 20) / 100, "HP");
     drawHealthBar(grid, 2, 50, (enemy.getHealth() * 20) / 100, "HP"); // stays within width
+
+    // Draw message/options in bottom part of screen
+    drawCombatMessage(grid, map.getPanelTexto(), map.getPanelLineCount());
+
+    // Final render
+    map.display();
+    if (pause)
+        waitForKey();
+}
+
+void drawCombatScreenBoss(Map &map, const Player &player, const Boss &boss, bool pause)
+{
+    clearScreen();
+    char (&grid)[ROWS][COLUMNS] = map.getGrid();
+    map.reset();
+
+    // Divider between top (UI) and combat section
+    drawDivider(grid, 4);
+    drawDivider(grid, MESSAGE_START_ROW - 1);
+
+    // Draw characters
+    drawSelectedCharacter(grid, 8, 5); // Player character
+    drawBoss(boss, grid, 8, 50);      // Use drawBoss instead of drawEnemy
+
+    // Draw names
+    drawName(grid, 1, 5, player.getName());
+    drawName(grid, 1, 50, boss.getName());
+
+    // Draw health bars
+    drawHealthBar(grid, 2, 5, (player.getHealth() * 20) / 100, "HP");
+    drawHealthBar(grid, 2, 50, (boss.getHealth() * 20) / 100, "HP");
 
     // Draw message/options in bottom part of screen
     drawCombatMessage(grid, map.getPanelTexto(), map.getPanelLineCount());

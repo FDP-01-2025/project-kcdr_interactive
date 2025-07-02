@@ -11,6 +11,7 @@ const int MAX_LINEAS = 7; // Define a constant for the number of columns in the 
 #include <cctype>   // For character manipulation functions (tolower)
 #include <cstdlib>  // For system() function to clear console
 #include <conio.h>  // For _getch() immediate key capture on Windows
+#include "EventsAleatory.h"
 
 // Forward declarations to avoid circular dependencies
 class Player;
@@ -134,7 +135,7 @@ private:
     }
 
 public:
-    void setPanelTexto(int count, const std::string texto[])
+    void setPanelText(int count, const std::string texto[])
     {
         panelLineCount = count;
         for (int i = 0; i < count && i < MAX_LINEAS; ++i)
@@ -458,6 +459,49 @@ inline bool movePlayer(Map& gameMap, char direction)
                     gameMap.getGrid()[i][j] = gameGrid[i][j];
                 }
             }
+              // Después del movimiento exitoso, verificar encuentro aleatorio
+            if (cheekRandomEncounter()) // 15% de probabilidad
+            {
+                // Pausar brevemente para mostrar que algo está pasando
+                system("cls");
+                std::cout << "You sense something in the distance...\n";
+                std::cout << "Press any key to continue...";
+                _getch();
+
+                //Manejar encuentro aleatorio
+                bool playerSurvived = RandomEncounter(playerSelected, gameMap, enemy);
+                if (playerSurvived)
+                {
+                     // Jugador sobrevivió al encuentro
+                    std::cout << "\nYou survived the encounter and continue exploring...\n";
+                    std::cout << "Press any key to continue your journey...";
+                    _getch();
+                }else{
+                    // Jugador murió en el encuentro aleatorio
+                    std::cout << "\n*** GAME OVER ***\n";
+                    std::cout << "Your adventure ends here...\n";
+                    std::cout << "Press 'R' to restart or 'Q' to quit: ";
+
+                    char choice;
+                    std::cin >> choice;
+                    choice = std::tolower(choice);
+                    if (choice == 'r')
+                    {
+                         // Reiniciar jugador 
+                        std::cout << "Restarting your adventure...\n";
+                        std::cout << "Press any key to continue...";
+                        _getch();
+                    }else if (choice == 'q')
+                    {
+                         std::cout << "Thanks for playing!\n";
+                        exit(0);
+                    }
+                    
+                }
+                
+            }
+            return true; // Movimiento exitoso
+            
         }
     }
 
@@ -524,6 +568,7 @@ inline void interact(Map& gameMap)
         }
     }
 
+
     // No interesting objects nearby
     std::cout << "Nothing interesting nearby.\n";
     std::cout << "Press any key to continue...";
@@ -534,6 +579,7 @@ inline void interact(Map& gameMap)
 // Main function that runs the game
 inline void playGame()
 {
+    InitializeEvent();
     Map gameMap; // Create game map instance
 
     char option; // Variable to store player input
@@ -566,6 +612,59 @@ inline void playGame()
             // If map changed, loop will regenerate everything automatically
         }
     }
+}
+
+bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
+{
+    std::string text[MAX_EVENT_LINES];
+    int lineCount = 0;
+
+    // Mensaje inicial de encuentro
+    text[0] = "*** WILD ENCOUNTER! ***";  
+    text[1] = "Something is approaching!"; 
+    lineCount = 2;
+
+    gameMap.setPanelText(lineCount, text);
+    clearScreen();
+    gameMap.display();
+    _getch();
+
+    // Seleccionar enemigo aleatorio 
+    int randomEnemyIndex = rand() % 6;
+    Enemy wildEnemy = enemies[randomEnemyIndex];
+
+    // Mensaje del enemigo que aparece
+    text[0] = "A wild " + wildEnemy.getName() + " appears!"; 
+    text[1] = "Prepare for battle!";
+    lineCount = 2;
+
+    gameMap.setPanelText(lineCount, text);
+    clearScreen();
+    gameMap.display();
+    _getch();
+
+    // Iniciar combate
+    bool playerSurvived = Combat(player, wildEnemy, gameMap);
+
+    // Mensaje de resultado
+    if (playerSurvived)
+    {
+        text[0] = "Victory! You defeated the " + wildEnemy.getName() + "!";
+        text[1] = "You continue your journey...";
+    }
+    else
+    {
+        text[0] = "Defeat! You were defeated...";
+        text[1] = "Game Over..."; 
+    }
+    
+    lineCount = 2;
+    gameMap.setPanelText(lineCount, text);
+    clearScreen();
+    gameMap.display();
+    _getch();
+    
+    return playerSurvived;
 }
 
 #endif // MAP_H
