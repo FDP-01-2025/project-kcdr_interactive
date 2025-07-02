@@ -9,13 +9,14 @@ class Boss
 {
 private:
     std::string name;
-    int health;       // Variable para manejar la vida del
-    int attack;       // Variable para manejar el ataque del
-    int defense;      // Variable para manejar la defensa del
-    int specialAtack; // Variable para manejar el ataque especial
+    int health;           // Variable para manejar la vida del
+    std::string asciiArt; // ASCII art string for visual representation of the enemy
+    int attack;           // Variable para manejar el ataque del
+    int defense;          // Variable para manejar la defensa del
+    int specialAtack;     // Variable para manejar el ataque especial
 public:
     // Constructor para mandar a llamar a mandar a crear el jefe con salud defensa y ataque especial
-    Boss(const std::string &name, int health, int attack, int defense, int specialAtack);
+    Boss(const std::string &name, int health, int attack, int defense, int specialAtack, const std::string &art);
 
     // Getters para obtener un valor de una variable privada
     std::string getName() const { return name; }         // Obtener su nombre
@@ -23,6 +24,11 @@ public:
     int getAttack() const { return attack; }             // Obtener cuanto ataque tendra
     int getDefense() const { return defense; }           // Obtener cuanta defensa tendra
     int getspecialAtack() const { return specialAtack; } // Obtener cuanto daño hara ataque especial
+    // Getter: returns the ASCII art string for external use (e.g., to draw it)
+    inline std::string Boss::getAsciiArt() const
+    {
+        return asciiArt;
+    }
 
     // Setters para poder modificar un valor de una variable privada
     void setHealth(int newHealt) { health = newHealt; }
@@ -36,9 +42,9 @@ public:
             health = 0;
         }
     }
-    int performAttack() const {return attack;}       // ataque normal que podra hacer el jefe
-    int performSpecialAtack() const {return specialAtack;} // ataque espeial que podra hacer el jefe
-    bool isDefeated() const {return health <= 0;}         // Permite saber si el jefe ha sido derrotado
+    int performAttack() const { return attack; }             // ataque normal que podra hacer el jefe
+    int performSpecialAtack() const { return specialAtack; } // ataque espeial que podra hacer el jefe
+    bool isDefeated() const { return health <= 0; }          // Permite saber si el jefe ha sido derrotado
 };
 
 // ========== Boss creation ==========

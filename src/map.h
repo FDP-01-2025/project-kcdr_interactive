@@ -134,7 +134,7 @@ private:
     }
 
 public:
-    void setPanelTexto(int count, const std::string texto[])
+    void setPanelText(int count, const std::string texto[])
     {
         panelLineCount = count;
         for (int i = 0; i < count && i < MAX_LINEAS; ++i)
@@ -523,6 +523,7 @@ inline void interact(Map& gameMap)
             return;
         }
     }
+
 
     // No interesting objects nearby
     std::cout << "Nothing interesting nearby.\n";
