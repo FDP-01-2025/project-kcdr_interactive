@@ -3,6 +3,9 @@
 
 // DO NOT INCLUDE "using namespace std;" IN A HEADER FILE BECAUSE IT COULD CAUSE CONFLICTS WITH OTHER .cpp FILES OR NAME DECLARATIONS (GOOD PRACTICE)
 #include <iostream>
+#include <conio.h>           // For _getch()
+#include <cstdlib>           // For system()
+#include "map.h"             // To use map and its dimensions
 
 // Enum to define the difficulty levels
 enum Difficulty
@@ -20,7 +23,7 @@ public:
     int enemyHealth;
     int enemyAttack;
 
-    configurationDifficulty(int h = 0, int a = 0) // constructor con valires por defecto (0,0)
+    configurationDifficulty(int h = 0, int a = 0) // constructor con valores por defecto (0,0)
         : enemyHealth(h), enemyAttack(a)
     {
     } // Se inician los valores con los datos dados
@@ -28,29 +31,167 @@ public:
 
 configurationDifficulty selectDifficult()
 {
+    Map gameMap; // Create map instance
     int option;
-    do
-    {
-       std::cout << "Select a difficulty: \n1) Easy\n2) Normal\n3) Hard\n";
-    std::cin >> option;
-
-    switch (option)
-    {
-    case 1:  // Easy                                   
-        return configurationDifficulty(-5, -2); // Enemigos mas debiles
-        break;
-    case 2:     // Nomral                           
-        return configurationDifficulty(0, 0); // Enemigos con stats base
-        break;
-    case 3:
-    return configurationDifficulty (10, 5); //Enemigos mas fuertes
-    default:
-    std:: cout << "Invalid option, reselect a correct difficulty. \n"; //mensaje para mostarle al usario que su opcion no fue valida
-        break;
-    }
-    } while (true); // El ciclo solo termina con un return válido
     
-   
+    // Clear the grid and get reference to it
+    gameMap.reset();
+    char (&grid)[ROWS][COLUMNS] = gameMap.getGrid();
+    
+    // Draw title in the main grid
+    std::string title = "=== DIFFICULTY SELECTION ===";
+    int titleStartCol = (COLUMNS - title.length()) / 2;
+    for (int i = 0; i < title.length(); ++i) {
+        grid[3][titleStartCol + i] = title[i];
+    }
+    
+    // Draw difficulty options in the main grid
+    std::string difficulties[3] = {
+        "1. Easy   (Enemies weaker: -5 HP, -2 ATK)",
+        "2. Normal (Enemies standard stats)",
+        "3. Hard   (Enemies stronger: +10 HP, +5 ATK)"
+    };
+    
+    for (int i = 0; i < 3; ++i) {
+        // Center the text
+        int startCol = (COLUMNS - difficulties[i].length()) / 2;
+        for (int j = 0; j < difficulties[i].length() && startCol + j < COLUMNS - 1; ++j) {
+            grid[6 + i * 2][startCol + j] = difficulties[i][j];
+        }
+    }
+    
+    // Draw selection prompt
+    std::string prompt = "Select your difficulty (1-3):";
+    int promptStartCol = (COLUMNS - prompt.length()) / 2;
+    for (int i = 0; i < prompt.length(); ++i) {
+        grid[14][promptStartCol + i] = prompt[i];
+    }
+    
+    do {
+        // Display the map
+        system("cls");
+        gameMap.display();
+        
+        // Get player selection
+        std::cin >> option;
+
+        switch (option) {
+        case 1:  // Easy                                   
+            {
+                // Clear grid and show confirmation
+                gameMap.reset();
+                std::string confirmation = "You selected: EASY difficulty";
+                int confirmStartCol = (COLUMNS - confirmation.length()) / 2;
+                for (int i = 0; i < confirmation.length(); ++i) {
+                    grid[10][confirmStartCol + i] = confirmation[i];
+                }
+                
+                std::string continueMsg = "Press any key to continue...";
+                int continueStartCol = (COLUMNS - continueMsg.length()) / 2;
+                for (int i = 0; i < continueMsg.length(); ++i) {
+                    grid[12][continueStartCol + i] = continueMsg[i];
+                }
+                
+                system("cls");
+                gameMap.display();
+                _getch();
+                
+                return configurationDifficulty(-5, -2); // Enemigos mas debiles
+            }
+            break;
+            
+        case 2:     // Normal                           
+            {
+                // Clear grid and show confirmation
+                gameMap.reset();
+                std::string confirmation = "You selected: NORMAL difficulty";
+                int confirmStartCol = (COLUMNS - confirmation.length()) / 2;
+                for (int i = 0; i < confirmation.length(); ++i) {
+                    grid[10][confirmStartCol + i] = confirmation[i];
+                }
+                
+                std::string continueMsg = "Press any key to continue...";
+                int continueStartCol = (COLUMNS - continueMsg.length()) / 2;
+                for (int i = 0; i < continueMsg.length(); ++i) {
+                    grid[12][continueStartCol + i] = continueMsg[i];
+                }
+                
+                system("cls");
+                gameMap.display();
+                _getch();
+                
+                return configurationDifficulty(0, 0); // Enemigos con stats base
+            }
+            break;
+            
+        case 3:
+            {
+                // Clear grid and show confirmation
+                gameMap.reset();
+                std::string confirmation = "You selected: HARD difficulty";
+                int confirmStartCol = (COLUMNS - confirmation.length()) / 2;
+                for (int i = 0; i < confirmation.length(); ++i) {
+                    grid[10][confirmStartCol + i] = confirmation[i];
+                }
+                
+                std::string continueMsg = "Press any key to continue...";
+                int continueStartCol = (COLUMNS - continueMsg.length()) / 2;
+                for (int i = 0; i < continueMsg.length(); ++i) {
+                    grid[12][continueStartCol + i] = continueMsg[i];
+                }
+                
+                system("cls");
+                gameMap.display();
+                _getch();
+                
+                return configurationDifficulty(10, 5); //Enemigos mas fuertes
+            }
+            break;
+            
+        default:
+            {
+                // Clear grid and show error message
+                gameMap.reset();
+                std::string errorMsg = "Invalid option. Please select 1, 2, or 3.";
+                int errorStartCol = (COLUMNS - errorMsg.length()) / 2;
+                for (int i = 0; i < errorMsg.length(); ++i) {
+                    grid[10][errorStartCol + i] = errorMsg[i];
+                }
+                
+                std::string continueMsg = "Press any key to try again...";
+                int continueStartCol = (COLUMNS - continueMsg.length()) / 2;
+                for (int i = 0; i < continueMsg.length(); ++i) {
+                    grid[12][continueStartCol + i] = continueMsg[i];
+                }
+                
+                system("cls");
+                gameMap.display();
+                _getch();
+                
+                // Restore the original difficulty selection screen
+                gameMap.reset();
+                
+                // Redraw title
+                for (int i = 0; i < title.length(); ++i) {
+                    grid[3][titleStartCol + i] = title[i];
+                }
+                
+                // Redraw difficulty options
+                for (int i = 0; i < 3; ++i) {
+                    int startCol = (COLUMNS - difficulties[i].length()) / 2;
+                    for (int j = 0; j < difficulties[i].length() && startCol + j < COLUMNS - 1; ++j) {
+                        grid[6 + i * 2][startCol + j] = difficulties[i][j];
+                    }
+                }
+                
+                // Redraw selection prompt
+                for (int i = 0; i < prompt.length(); ++i) {
+                    grid[14][promptStartCol + i] = prompt[i];
+                }
+            }
+            break;
+        }
+    } while (true); // El ciclo solo termina con un return válido
 }
 
 #endif
