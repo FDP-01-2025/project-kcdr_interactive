@@ -49,6 +49,9 @@ void chooseCharacterAndSave() {
         selectedName = characterNames[option - 1];
     }
 
+    // Set the player's name to the selected character name
+    playerSelected.setName(selectedName);
+    
     std::cout << "You have selected: " << selectedName << std::endl;
 }
 

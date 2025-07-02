@@ -22,10 +22,10 @@ void clearScreen();
 #include "Enemy.h"
 #include "Boss.h"
 
-const int MAX_LINES = 6; // Número máximo de líneas para mostrar en el recuadro de mensaje
+const int MAX_LINES = 6; // Maximum number of lines to display in the message box
 
-// ======= Combate contra enemigo común =======
-// Devuelve true si el jugador sobrevive, false si muere
+// ======= Combat against common enemy =======
+// Returns true if the player survives, false if the player dies
 bool Combat(Player &player, Enemy &enemy, Map &map)
 {
     bool isPlayerAlive = true;
@@ -35,20 +35,19 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
 
     while (player.getHealth() > 0 && enemy.getHealth() > 0)
     {
-        // Preparar el texto con las opciones de ataque
+        // Prepare the text with attack options
         text[0] = "Choose your action:";
         text[1] = "1. Normal Attack (" + std::to_string(player.getAttack()) + " dmg)";
         text[2] = "2. Special Attack (" + std::to_string(player.getSpecialAttack()) + " dmg)";
         text[3] = "Enter option: ";
         lineCount = 4;
 
-        // Setear texto en el mapa y mostrar pantalla
+        // Set text in the map and display screen
         map.setPanelText(lineCount, text);
         clearScreen();
         drawCombatScreen(map, player, enemy);
 
         int option = 0;
-        std::cout << " > ";
         std::cin >> option;
         if (std::cin.fail())
         {
@@ -93,11 +92,11 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             break;
         }
 
-        // Turno enemigo: ataque normal
+        // Enemy turn: normal attack
         int enemyDamage = enemy.getAttack();
         std::string enemyAction = enemy.getName() + " attacks with " + std::to_string(enemyDamage) + " damage!";
 
-        // Aplicar daño con mitigación dentro de receiveDamage
+        // Apply damage with mitigation inside receiveDamage
         player.receiveDamage(enemyDamage);
 
         text[0] = enemyAction;
@@ -118,7 +117,7 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             break;
         }
 
-        // Mostrar resultado del turno enemigo
+        // Show enemy turn result
         map.setPanelText(lineCount, text);
 
         drawCombatScreen(map, player, enemy);
@@ -131,7 +130,7 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
 
     return isPlayerAlive;
 }
-// Devuelve true si el jugador sobrevive, false si muere
+// Returns true if the player survives, false if the player dies
 bool CombatBosss(Player &player, Boss &boss, Map &map)
 {
     bool isPlayerAlive = true;
@@ -139,7 +138,7 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
     std::string text[MAX_LINES];
     int lineCount = 0;
 
-    // Mensaje inicial
+    // Initial message
     text[0] = "*** BOSS BATTLE ***";
     text[1] = boss.getName() + "appears before you!";
     lineCount = 2;
@@ -149,20 +148,19 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
 
     while (player.getHealth() > 0 && boss.getHealth() > 0)
     {
-        // Preparar el texto con las opciones de ataque
+        // Prepare the text with attack options
         text[0] = "Choose your action:";
         text[1] = "1. Normal Attack (" + std::to_string(player.getAttack()) + " dmg)";
         text[2] = "2. Special Attack (" + std::to_string(player.getSpecialAttack()) + " dmg)";
         text[3] = "Enter option: ";
         lineCount = 4;
 
-        // Setear texto en el mapa y mostrar pantalla
+        // Set text in the map and display screen
         map.setPanelText(lineCount, text);
         clearScreen();
-        drawCombatScreenBoss(map, player, boss, true);
+        drawCombatScreenBoss(map, player, boss);
 
         int option = 0;
-        std::cout << " > ";
         std::cin >> option;
         if (std::cin.fail())
         {
@@ -199,7 +197,7 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
         if (boss.getHealth() <= 0)
         {
             text[0] = "*** " + boss.getName() + " HAS BEEN DEFEATED! ***";
-            text[1] = "¡Victory is yours!";
+            text[1] = "Victory is yours!";
             lineCount = 2;
 
             map.setPanelText(lineCount, text);
@@ -207,21 +205,21 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             break;
         }
 
-        //Turno del jefe: puede usar ataque normal o especial aleatoriamente
+        // Boss turn: can use normal or special attack randomly
         int bossDamage = 0;
-        std:: string  bossAction = "";
+        std::string bossAction = "";
 
-        //El jefe decide aleatoriamente que ataque usar (50% cada uno)
+        // Boss randomly decides which attack to use (50% each)
         if (rand() % 2 == 0)
         {
             bossDamage = boss.getAttack();
             bossAction = boss.getName() + "uses a devastating attack for " + std::to_string(bossDamage) + " damage!";
         }else{
-            bossDamage = boss.getspecialAtack();
-            bossAction = boss.getName() + "unleashes a SPECIAL ATTACK for " + std::to_string(bossDamage) + "damege!";
+            bossDamage = boss.getSpecialAttack();
+            bossAction = boss.getName() + " unleashes a SPECIAL ATTACK for " + std::to_string(bossDamage) + " damage!";
         }
         
-        //Aplicar daño dentro de receuveDamage
+        // Apply damage inside receiveDamage
         player.receiveDamage(bossDamage);
         text[0] = bossAction;
         text[1] = "Your health: " + std::to_string(player.getHealth());
@@ -232,7 +230,7 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
         if (player.getHealth() <= 0)
         {
             text[0] = "*** YOU HAVE BEEN DEFEATED ***";
-            text[1] = boss.getName() + " stands victorius...";
+            text[1] = boss.getName() + " stands victorious...";
             lineCount = 2;
 
             map.setPanelText(lineCount, text);
@@ -240,7 +238,7 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             isPlayerAlive = false;
             break;
         }
-        //Mostrar resultado del turno del jefe
+        // Show boss turn result
         map.setPanelText(lineCount, text);
         drawCombatScreenBoss(map, player, boss , true);
     }

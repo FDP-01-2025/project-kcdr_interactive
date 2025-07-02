@@ -12,6 +12,8 @@ const int MAX_LINEAS = 7; // Define a constant for the number of columns in the 
 #include <cstdlib>  // For system() function to clear console
 #include <conio.h>  // For _getch() immediate key capture on Windows
 #include "EventsAleatory.h"
+#include "BossDraw.h" // Agregar esta línea
+#include "Boss.h"     // Agregar esta línea
 
 // Forward declarations to avoid circular dependencies
 class Player;
@@ -402,16 +404,18 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
 }
 
 // Function to handle player movement
-inline bool movePlayer(Map& gameMap, char direction)
+inline bool movePlayer(Map &gameMap, char direction)
 {
     char gameGrid[ROWS][COLUMNS];
     // Copy the grid from the Map object
-    for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLUMNS; j++) {
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLUMNS; j++)
+        {
             gameGrid[i][j] = gameMap.getGrid()[i][j];
         }
     }
-    
+
     int newX = playerX; // Calculate new X position
     int newY = playerY; // Calculate new Y position
 
@@ -452,15 +456,17 @@ inline bool movePlayer(Map& gameMap, char direction)
             playerX = newX;                   // Update player X
             playerY = newY;                   // Update player Y
             gameGrid[playerX][playerY] = 'O'; // Place player at new position
-            
+
             // Copy the modified grid back to the Map object
-            for (int i = 0; i < ROWS; i++) {
-                for (int j = 0; j < COLUMNS; j++) {
+            for (int i = 0; i < ROWS; i++)
+            {
+                for (int j = 0; j < COLUMNS; j++)
+                {
                     gameMap.getGrid()[i][j] = gameGrid[i][j];
                 }
             }
-              // Después del movimiento exitoso, verificar encuentro aleatorio
-            if (cheekRandomEncounter()) // 15% de probabilidad
+            // Después del movimiento exitoso, verificar encuentro aleatorio
+            if (checkRandomEncounter()) // 15% de probabilidad
             {
                 // Pausar brevemente para mostrar que algo está pasando
                 system("cls");
@@ -468,15 +474,17 @@ inline bool movePlayer(Map& gameMap, char direction)
                 std::cout << "Press any key to continue...";
                 _getch();
 
-                //Manejar encuentro aleatorio
+                // Manejar encuentro aleatorio
                 bool playerSurvived = RandomEncounter(playerSelected, gameMap, enemy);
                 if (playerSurvived)
                 {
-                     // Jugador sobrevivió al encuentro
+                    // Jugador sobrevivió al encuentro
                     std::cout << "\nYou survived the encounter and continue exploring...\n";
                     std::cout << "Press any key to continue your journey...";
                     _getch();
-                }else{
+                }
+                else
+                {
                     // Jugador murió en el encuentro aleatorio
                     std::cout << "\n*** GAME OVER ***\n";
                     std::cout << "Your adventure ends here...\n";
@@ -487,21 +495,19 @@ inline bool movePlayer(Map& gameMap, char direction)
                     choice = std::tolower(choice);
                     if (choice == 'r')
                     {
-                         // Reiniciar jugador 
+                        // Reiniciar jugador
                         std::cout << "Restarting your adventure...\n";
                         std::cout << "Press any key to continue...";
                         _getch();
-                    }else if (choice == 'q')
+                    }
+                    else if (choice == 'q')
                     {
-                         std::cout << "Thanks for playing!\n";
+                        std::cout << "Thanks for playing!\n";
                         exit(0);
                     }
-                    
                 }
-                
             }
             return true; // Movimiento exitoso
-            
         }
     }
 
@@ -509,16 +515,18 @@ inline bool movePlayer(Map& gameMap, char direction)
 }
 
 // Function to handle player interaction with environment
-inline void interact(Map& gameMap)
+inline void interact(Map &gameMap)
 {
     char gameGrid[ROWS][COLUMNS];
     // Copy the grid from the Map object
-    for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLUMNS; j++) {
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLUMNS; j++)
+        {
             gameGrid[i][j] = gameMap.getGrid()[i][j];
         }
     }
-    
+
     // Check all four adjacent cells around the player
     char adj[4] = {
         gameGrid[playerX - 1][playerY], // Cell above player
@@ -549,7 +557,8 @@ inline void interact(Map& gameMap)
             Enemy enemy1 = enemy[11]; // Ejemplo: Slime
 
             // Draw combat screen with enemy
-            bool playerAlive = Combat(playerSelected, enemy1, gameMap);
+            Boss boss1 = createBoss1();
+            bool playerAlive = CombatBosss(playerSelected, boss1, gameMap);
 
             if (playerAlive)
             {
@@ -567,7 +576,6 @@ inline void interact(Map& gameMap)
             return;
         }
     }
-
 
     // No interesting objects nearby
     std::cout << "Nothing interesting nearby.\n";
@@ -620,8 +628,8 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     int lineCount = 0;
 
     // Mensaje inicial de encuentro
-    text[0] = "*** WILD ENCOUNTER! ***";  
-    text[1] = "Something is approaching!"; 
+    text[0] = "*** WILD ENCOUNTER! ***";
+    text[1] = "Something is approaching!";
     lineCount = 2;
 
     gameMap.setPanelText(lineCount, text);
@@ -629,12 +637,12 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     gameMap.display();
     _getch();
 
-    // Seleccionar enemigo aleatorio 
+    // Seleccionar enemigo aleatorio
     int randomEnemyIndex = rand() % 6;
     Enemy wildEnemy = enemies[randomEnemyIndex];
 
     // Mensaje del enemigo que aparece
-    text[0] = "A wild " + wildEnemy.getName() + " appears!"; 
+    text[0] = "A wild " + wildEnemy.getName() + " appears!";
     text[1] = "Prepare for battle!";
     lineCount = 2;
 
@@ -655,15 +663,15 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     else
     {
         text[0] = "Defeat! You were defeated...";
-        text[1] = "Game Over..."; 
+        text[1] = "Game Over...";
     }
-    
+
     lineCount = 2;
     gameMap.setPanelText(lineCount, text);
     clearScreen();
     gameMap.display();
     _getch();
-    
+
     return playerSurvived;
 }
 
