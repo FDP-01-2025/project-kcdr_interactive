@@ -25,7 +25,7 @@ public:
     int getDefense() const { return defense; }           // Obtener cuanta defensa tendra
     int getspecialAtack() const { return specialAtack; } // Obtener cuanto daño hara ataque especial
     // Getter: returns the ASCII art string for external use (e.g., to draw it)
-    inline std::string Boss::getAsciiArt() const
+    inline std::string getAsciiArt() const
     {
         return asciiArt;
     }
@@ -48,9 +48,9 @@ public:
 };
 
 // ========== Boss creation ==========
-inline Boss createBoss1() { return Boss("Jefe1", 200, 40, 20, 60); }
-inline Boss createBoss2() { return Boss("Jefe2", 200, 40, 20, 60); }
-inline Boss createBoss3() { return Boss("Jefe3", 200, 40, 20, 60); }
-inline Boss createBoss4() { return Boss("Jefe4", 200, 40, 20, 60); }
+inline Boss createBoss1() { return Boss("Jefe1", 200, 40, 20, 60, ""); }
+inline Boss createBoss2() { return Boss("Jefe2", 200, 40, 20, 60, ""); }
+inline Boss createBoss3() { return Boss("Jefe3", 200, 40, 20, 60, ""); }
+inline Boss createBoss4() { return Boss("Jefe4", 200, 40, 20, 60, ""); }
 
 #endif // End of header guard
