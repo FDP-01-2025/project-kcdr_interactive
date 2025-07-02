@@ -5,7 +5,9 @@
 #include "configurationDifficulty.h"
 #include "Boss.h"
 
-// Aplica la dificultad a todos los enemigos normales (índices 0-11)
+// This file contains utility functions for applying difficulty scaling to enemies and bosses.
+// Apply difficulty scaling to all normal enemies (indices 0-11)
+// Increases enemy stats based on the selected difficulty configuration
 inline void applyDifficultyEnemies(const configurationDifficulty& config){
     for (int i = 0; i < 12; ++i)
     {
@@ -19,15 +21,17 @@ inline void applyDifficultyEnemies(const configurationDifficulty& config){
     }
 }
 
-// Aplica la dificultad a todos los jefes (índices 0-3)
+// Apply difficulty scaling to all bosses (indices 0-3)
+// Bosses receive double the health and attack bonuses compared to normal enemies
 inline void applyDifficultyBosses(Boss bosses[4], const configurationDifficulty& config) {
     for (int i = 0; i < 4; ++i) {
         bosses[i] = Boss(
             bosses[i].getName(),
-            bosses[i].getHealth() + config.enemyHealth * 2,
-            bosses[i].getAttack() + config.enemyAttack * 2,
-            bosses[i].getDefense() + config.enemyAttack / 2,
-            bosses[i].getspecialAtack() + config.enemyAttack * 3
+            bosses[i].getHealth() + config.enemyHealth * 2,      // Double health bonus
+            bosses[i].getAttack() + config.enemyAttack * 2,      // Double attack bonus
+            bosses[i].getDefense() + config.enemyAttack / 2,     // Defense bonus based on attack
+            bosses[i].getSpecialAttack() + config.enemyAttack * 3, // Triple special attack bonus
+            bosses[i].getAsciiArt() // Preserve original ASCII art
         );
     }
 }

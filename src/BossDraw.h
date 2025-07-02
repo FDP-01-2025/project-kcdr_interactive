@@ -1,18 +1,17 @@
 #ifndef BOSS_DRAW_H // Include guard: prevents this header file from being included more than once
-#define BOSS_DRAW_H // Defines BOSS_DRAW_H if it hasn't been defined already
+#define BOSS_DRAW_H // Defines BOSS_DRAW_H macro if not already defined
 
-// Este archivo contiene únicamente el arte ASCII de los jefes finales (bosses).
-// Las funciones de dibujo están en enemy_draw.h para mantener consistencia con el sistema.
-// A diferencia de enemy_draw.h, este archivo solo proporciona datos de arte ASCII.
+// This file contains only the ASCII art data for final bosses.
+// Drawing functions are located in enemy_draw.h to maintain consistency with the enemy system.
+// Unlike enemy_draw.h, this file only provides ASCII art data and helper functions.
 
-#include "map.h"   // Includes the map.h file, which provides access to the game map (e.g., a 2D grid)
-#include "Boss.h" // Includes the Boss.h file, which defines the Boss class and its attributes/methods
+#include <string> // Include string library for std::string data type
 
-// ===== Arte ASCII de los Jefes =====
+// ===== Boss ASCII Art Data =====
 
-// Array que almacena el arte ASCII para cada jefe por nombre
+// Array that stores ASCII art for each boss by index
 const std::string bossArt[4] = {
-    // Queen of Shadows: Master of dark magic, first final boss
+    // Queen of Shadows: Master of dark magic, first final boss (13 lines, max 18 chars)
     R"(
       /\   /\   /\
      /  \ /  \ /  \
@@ -22,24 +21,19 @@ const std::string bossArt[4] = {
        \  /--\  /
         \|    |/
          |    |
-        /|....|\ 
+        /|....|\
        / |____| \
       /__|    |__\
      |   \____/   |
-     |   /    \   |
-      \ (______) /
-       \_|_||_|_/
-       /_|_||_|_\
       /__________\
 )",
 
-    // Arcane Sovereign: Necromancer queen, second final boss
+    // Arcane Sovereign: Necromancer queen, second final boss (12 lines, max 19 chars)
     R"(
          _/I\_
         /  o  \
        |   I   |
        |  /^\  |
-       \_|_|_|_/
        /       \
       /|  ___  |\
      /||  \_/  ||\
@@ -47,14 +41,10 @@ const std::string bossArt[4] = {
    /__|         |__\
    |   \       /   |
    |    \_____/    |
-   |  /|       |\  |
-   |_/ |_/\_/\_| \_|
-   /   |_______| \ \
-  /___/         \___\
       |___|___|_|
 )",
 
-    // Crystal Queen: Elemental magic wielder, third final boss  
+    // Crystal Queen: Elemental magic wielder, third final boss (14 lines, max 21 chars)
     R"(
           /^\
          /| |\
@@ -65,20 +55,14 @@ const std::string bossArt[4] = {
      | <  \ /  > |
      |  \  |  /  |
      |   __|__   |
-     |  /     \  |
      | |  o o  | |
      | |   ^   | |
-     | |  \_/  | |
      |  \_____/  |
-      \__/   \__/
-     /   |   |   \
     |    |___|    |
-    |___|     |___|
-   /             \
   /_______|_______\
 )",
 
-    // Void Sovereign: Ultimate final boss with devastating power
+    // Void Sovereign: Ultimate final boss (15 lines, max 21 chars)
     R"(
          _______
         /       \
@@ -88,25 +72,20 @@ const std::string bossArt[4] = {
      |  /       \  |
      | |   /^\   | |
      | |  /   \  | |
-     | | |     | | |
      | |  \___/  | |
       \ \       / /
        \ \_____/ /
-        \       /
         /|     |\
        / |     | \
       /__|_____|__\
-     /___/     \___\
-    |___|       |___|
-   /    |       |    \
-  /_____|_______|_____\
         |_______|
 )"
 };
 
-// ===== Función auxiliar para obtener el arte ASCII de jefes =====
+// ===== Helper Function to Get Boss ASCII Art =====
 
-// Función auxiliar para obtener el arte ASCII basado en el nombre del jefe
+// Helper function to get ASCII art based on boss name
+// Returns the appropriate ASCII art string for the specified boss
 inline std::string getBossAsciiArt(const std::string& bossName) {
     if (bossName == "Queen of Shadows") {
         return bossArt[0];
@@ -117,7 +96,7 @@ inline std::string getBossAsciiArt(const std::string& bossName) {
     } else if (bossName == "Void Sovereign") {
         return bossArt[3];
     }
-    // Por defecto, devolver el arte del primer jefe si no se reconoce el nombre
+    // Default: return the first boss art if name is not recognized
     return bossArt[0];
 }
 

@@ -76,28 +76,41 @@ void drawName(char map[ROWS][COLUMNS], int row, int col, const std::string &name
             map[row][col + i] = formatted[i];
 }
 
-// ===== Draw Simple Combat Options (No Box) =====
+// ===== Draw Simple Combat Options with Fixed Borders =====
 void drawCombatMessage(char map[ROWS][COLUMNS], const std::string texto[], int lineCount)
 {
     int maxCols = COLUMNS - 4;
 
-    // Panel superior e inferior
+    // Clear the message area first
     for (int r = MESSAGE_START_ROW; r < ROWS; ++r)
         for (int c = 0; c < COLUMNS; ++c)
-            map[r][c] = (r == ROWS - 1) ? '-' : ' ';
+            map[r][c] = ' ';
 
+    // Draw top border
+    for (int c = 0; c < COLUMNS; ++c)
+        map[MESSAGE_START_ROW - 1][c] = '-';
+
+    // Draw bottom border  
+    for (int c = 0; c < COLUMNS; ++c)
+        map[ROWS - 1][c] = '-';
+
+    // Draw content with fixed side borders
+    for (int r = MESSAGE_START_ROW; r < ROWS - 1; ++r) {
+        map[r][0] = '|';
+        map[r][COLUMNS - 1] = '|';
+    }
+
+    // Draw text content
     for (int i = 0; i < lineCount && i < 6; ++i)
     {
         const std::string &line = texto[i];
         for (size_t j = 0; j < line.length() && j < static_cast<size_t>(maxCols); ++j)
             map[MESSAGE_START_ROW + i][j + 2] = line[j];
-
-        // Bordes verticales por línea
-        map[MESSAGE_START_ROW + i][0] = '|';
-        map[MESSAGE_START_ROW + i][COLUMNS - 1] = '|';
     }
 
-    // Última línea del panel con bordes laterales
+    // Draw corner pieces
+    map[MESSAGE_START_ROW - 1][0] = '+';
+    map[MESSAGE_START_ROW - 1][COLUMNS - 1] = '+';
     map[ROWS - 1][0] = '+';
     map[ROWS - 1][COLUMNS - 1] = '+';
 }
@@ -159,9 +172,21 @@ void drawCombatScreenBoss(Map &map, const Player &player, const Boss &boss, bool
     drawName(grid, 1, 5, player.getName());
     drawName(grid, 1, 50, boss.getName());
 
-    // Draw health bars
-    drawHealthBar(grid, 2, 5, (player.getHealth() * 20) / 100, "HP");
-    drawHealthBar(grid, 2, 50, (boss.getHealth() * 20) / 100, "HP");
+    // Draw health bars with proper scaling based on max health
+    // Player health bar (assuming max 100 HP)
+    int playerMaxHealth = 100; // You may want to add a getMaxHealth method to Player
+    int playerHealthPercent = (player.getHealth() * 20) / playerMaxHealth;
+    if (playerHealthPercent < 0) playerHealthPercent = 0;
+    if (playerHealthPercent > 20) playerHealthPercent = 20;
+    
+    // Boss health bar (max 200 HP for bosses)
+    int bossMaxHealth = 200; // You may want to add a getMaxHealth method to Boss
+    int bossHealthPercent = (boss.getHealth() * 20) / bossMaxHealth;
+    if (bossHealthPercent < 0) bossHealthPercent = 0;
+    if (bossHealthPercent > 20) bossHealthPercent = 20;
+    
+    drawHealthBar(grid, 2, 5, playerHealthPercent, "HP");
+    drawHealthBar(grid, 2, 50, bossHealthPercent, "HP");
 
     // Draw message/options in bottom part of screen
     drawCombatMessage(grid, map.getPanelTexto(), map.getPanelLineCount());
