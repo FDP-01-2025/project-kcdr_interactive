@@ -12,6 +12,7 @@ using namespace std;
 int main()
 {
     chooseCharacterAndSave();
+    configurationDifficulty difficulty = selectDifficult();
     playGame();
     
     return 0;
