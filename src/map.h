@@ -620,8 +620,8 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     int lineCount = 0;
 
     // Mensaje inicial de encuentro
-    text[0] = "*** WILD ENCOUNTER! ***";  // ✅ Corregido
-    text[1] = "Something is approaching!"; // ✅ Corregido
+    text[0] = "*** WILD ENCOUNTER! ***";  
+    text[1] = "Something is approaching!"; 
     lineCount = 2;
 
     gameMap.setPanelText(lineCount, text);
@@ -634,7 +634,7 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     Enemy wildEnemy = enemies[randomEnemyIndex];
 
     // Mensaje del enemigo que aparece
-    text[0] = "A wild " + wildEnemy.getName() + " appears!"; // ✅ Corregido
+    text[0] = "A wild " + wildEnemy.getName() + " appears!"; 
     text[1] = "Prepare for battle!";
     lineCount = 2;
 
