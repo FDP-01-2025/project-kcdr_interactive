@@ -3,7 +3,7 @@
 
 #include "map.h"   // Includes the map.h file, which provides access to the game map (e.g., a 2D grid)
 #include "enemy.h" // Includes the enemy.h file, which defines the Enemy class and its attributes/methods
-
+#include "Boss.h"
 // ===== Enemy Initialization with ASCII Art =====
 
 // Define a global array of 12 Enemy objects.
@@ -158,6 +158,36 @@ Enemy enemy[12] = {
 // - coordinates `row` and `col` to determine where to place the enemy's ASCII art.
 
 void drawEnemy(const Enemy &e, char map[ROWS][COLUMNS], int row, int col)
+{
+    // Get the ASCII art string of the enemy using the class method
+    std::string art = e.getAsciiArt(); 
+    
+    // Initialize row and column counters relative to the ASCII art being drawn
+    int currentRow = 0;
+    int currentCol = 0;
+
+    // Loop through each character in the ASCII art string
+    for (char ch : art)
+    {
+        if (ch == '\n') // When a newline is encountered,
+        {
+            currentRow++;   // move down one row
+            currentCol = 0; // reset column position to the beginning
+            continue;       // skip to the next character
+        }
+
+        // Only draw characters if the calculated position is within the map bounds
+        if (row + currentRow < ROWS && col + currentCol < COLUMNS)
+        {
+            // Place the character onto the correct position of the game map
+            map[row + currentRow][col + currentCol] = ch;
+        }
+
+        currentCol++; // Move to the next column for the current line
+    }
+}
+
+void drawBoss(const Boss &e, char map[ROWS][COLUMNS], int row, int col)
 {
     // Get the ASCII art string of the enemy using the class method
     std::string art = e.getAsciiArt(); 
