@@ -133,4 +133,6 @@ void drawSelectedCharacter(char map[ROWS][COLUMNS], int row, int col)
         drawValdrik(map, row, col);
 }
 
+
 #endif // UNIQUE_CHARACTER_H
+

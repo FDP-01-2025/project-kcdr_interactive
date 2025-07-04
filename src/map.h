@@ -12,6 +12,8 @@ const int MAX_LINEAS = 7; // Define a constant for the number of columns in the 
 #include <cstdlib>  // For system() function to clear console
 #include <conio.h>  // For _getch() immediate key capture on Windows
 #include "EventsAleatory.h"
+#include "BossDraw.h" // Agregar esta línea
+#include "Boss.h"     // Agregar esta línea
 
 // Forward declarations to avoid circular dependencies
 class Player;
@@ -485,7 +487,7 @@ inline bool movePlayer(Map &gameMap, char direction)
                     gameMap.getGrid()[i][j] = gameGrid[i][j];
                 }
             }
-            // Después del movimiento exitoso, verificar encuentro aleatorio
+              // Después del movimiento exitoso, verificar encuentro aleatorio
             if (cheekRandomEncounter()) // 15% de probabilidad
             {
                 // Pausar brevemente para mostrar que algo está pasando
@@ -577,7 +579,8 @@ inline void interact(Map &gameMap)
             Enemy enemy1 = enemy[11]; // Ejemplo: Slime
 
             // Draw combat screen with enemy
-            bool playerAlive = Combat(playerSelected, enemy1, gameMap);
+            Boss boss1 = createBoss1();
+            bool playerAlive = CombatBosss(playerSelected, boss1, gameMap);
 
             if (playerAlive)
             {

@@ -17,7 +17,7 @@ private:
 public:
     // Constructor for initializing a player object with health, attack, defense, and specialAttack values
     Player(int health, int attack, int defense, int specialAttack)
-        : name("Player1"),  // Initializes the name to "Player1" by default
+        : name("Player"),  // Will be updated by setName
           health(health),   // Initializes health using the provided constructor argument
           attack(attack),   // Initializes attack power
           defense(defense), // Initializes defense points
@@ -25,6 +25,11 @@ public:
           enemiesKilled(0)
     {
     } // Initializes special attack power
+
+    // Method to set the player's name
+    void setName(const std::string& playerName) {
+        name = playerName;
+    }
 
     // Method to display the player's current stats in the console
     void showStats() const
@@ -44,8 +49,8 @@ public:
     if (damage <= 0)
         return;
 
-    // Mitigación proporcional según defensa:  
-    // Daño reducido = daño * 100/(100 + defensa)
+    // Proportional mitigation based on defense:  
+    // Reduced damage = damage * 100/(100 + defense)
     int mitigatedDamage = (damage * 100) / (100 + defense);
 
     health -= mitigatedDamage;
@@ -78,7 +83,7 @@ public:
     void addEnemyKill() {enemiesKilled++;}
 
     //Metodo para verificar si puede avanzar al siguiente mapa
-    bool canAdvanceToNextMap(){enemiesKilled >= 5;}
+    bool canAdvanceToNextMap(){return enemiesKilled >= 5;}
 
     //Metodo para reiniciar el contador al ingresar a un nuevo mapa
     void resetEnemyCount() {enemiesKilled = 0;}
