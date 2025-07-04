@@ -335,6 +335,19 @@ inline void initializePlayer(char gameGrid[ROWS][COLUMNS])
 // Function to handle map transitions when player approaches edges
 inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
 {
+    //Validacion para poder comprobar al momento de ir a otro mapa que moto a los 5 enemigos para poder pasar de mapa
+    if (!playerSelected.canAdvanceToNextMap())
+    {
+        //Muestra un mensaje que aun le faltan derrotar enemigos
+        std::cout << " You need to defeat " << (5 - playerSelected.getEnemiesKilled())
+                  << " more enemies before you can advance to the next area!\n";
+        //Muestro un mensaje con los enemigos que faltan por derrotar
+        std::cout << "Current enemies defeated: " << playerSelected.getEnemiesKilled() << "/5\n";
+        std::cout << "Press any key to continue...";
+        _getch();
+        return false; // Cannot change map yet
+    }
+
     int newMap = currentMap;            // Default to current map
     int newX = playerX, newY = playerY; // Default to current position
 
@@ -397,7 +410,16 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
         currentMap = newMap;              // Update current map
         playerX = newX;                   // Update player X position
         playerY = newY;                   // Update player Y position
-        return true;                      // Signal that map changed
+        
+        // Reset enemy counter for the new map
+        playerSelected.resetEnemyCount();
+        
+        std::cout << "\nYou have advanced to a new area!\n";
+        std::cout << "Enemy counter reset. Defeat 5 enemies to advance further.\n";
+        std::cout << "Press any key to continue...";
+        _getch();
+        
+        return true; // Signal that map changed
     }
 
     return false; // No map change occurred
@@ -465,8 +487,8 @@ inline bool movePlayer(Map &gameMap, char direction)
                     gameMap.getGrid()[i][j] = gameGrid[i][j];
                 }
             }
-            // Después del movimiento exitoso, verificar encuentro aleatorio
-            if (checkRandomEncounter()) // 15% de probabilidad
+              // Después del movimiento exitoso, verificar encuentro aleatorio
+            if (cheekRandomEncounter()) // 15% de probabilidad
             {
                 // Pausar brevemente para mostrar que algo está pasando
                 system("cls");
@@ -604,6 +626,12 @@ inline void playGame()
         // Show current game state information
         std::cout << "Current Map: " << getCurrentMapName() << "\n";
         std::cout << "Player Position: (" << playerX << ", " << playerY << ")\n";
+        std::cout << "Enemies Defeated: " << playerSelected.getEnemiesKilled() << "/5";
+        if (playerSelected.canAdvanceToNextMap())
+        {
+           std:: cout << " - Ready to advance! " ;
+        }
+        
 
         // Get player input (immediate, no Enter required)
         option = _getch();             // Get single character input

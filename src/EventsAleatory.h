@@ -28,10 +28,11 @@ inline void InitializeEvent()
     // because srand() expects an unsigned int as a seed.
 }
 
-// Function that checks if a random encounter occurs
-inline bool checkRandomEncounter(){
-    int probability = rand() % 100;
-    return (probability < 15);
+
+// Función que verifica si ocurre un encuentro aleatorio
+inline bool cheekRandomEncounter(){
+    double probality = rand() % 100;
+    return (probality < 0.15);
 }
 
 // Function that handles random encounters using the panel system
