@@ -333,6 +333,19 @@ inline void initializePlayer(char gameGrid[ROWS][COLUMNS])
 // Function to handle map transitions when player approaches edges
 inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
 {
+    //Validacion para poder comprobar al momento de ir a otro mapa que moto a los 5 enemigos para poder pasar de mapa
+    if (!playerSelected.canAdvanceToNextMap())
+    {
+        //Muestra un mensaje que aun le faltan derrotar enemigos
+        std::cout << " You need to defeat " << (5 - playerSelected.getEnemiesKilled())
+                  << " more enemies before you can advance to the next area!\n";
+        //Muestro un mensaje con los enemigos que faltan por derrotar
+        std::cout << "Current enemies defeated: " << playerSelected.getEnemiesKilled() << "/5\n";
+        std::cout << "Press any key to continue...";
+        _getch();
+        return false; // Cannot change map yet
+    }
+
     int newMap = currentMap;            // Default to current map
     int newX = playerX, newY = playerY; // Default to current position
 
@@ -395,23 +408,34 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
         currentMap = newMap;              // Update current map
         playerX = newX;                   // Update player X position
         playerY = newY;                   // Update player Y position
-        return true;                      // Signal that map changed
+        
+        // Reset enemy counter for the new map
+        playerSelected.resetEnemyCount();
+        
+        std::cout << "\nYou have advanced to a new area!\n";
+        std::cout << "Enemy counter reset. Defeat 5 enemies to advance further.\n";
+        std::cout << "Press any key to continue...";
+        _getch();
+        
+        return true; // Signal that map changed
     }
 
     return false; // No map change occurred
 }
 
 // Function to handle player movement
-inline bool movePlayer(Map& gameMap, char direction)
+inline bool movePlayer(Map &gameMap, char direction)
 {
     char gameGrid[ROWS][COLUMNS];
     // Copy the grid from the Map object
-    for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLUMNS; j++) {
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLUMNS; j++)
+        {
             gameGrid[i][j] = gameMap.getGrid()[i][j];
         }
     }
-    
+
     int newX = playerX; // Calculate new X position
     int newY = playerY; // Calculate new Y position
 
@@ -452,14 +476,16 @@ inline bool movePlayer(Map& gameMap, char direction)
             playerX = newX;                   // Update player X
             playerY = newY;                   // Update player Y
             gameGrid[playerX][playerY] = 'O'; // Place player at new position
-            
+
             // Copy the modified grid back to the Map object
-            for (int i = 0; i < ROWS; i++) {
-                for (int j = 0; j < COLUMNS; j++) {
+            for (int i = 0; i < ROWS; i++)
+            {
+                for (int j = 0; j < COLUMNS; j++)
+                {
                     gameMap.getGrid()[i][j] = gameGrid[i][j];
                 }
             }
-              // Después del movimiento exitoso, verificar encuentro aleatorio
+            // Después del movimiento exitoso, verificar encuentro aleatorio
             if (cheekRandomEncounter()) // 15% de probabilidad
             {
                 // Pausar brevemente para mostrar que algo está pasando
@@ -468,15 +494,17 @@ inline bool movePlayer(Map& gameMap, char direction)
                 std::cout << "Press any key to continue...";
                 _getch();
 
-                //Manejar encuentro aleatorio
+                // Manejar encuentro aleatorio
                 bool playerSurvived = RandomEncounter(playerSelected, gameMap, enemy);
                 if (playerSurvived)
                 {
-                     // Jugador sobrevivió al encuentro
+                    // Jugador sobrevivió al encuentro
                     std::cout << "\nYou survived the encounter and continue exploring...\n";
                     std::cout << "Press any key to continue your journey...";
                     _getch();
-                }else{
+                }
+                else
+                {
                     // Jugador murió en el encuentro aleatorio
                     std::cout << "\n*** GAME OVER ***\n";
                     std::cout << "Your adventure ends here...\n";
@@ -487,21 +515,19 @@ inline bool movePlayer(Map& gameMap, char direction)
                     choice = std::tolower(choice);
                     if (choice == 'r')
                     {
-                         // Reiniciar jugador 
+                        // Reiniciar jugador
                         std::cout << "Restarting your adventure...\n";
                         std::cout << "Press any key to continue...";
                         _getch();
-                    }else if (choice == 'q')
+                    }
+                    else if (choice == 'q')
                     {
-                         std::cout << "Thanks for playing!\n";
+                        std::cout << "Thanks for playing!\n";
                         exit(0);
                     }
-                    
                 }
-                
             }
             return true; // Movimiento exitoso
-            
         }
     }
 
@@ -509,16 +535,18 @@ inline bool movePlayer(Map& gameMap, char direction)
 }
 
 // Function to handle player interaction with environment
-inline void interact(Map& gameMap)
+inline void interact(Map &gameMap)
 {
     char gameGrid[ROWS][COLUMNS];
     // Copy the grid from the Map object
-    for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLUMNS; j++) {
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLUMNS; j++)
+        {
             gameGrid[i][j] = gameMap.getGrid()[i][j];
         }
     }
-    
+
     // Check all four adjacent cells around the player
     char adj[4] = {
         gameGrid[playerX - 1][playerY], // Cell above player
@@ -568,7 +596,6 @@ inline void interact(Map& gameMap)
         }
     }
 
-
     // No interesting objects nearby
     std::cout << "Nothing interesting nearby.\n";
     std::cout << "Press any key to continue...";
@@ -596,6 +623,12 @@ inline void playGame()
         // Show current game state information
         std::cout << "Current Map: " << getCurrentMapName() << "\n";
         std::cout << "Player Position: (" << playerX << ", " << playerY << ")\n";
+        std::cout << "Enemies Defeated: " << playerSelected.getEnemiesKilled() << "/5";
+        if (playerSelected.canAdvanceToNextMap())
+        {
+           std:: cout << " - Ready to advance! " ;
+        }
+        
 
         // Get player input (immediate, no Enter required)
         option = _getch();             // Get single character input
@@ -620,8 +653,8 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     int lineCount = 0;
 
     // Mensaje inicial de encuentro
-    text[0] = "*** WILD ENCOUNTER! ***";  
-    text[1] = "Something is approaching!"; 
+    text[0] = "*** WILD ENCOUNTER! ***";
+    text[1] = "Something is approaching!";
     lineCount = 2;
 
     gameMap.setPanelText(lineCount, text);
@@ -629,12 +662,12 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     gameMap.display();
     _getch();
 
-    // Seleccionar enemigo aleatorio 
+    // Seleccionar enemigo aleatorio
     int randomEnemyIndex = rand() % 6;
     Enemy wildEnemy = enemies[randomEnemyIndex];
 
     // Mensaje del enemigo que aparece
-    text[0] = "A wild " + wildEnemy.getName() + " appears!"; 
+    text[0] = "A wild " + wildEnemy.getName() + " appears!";
     text[1] = "Prepare for battle!";
     lineCount = 2;
 
@@ -655,15 +688,15 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     else
     {
         text[0] = "Defeat! You were defeated...";
-        text[1] = "Game Over..."; 
+        text[1] = "Game Over...";
     }
-    
+
     lineCount = 2;
     gameMap.setPanelText(lineCount, text);
     clearScreen();
     gameMap.display();
     _getch();
-    
+
     return playerSurvived;
 }
 

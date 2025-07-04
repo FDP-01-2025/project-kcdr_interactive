@@ -13,7 +13,7 @@ private:
     int attack;        // Player's basic attack power
     int defense;       // Player's defense points which reduce incoming damage
     int specialAttack; // Player's special ability power (used in special attacks)
-
+    int enemiesKilled;
 public:
     // Constructor for initializing a player object with health, attack, defense, and specialAttack values
     Player(int health, int attack, int defense, int specialAttack)
@@ -21,7 +21,8 @@ public:
           health(health),   // Initializes health using the provided constructor argument
           attack(attack),   // Initializes attack power
           defense(defense), // Initializes defense points
-          specialAttack(specialAttack)
+          specialAttack(specialAttack),
+          enemiesKilled(0)
     {
     } // Initializes special attack power
 
@@ -32,7 +33,9 @@ public:
                   << " | Health: " << health
                   << " | Attack: " << attack
                   << " | Defense: " << defense
-                  << " | Special: " << specialAttack << std::endl;
+                  << " | Special: " << specialAttack 
+                  << " | Enemies Killed: " << enemiesKilled << std::endl;
+
     }
 
     // Method to apply damage to the player based on incoming attack value
@@ -67,6 +70,18 @@ public:
 
     // Getter for player's name
     std::string getName() const { return name; }
+
+    //Getter para obtener el contador
+    int getEnemiesKilled() const {return enemiesKilled;}
+
+    //Se manda a llamar cada vez que el jugador derrata a un enemigo
+    void addEnemyKill() {enemiesKilled++;}
+
+    //Metodo para verificar si puede avanzar al siguiente mapa
+    bool canAdvanceToNextMap(){enemiesKilled >= 5;}
+
+    //Metodo para reiniciar el contador al ingresar a un nuevo mapa
+    void resetEnemyCount() {enemiesKilled = 0;}
 };
 
 #endif // End of header guard

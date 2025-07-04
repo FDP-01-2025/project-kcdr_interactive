@@ -75,15 +75,17 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             break;
         }
 
+       
         enemy.receiveDamage(damage);
-
         text[1] = enemy.getName() + "health: " + std::to_string(enemy.getHealth());
         lineCount = 2;
         map.setPanelText(lineCount, text);
         drawCombatScreen(map, player, enemy, true);
 
+        //Logica cuando el enemigo es derrotado
         if (enemy.getHealth() <= 0)
         {
+            player.addEnemyKill();
             text[0] = enemy.getName() + " was defeated!";
             lineCount = 1;
 
