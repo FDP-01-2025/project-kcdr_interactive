@@ -20,6 +20,7 @@ void clearScreen();
 // Include headers after forward declarations
 #include "Player.h"
 #include "Enemy.h"
+#include "GameMenu.h"
 #include "Boss.h"
 
 const int MAX_LINES = 6; // Maximum number of lines to display in the message box
@@ -45,15 +46,14 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
         // Set text in the map and display screen
         map.setPanelText(lineCount, text);
         clearScreen();
-        drawCombatScreen(map, player, enemy);
+        drawCombatScreen(map, player, enemy, false); // No pause before input
 
         int option = 0;
-        std::cin >> option;
-        if (std::cin.fail())
-        {
-            std::cin.clear();
-            std::cin.ignore(10000, '\n');
-            option = 0;
+        std::cin >> option;  // Use normal input with Enter
+        
+        // Validate input
+        if (option < 1 || option > 2) {
+            option = 1; // Default to normal attack
         }
 
         int damage = 0;
@@ -85,6 +85,11 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
         if (enemy.getHealth() <= 0)
         {
             player.addEnemyKill();
+            
+            // Increment global enemy counter and save progress
+            GameMenu::incrementEnemiesDefeated();
+            GameMenu::saveProgressAfterCombat("Combat Area");
+            
             text[0] = enemy.getName() + " was defeated!";
             lineCount = 1;
 
@@ -116,6 +121,9 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
 
             drawCombatScreen(map, player, enemy, true);
             isPlayerAlive = false;
+            
+            // Show death screen
+            GameMenu::displayDeathScreen();
             break;
         }
 
@@ -126,9 +134,10 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
     }
 
     text[0] = "Combat ended.";
-    lineCount = 1;
+    text[1] = "Press any key to continue...";
+    lineCount = 2;
     map.setPanelText(lineCount, text);
-    drawCombatScreen(map, player, enemy, true);
+    drawCombatScreen(map, player, enemy, true); // Add pause to read the message
 
     return isPlayerAlive;
 }
@@ -160,15 +169,14 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
         // Set text in the map and display screen
         map.setPanelText(lineCount, text);
         clearScreen();
-        drawCombatScreenBoss(map, player, boss);
+        drawCombatScreenBoss(map, player, boss, false); // No pause before input
 
         int option = 0;
-        std::cin >> option;
-        if (std::cin.fail())
-        {
-            std::cin.clear();
-            std::cin.ignore(10000, '\n');
-            option = 0;
+        std::cin >> option;  // Use normal input with Enter
+        
+        // Validate input
+        if (option < 1 || option > 2) {
+            option = 1; // Default to normal attack
         }
 
         int damage = 0;
@@ -198,6 +206,10 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
 
         if (boss.getHealth() <= 0)
         {
+            // Increment global enemy counter and save progress for boss defeat
+            GameMenu::incrementEnemiesDefeated();
+            GameMenu::saveProgressAfterCombat("Boss Arena");
+            
             text[0] = "*** " + boss.getName() + " HAS BEEN DEFEATED! ***";
             text[1] = "Victory is yours!";
             lineCount = 2;
@@ -238,6 +250,9 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             map.setPanelText(lineCount, text);
             drawCombatScreenBoss(map, player, boss, true);
             isPlayerAlive = false;
+            
+            // Show death screen
+            GameMenu::displayDeathScreen();
             break;
         }
         // Show boss turn result
@@ -245,9 +260,10 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
         drawCombatScreenBoss(map, player, boss , true);
     }
     text[0] = "Boss battle ended.";
-    lineCount = 1;
+    text[1] = "Press any key to continue...";
+    lineCount = 2;
     map.setPanelText(lineCount, text);
-    drawCombatScreenBoss(map, player, boss, true);
+    drawCombatScreenBoss(map, player, boss, true); // Add pause to read the message
 
     return isPlayerAlive;
 }
