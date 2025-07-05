@@ -18,7 +18,9 @@ const int MAX_LINEAS = 7; // Define a constant for the number of columns in the 
 // Forward declarations to avoid circular dependencies
 class Player;
 class Enemy;
+class GameController;
 extern Player playerSelected;
+void playGame(); // Forward declaration for the main game loop function
 // ======== STRUCTURE MAP CLASS ========
 // This class represents building structures (houses, church, etc.)
 class StructureMap
@@ -194,6 +196,7 @@ public:
 #include "Enemy.h"
 #include "Player.h"
 #include "combat_system.h"
+#include "GameController.h"
 
 // ======== UTILITY FUNCTIONS ========
 
@@ -224,6 +227,60 @@ inline void drawAsciiArt(char gameGrid[ROWS][COLUMNS], const std::string &art, i
         }
         currentCol++; // Move to next column
     }
+}
+
+// Function to draw text on the game map
+inline void drawTextOnMap(char gameGrid[ROWS][COLUMNS], const std::string &text, int row, int startCol)
+{
+    for (int i = 0; i < text.length() && startCol + i < COLUMNS - 1; i++)
+    {
+        if (row < ROWS - 6 && row > 0 && startCol + i > 0)
+        {
+            gameGrid[row][startCol + i] = text[i];
+        }
+    }
+}
+
+// Function to show bush encounter scene
+inline void showBushEncounter(Map &gameMap)
+{
+    char (&grid)[ROWS][COLUMNS] = gameMap.getGrid();
+    gameMap.reset(); // Clear map and redraw borders
+    
+    // ASCII art for bush
+    std::string bushArt = R"(
+     @@@@@@@@
+   @@@@@@@@@@@@
+  @@@@@@@@@@@@@@
+ @@@@@@@@@@@@@@@@
+  @@@@@@@@@@@@@@
+   @@@@@@@@@@@@
+     @@@@@@@@
+       ||||
+       ||||
+)";
+    
+    // Draw bush in center of map
+    int bushRow = 8;
+    int bushCol = 35;
+    drawAsciiArt(grid, bushArt, bushRow, bushCol);
+    
+    // Draw encounter text
+    std::string message1 = "You sense something in the distance...";
+    std::string message2 = "The bushes rustle ominously...";
+    std::string message3 = "Press any key to continue...";
+    
+    int textRow1 = 18;
+    int textRow2 = 19;
+    int textRow3 = 21;
+    
+    drawTextOnMap(grid, message1, textRow1, (COLUMNS - message1.length()) / 2);
+    drawTextOnMap(grid, message2, textRow2, (COLUMNS - message2.length()) / 2);
+    drawTextOnMap(grid, message3, textRow3, (COLUMNS - message3.length()) / 2);
+    
+    system("cls");
+    gameMap.display();
+    _getch(); // Solo una llamada a _getch aquí
 }
 
 // ======== MAP GENERATION FUNCTIONS ========
@@ -326,6 +383,18 @@ inline std::string getCurrentMapName()
     }
 }
 
+// Function to get current map ID
+inline int getCurrentMapId()
+{
+    return currentMap;
+}
+
+// Function to set current map ID (used when loading game)
+inline void setCurrentMapId(int mapId)
+{
+    currentMap = mapId;
+}
+
 // Function to place player character on the map
 inline void initializePlayer(char gameGrid[ROWS][COLUMNS])
 {
@@ -407,15 +476,17 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
     if (newMap != currentMap)
     {
         gameGrid[playerX][playerY] = ' '; // Clear old position
+        
+        // Use new per-map enemy counter system
+        int oldMap = currentMap;
+        playerSelected.changeToMap(oldMap, newMap);
+        
         currentMap = newMap;              // Update current map
         playerX = newX;                   // Update player X position
         playerY = newY;                   // Update player Y position
         
-        // Reset enemy counter for the new map
-        playerSelected.resetEnemyCount();
-        
         std::cout << "\nYou have advanced to a new area!\n";
-        std::cout << "Enemy counter reset. Defeat 5 enemies to advance further.\n";
+        std::cout << "Enemy counter for this map: " << playerSelected.getEnemiesKilled() << "/5\n";
         std::cout << "Press any key to continue...";
         _getch();
         
@@ -490,44 +561,19 @@ inline bool movePlayer(Map &gameMap, char direction)
               // Después del movimiento exitoso, verificar encuentro aleatorio
             if (cheekRandomEncounter()) // 15% de probabilidad
             {
-                // Pausar brevemente para mostrar que algo está pasando
-                system("cls");
-                std::cout << "You sense something in the distance...\n";
-                std::cout << "Press any key to continue...";
-                _getch();
+                // Mostrar escena de arbusto con encuentro
+                showBushEncounter(gameMap);
 
                 // Manejar encuentro aleatorio
                 bool playerSurvived = RandomEncounter(playerSelected, gameMap, enemy);
-                if (playerSurvived)
+                
+                // Si el jugador no sobrevivió, manejar la muerte
+                if (!playerSurvived)
                 {
-                    // Jugador sobrevivió al encuentro
-                    std::cout << "\nYou survived the encounter and continue exploring...\n";
-                    std::cout << "Press any key to continue your journey...";
-                    _getch();
+                    handleDeathScreen();
+                    return false; // El jugador murió
                 }
-                else
-                {
-                    // Jugador murió en el encuentro aleatorio
-                    std::cout << "\n*** GAME OVER ***\n";
-                    std::cout << "Your adventure ends here...\n";
-                    std::cout << "Press 'R' to restart or 'Q' to quit: ";
-
-                    char choice;
-                    std::cin >> choice;
-                    choice = std::tolower(choice);
-                    if (choice == 'r')
-                    {
-                        // Reiniciar jugador
-                        std::cout << "Restarting your adventure...\n";
-                        std::cout << "Press any key to continue...";
-                        _getch();
-                    }
-                    else if (choice == 'q')
-                    {
-                        std::cout << "Thanks for playing!\n";
-                        exit(0);
-                    }
-                }
+                // Si sobrevivió, RandomEncounter ya mostró el mensaje de victoria
             }
             return true; // Movimiento exitoso
         }
@@ -652,54 +698,13 @@ inline void playGame()
 
 bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
 {
-    std::string text[MAX_EVENT_LINES];
-    int lineCount = 0;
-
-    // Mensaje inicial de encuentro
-    text[0] = "*** WILD ENCOUNTER! ***";
-    text[1] = "Something is approaching!";
-    lineCount = 2;
-
-    gameMap.setPanelText(lineCount, text);
-    clearScreen();
-    gameMap.display();
-    _getch();
-
     // Seleccionar enemigo aleatorio
     int randomEnemyIndex = rand() % 6;
     Enemy wildEnemy = enemies[randomEnemyIndex];
 
-    // Mensaje del enemigo que aparece
-    text[0] = "A wild " + wildEnemy.getName() + " appears!";
-    text[1] = "Prepare for battle!";
-    lineCount = 2;
-
-    gameMap.setPanelText(lineCount, text);
-    clearScreen();
-    gameMap.display();
-    _getch();
-
-    // Iniciar combate
+    // Iniciar combate directamente sin pausas adicionales
     bool playerSurvived = Combat(player, wildEnemy, gameMap);
-
-    // Mensaje de resultado
-    if (playerSurvived)
-    {
-        text[0] = "Victory! You defeated the " + wildEnemy.getName() + "!";
-        text[1] = "You continue your journey...";
-    }
-    else
-    {
-        text[0] = "Defeat! You were defeated...";
-        text[1] = "Game Over...";
-    }
-
-    lineCount = 2;
-    gameMap.setPanelText(lineCount, text);
-    clearScreen();
-    gameMap.display();
-    _getch();
-
+    
     return playerSurvived;
 }
 
