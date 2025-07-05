@@ -3,6 +3,7 @@
 
 #include <string>   // Include support for the std::string data type
 #include <iostream> // Include for console output (e.g., std::cout)
+#include <map>      // Include for std::map to handle per-map enemy counters
 
 // Declaration of the Player class, which represents a playable character in the game
 class Player
@@ -14,7 +15,8 @@ private:
     int maxHealth;     // Variable para saber hasta cuanto es la vida maxima de un jugador
     int defense;       // Player's defense points which reduce incoming damage
     int specialAttack; // Player's special ability power (used in special attacks)
-    int enemiesKilled;
+    int enemiesKilled; // Current map enemy counter (for backward compatibility)
+    std::map<int, int> enemiesKilledPerMap; // Counter per map (map_id -> enemy_count)
 public:
     // Constructor for initializing a player object with health, attack, defense, and specialAttack values
     Player(int health, int attack, int defense, int specialAttack)
@@ -90,17 +92,37 @@ public:
     // Getter for player's name
     std::string getName() const { return name; }
 
-    //Getter para obtener el contador
+    //Getter para obtener el contador del mapa actual
     int getEnemiesKilled() const {return enemiesKilled;}
 
-    //Se manda a llamar cada vez que el jugador derrata a un enemigo
+    //Se manda a llamar cada vez que el jugador derrota a un enemigo
     void addEnemyKill() {enemiesKilled++;}
 
     //Metodo para verificar si puede avanzar al siguiente mapa
     bool canAdvanceToNextMap(){return enemiesKilled >= 5;}
 
-    //Metodo para reiniciar el contador al ingresar a un nuevo mapa
+    //Metodo para cambiar de mapa (guarda contador actual y carga el del nuevo mapa)
+    void changeToMap(int currentMapId, int newMapId) {
+        // Guardar contador del mapa actual
+        enemiesKilledPerMap[currentMapId] = enemiesKilled;
+        // Cargar contador del nuevo mapa (0 si es la primera vez)
+        enemiesKilled = enemiesKilledPerMap[newMapId];
+    }
+    
+    //Metodo para reiniciar el contador al ingresar a un nuevo mapa (solo para compatibilidad)
     void resetEnemyCount() {enemiesKilled = 0;}
+    
+    //Metodo para establecer el contador de enemigos (usado al cargar partida)
+    void setEnemiesKilled(int count) {enemiesKilled = count;}
+    
+    //Metodo para obtener el contador actual (usado al guardar partida)
+    int getCurrentEnemiesKilled() const {return enemiesKilled;}
+    
+    //Metodo para obtener todos los contadores por mapa
+    std::map<int, int> getEnemiesKilledPerMap() const {return enemiesKilledPerMap;}
+    
+    //Metodo para establecer todos los contadores por mapa (usado al cargar partida)
+    void setEnemiesKilledPerMap(const std::map<int, int>& mapCounters) {enemiesKilledPerMap = mapCounters;}
 };
 
 #endif // End of header guard
