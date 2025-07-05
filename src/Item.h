@@ -3,40 +3,39 @@
 
 #include <iostream>
 #include <string>
+#include "Player.h"
+#include "Enemy.h"
 
-class Player;
-class Enemy;
-
-//Clase para items de curacion
-class healingItem
+// ==================== CLASE PARA ITEMS DE CURACIÓN ====================
+class HealingItem
 {
-//Declaracion de variables privadas para items de curacion
 private:
     std::string name;
-    int healtAmount;
+    int healAmount;
     int quantity;
+
 public:
-    //Renombrar las variables para poder usarla dentro del juego 
-    healingItem(std::string n, int healt, int qty = 1)
-    : name(n), healtAmount(healt), quantity(qty) {}
+    // Constructor para items de curación
+    HealingItem(std::string n, int heal, int qty = 1)
+    : name(n), healAmount(heal), quantity(qty) {}
 
-    //funcion que no retorna nada que recibe una referencia de la clase jugador
-    void use(Player& player){
-        if (quantity > 0)
-        {
-            player.heal(healtAmount)
-        }
-        
-    }
+    // Función que cura al jugador
+    void use(Player& player);
 
-    //Getter para poder tomar el nombre del obejto
+    // Getters para obtener información del item
     std::string getName() const {return name;}
-    //Getter para poder tomar la cantidad del objeto
     int getQuantity() const {return quantity;}
+    int getHealAmount() const {return healAmount;}
+    
+    // Método para verificar si hay items disponibles
+    bool isAvailable() const {return quantity > 0;}
+    
+    // Método para añadir más items al inventario
+    void addQuantity(int amount) {quantity += amount;}
 };
 
-//Clase para items de daño
-class damageItem
+// ==================== CLASE PARA ITEMS DE DAÑO ====================
+class DamageItem
 {
 private:
     std::string name;
@@ -44,13 +43,48 @@ private:
     int quantity;
 
 public:
-    damageItem(std::string n, int dmg, int qty = 1)
+    // Constructor para items de daño
+    DamageItem(std::string n, int dmg, int qty = 1)
     : name(n), damage(dmg), quantity(qty) {}
 
+    // Función que aplica daño a un enemigo
     void use(Player& player, Enemy& target);
+    
+    // Getters para obtener información del item
     std::string getName() const {return name;}
     int getQuantity() const {return quantity;}
+    int getDamage() const {return damage;}
+    
+    // Método para verificar si hay items disponibles
+    bool isAvailable() const {return quantity > 0;}
+    
+    // Método para añadir más items al inventario
+    void addQuantity(int amount) {quantity += amount;}
 };
 
+// ==================== IMPLEMENTACIONES ====================
 
-#endif
+// Implementación de la función use para HealingItem
+inline void HealingItem::use(Player& player) {
+    if (quantity > 0) {
+        player.heal(healAmount);
+        quantity--;
+        std::cout << "Used " << name << ". Healed " << healAmount << " HP. Remaining: " << quantity << std::endl;
+    } else {
+        std::cout << "No " << name << " left!" << std::endl;
+    }
+}
+
+// Implementación de la función use para DamageItem
+inline void DamageItem::use(Player& player, Enemy& target) {
+    if (quantity > 0) {
+        target.receiveDamage(damage);
+        quantity--;
+        std::cout << player.getName() << " used " << name << " on " << target.getName() 
+                  << " dealing " << damage << " damage! Remaining: " << quantity << std::endl;
+    } else {
+        std::cout << "No " << name << " left!" << std::endl;
+    }
+}
+
+#endif // ITEM_H
