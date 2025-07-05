@@ -702,7 +702,19 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     int randomEnemyIndex = rand() % 6;
     Enemy wildEnemy = enemies[randomEnemyIndex];
 
-    // Iniciar combate directamente sin pausas adicionales
+    // Mostrar mensaje del enemigo que aparece usando el panel
+    std::string text[MAX_EVENT_LINES];
+    text[0] = "*** WILD ENCOUNTER! ***";
+    text[1] = "A wild " + wildEnemy.getName() + " appears!";
+    text[2] = "Prepare for battle!";
+    text[3] = "Press any key to continue...";
+
+    gameMap.setPanelText(4, text);
+    clearScreen();
+    gameMap.display();
+    _getch();
+
+    // Iniciar combate directamente
     bool playerSurvived = Combat(player, wildEnemy, gameMap);
     
     return playerSurvived;

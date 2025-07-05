@@ -46,10 +46,12 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
         // Set text in the map and display screen
         map.setPanelText(lineCount, text);
         clearScreen();
-        drawCombatScreen(map, player, enemy, false); // No pause before input
+        drawCombatScreen(map, player, enemy);
 
         int option = 0;
-        std::cin >> option;  // Use normal input with Enter
+        char input = _getch();  // Use _getch() for immediate input
+        std::cout << input << std::flush;     // Echo the input and flush immediately
+        option = input - '0';   // Convert character to number
         
         // Validate input
         if (option < 1 || option > 2) {
@@ -134,10 +136,9 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
     }
 
     text[0] = "Combat ended.";
-    text[1] = "Press any key to continue...";
-    lineCount = 2;
+    lineCount = 1;
     map.setPanelText(lineCount, text);
-    drawCombatScreen(map, player, enemy, true); // Add pause to read the message
+    drawCombatScreen(map, player, enemy, false); // No pause here to avoid double input
 
     return isPlayerAlive;
 }
@@ -169,10 +170,12 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
         // Set text in the map and display screen
         map.setPanelText(lineCount, text);
         clearScreen();
-        drawCombatScreenBoss(map, player, boss, false); // No pause before input
+        drawCombatScreenBoss(map, player, boss);
 
         int option = 0;
-        std::cin >> option;  // Use normal input with Enter
+        char input = _getch();  // Use _getch() for immediate input
+        std::cout << input << std::flush;     // Echo the input and flush immediately
+        option = input - '0';   // Convert character to number
         
         // Validate input
         if (option < 1 || option > 2) {
@@ -260,10 +263,9 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
         drawCombatScreenBoss(map, player, boss , true);
     }
     text[0] = "Boss battle ended.";
-    text[1] = "Press any key to continue...";
-    lineCount = 2;
+    lineCount = 1;
     map.setPanelText(lineCount, text);
-    drawCombatScreenBoss(map, player, boss, true); // Add pause to read the message
+    drawCombatScreenBoss(map, player, boss, false); // No pause here to avoid double input
 
     return isPlayerAlive;
 }
