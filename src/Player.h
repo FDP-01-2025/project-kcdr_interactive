@@ -12,6 +12,7 @@ private:
     std::string name;  // Name of the player character (currently set to a default value)
     int health;        // Player's current health points
     int attack;        // Player's basic attack power
+    int maxHealth;     // Variable para saber hasta cuanto es la vida maxima de un jugador
     int defense;       // Player's defense points which reduce incoming damage
     int specialAttack; // Player's special ability power (used in special attacks)
     int enemiesKilled; // Current map enemy counter (for backward compatibility)
@@ -24,6 +25,7 @@ public:
           attack(attack),   // Initializes attack power
           defense(defense), // Initializes defense points
           specialAttack(specialAttack),
+          maxHealth(health),
           enemiesKilled(0)
     {
     } // Initializes special attack power
@@ -31,6 +33,18 @@ public:
     // Method to set the player's name
     void setName(const std::string& playerName) {
         name = playerName;
+    }
+
+    //Funcion para saber donde se va curar el personaje
+    void heal(int amount){
+        //Si vida es mas o es igual al porcentaje maximo 
+        health += amount;
+        //Si vida es mayor a vida maxima vida sera igual a la vida maxima que tendra el player
+        if (health > maxHealth)
+        {
+            health = maxHealth;
+        }
+        std::cout << "You cured " << amount << "HP. Current life: " << health << "/" << maxHealth << std::endl;
     }
 
     // Method to display the player's current stats in the console
