@@ -47,7 +47,7 @@ struct GameData
           }
 };
 
-// Global save data storage (no pointers, no vectors)
+// Global save data storage
 static std::map<std::string, GameData> gameSaves;
 static const std::string SAVE_FILE_PREFIX = "savegame";
 static const std::string SAVE_INFO_PREFIX = "saveinfo";
@@ -210,7 +210,7 @@ bool loadSpecificSave(int slotNumber)
     return true;
 }
 
-// Get most recent save (no pointers, returns by reference)
+// Get most recent save 
 bool getMostRecentSave(GameData& outSave)
 {
     for (int i = MAX_SAVE_SLOTS; i >= 1; i--)
@@ -218,7 +218,7 @@ bool getMostRecentSave(GameData& outSave)
         std::string saveKey = "Game" + std::to_string(i);
         if (gameSaves[saveKey].exists)
         {
-            outSave = gameSaves[saveKey]; // Copy, no pointer
+            outSave = gameSaves[saveKey]; 
             return true;
         }
     }
