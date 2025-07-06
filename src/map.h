@@ -134,8 +134,8 @@ StructureMap Townmap[6] = {
     StructureMap("Shop", R"(
    ':.
      _________
-    /  \__ST__\
-    |  |''__''|
+    /  \______\
+    |  |''ST''|
     |  |'|  |'|
     "`"`"    "`
  )"),
@@ -741,6 +741,23 @@ inline void interact(Map &gameMap)
             gameGrid[i][j] = gameMap.getGrid()[i][j];
         }
     }
+
+    // ======== SHOP DETECTION ========
+// Check for shop interaction by looking for "ST" text directly above the player
+int checkRow = playerX - 1;  // One row above the player
+int checkCol = playerY - 1;  // Starting column for "ST" check
+
+// Verify boundaries and look for "ST" pattern directly above player
+if (checkRow >= 0 && checkRow < ROWS && 
+    checkCol >= 0 && checkCol < COLUMNS - 1) {
+    
+    // Look for "ST" pattern which is unique to shops at playerY-1 position
+    if (gameGrid[checkRow][checkCol] == 'S' && gameGrid[checkRow][checkCol + 1] == 'T') {
+        // Execute shop menu
+        InventoryMenu::displayShopMenu();
+        return; // Exit interaction function
+    }
+}
 
     // ======== ADJACENT CELL DETECTION ========
     // Check all four cells adjacent to the player's current position
