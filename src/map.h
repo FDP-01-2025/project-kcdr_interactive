@@ -7,6 +7,17 @@
 #define COLUMNS 90        // Total number of columns in the game map (horizontal size)
 const int MAX_LINEAS = 7; // Maximum number of text lines that can be displayed in message panels
 
+// ======== LIBRARIES ========
+#include <string>   // For std::string operations
+#include <iostream> // For input/output operations (cout, cin)
+#include <cctype>   // For character manipulation functions (tolower)
+#include <cstdlib>  // For system() function to clear console
+#include <conio.h>  // For _getch() immediate key capture on Windows
+#include "EventsAleatory.h"
+#include "BossDraw.h" // Agregar esta línea
+#include "Boss.h"     // Agregar esta línea
+#include "InventoryMenu.h"
+
 // ======== REQUIRED LIBRARIES ========
 // Standard C++ libraries needed for game functionality
 #include <string>   // For std::string operations (text handling)
@@ -17,18 +28,22 @@ const int MAX_LINEAS = 7; // Maximum number of text lines that can be displayed 
 
 // ======== GAME SYSTEM INCLUDES ========
 // Include our custom game systems that this map system depends on
-#include "EventsAleatory.h"  // Random event generation system (wild encounters)
-#include "BossDraw.h"        // Boss character drawing and display functions
-#include "Boss.h"            // Boss character class and creation functions
+#include "EventsAleatory.h" // Random event generation system (wild encounters)
+#include "BossDraw.h"       // Boss character drawing and display functions
+#include "Boss.h"           // Boss character class and creation functions
+
 
 // ======== FORWARD DECLARATIONS ========
 // Declare classes and functions that will be defined elsewhere to avoid circular dependencies
 // This allows us to reference these types without including their full headers yet
-class Player;           // Player character class - handles player stats, inventory, etc.
-class Enemy;            // Enemy character class - handles enemy stats and behavior
-class GameController;   // Main game flow controller - handles menus and game states
-extern Player playerSelected;  // Global player instance that persists throughout the game
-void playGame();        // Main game loop function - will be defined later in this file
+class Player;                 // Player character class - handles player stats, inventory, etc.
+class Enemy;                  // Enemy character class - handles enemy stats and behavior
+class GameController;         // Main game flow controller - handles menus and game states
+class Inventory;              // Inventory system for items
+extern Player playerSelected; // Global player instance that persists throughout the game
+extern Inventory playerInventory; // Global player inventory
+
+void playGame();              // Main game loop function - will be defined later in this file
 // ======== BUILDING STRUCTURE CLASS ========
 // This class represents individual buildings that can be placed on the game map
 // Each building has a name and ASCII art representation for visual display
@@ -124,9 +139,9 @@ class Map
 {
 private:
     // Message panel system - displays important game information to the player
-    int panelLineCount = 0;                    // Number of text lines currently stored in the message panel
-    std::string panelTexto[MAX_LINEAS];        // Array to store text lines for the message panel
-    char grid[ROWS][COLUMNS];                  // 2D character array representing the entire game world
+    int panelLineCount = 0;             // Number of text lines currently stored in the message panel
+    std::string panelTexto[MAX_LINEAS]; // Array to store text lines for the message panel
+    char grid[ROWS][COLUMNS];           // 2D character array representing the entire game world
 
     // Private method to create the visual borders and UI elements around the playable area
     void drawBorders()
@@ -147,12 +162,12 @@ private:
             grid[ROWS - 1][col] = '-'; // Bottom border - horizontal line
         }
 
-        // Add control instructions in the bottom UI panel for player reference
-        std::string controls = "Move: W/A/S/D | Interact: E | Quit: Q | Map Transitions: Approach edges";
-        int startCol = 2;          // Starting column position for text (leave space after border)
-        int controlRow = ROWS - 4; // Row position for control instructions (in the UI panel area)
-        
-        // Write each character of the control instructions to the grid
+        // Add control instructions in the bottom UI panel
+        std::string controls = "Move: W/A/S/D | Interact: E | Inventory: I | Quit: Q | Map Transitions: Approach edges";
+        int startCol = 2;          // Start position for text
+        int controlRow = ROWS - 4; // Row for control instructions
+        // Write control instructions character by character
+
         for (int i = 0; i < controls.length() && startCol + i < COLUMNS - 1; i++)
         {
             grid[controlRow][startCol + i] = controls[i];
@@ -162,20 +177,20 @@ private:
 public:
     // ======== MESSAGE PANEL MANAGEMENT ========
     // These methods handle the text message system that displays information during combat and events
-    
+
     // Set text content for the message panel (used for combat messages, encounter notifications, etc.)
     // Parameters: count - number of text lines to display, texto - array of strings containing the messages
     void setPanelText(int count, const std::string texto[])
     {
-        panelLineCount = count;  // Store how many lines we're displaying
+        panelLineCount = count; // Store how many lines we're displaying
         // Copy each text line into our internal storage, respecting the maximum line limit
         for (int i = 0; i < count && i < MAX_LINEAS; ++i)
             panelTexto[i] = texto[i];
     }
 
     // Getter methods to allow other systems (like combat) to access the stored panel text
-    const std::string *getPanelTexto() const { return panelTexto; }  // Returns pointer to text array
-    int getPanelLineCount() const { return panelLineCount; }         // Returns number of active text lines
+    const std::string *getPanelTexto() const { return panelTexto; } // Returns pointer to text array
+    int getPanelLineCount() const { return panelLineCount; }        // Returns number of active text lines
 
     // ======== MAP INITIALIZATION ========
     // Constructor: Sets up a fresh map when the object is created
@@ -192,16 +207,16 @@ public:
 
     // ======== MAP AREA MANAGEMENT ========
     // These methods handle clearing and resetting the playable area
-    
+
     // Clears only the interior playable area while preserving borders and UI elements
     // This is used when we want to redraw the map content without recreating the frame
     void clear()
     {
         // Loop through only the interior cells, skipping the border rows and columns
         for (int row = 1; row < ROWS - 1; ++row)
-        { 
+        {
             for (int col = 1; col < COLUMNS - 1; ++col)
-            {                         
+            {
                 grid[row][col] = ' '; // Fill each interior cell with empty space
             }
         }
@@ -221,9 +236,9 @@ public:
     {
         // Print each character in the grid, row by row, to create the visual map
         for (int row = 0; row < ROWS; ++row)
-        { 
+        {
             for (int col = 0; col < COLUMNS; ++col)
-            {                                
+            {
                 std::cout << grid[row][col]; // Output each character at its position
             }
             std::cout << '\n'; // Move to the next line after completing each row
@@ -234,11 +249,11 @@ public:
 // ======== DEPENDENT SYSTEM INCLUDES ========
 // Include headers for systems that depend on the Map class being fully defined
 // These must come after the Map class definition to avoid circular dependency issues
-#include "enemy_draw.h"      // Enemy visual representation and drawing functions
-#include "Enemy.h"           // Enemy class definition and behavior
-#include "Player.h"          // Player class definition and stats management
-#include "combat_system.h"   // Combat mechanics and battle flow
-#include "GameController.h"  // Main game state management and menu systems
+#include "enemy_draw.h"     // Enemy visual representation and drawing functions
+#include "Enemy.h"          // Enemy class definition and behavior
+#include "Player.h"         // Player class definition and stats management
+#include "combat_system.h"  // Combat mechanics and battle flow
+#include "GameController.h" // Main game state management and menu systems
 
 // ======== UTILITY FUNCTIONS FOR MAP MANIPULATION ========
 
@@ -247,7 +262,7 @@ public:
 // Parameters: gameGrid - the map grid to draw on, art - ASCII art string, startRow/startCol - position to begin drawing
 inline void drawAsciiArt(char gameGrid[ROWS][COLUMNS], const std::string &art, int startRow, int startCol)
 {
-    int currentRow = 0, currentCol = 0;  // Track our position within the ASCII art
+    int currentRow = 0, currentCol = 0; // Track our position within the ASCII art
 
     // Process each character in the ASCII art string one by one
     for (char ch : art)
@@ -260,12 +275,12 @@ inline void drawAsciiArt(char gameGrid[ROWS][COLUMNS], const std::string &art, i
         }
 
         // Only place the character if it meets all boundary and visibility conditions
-        if (ch != ' ' &&                               // Skip empty spaces (preserve existing map content)
-            startRow + currentRow < ROWS - 6 &&        // Don't draw into the UI panel area
-            startCol + currentCol < COLUMNS - 1 &&     // Stay within the right border
-            startRow + currentRow > 0 &&               // Stay below the top border
-            startCol + currentCol > 0)                 // Stay to the right of the left border
-        { 
+        if (ch != ' ' &&                           // Skip empty spaces (preserve existing map content)
+            startRow + currentRow < ROWS - 6 &&    // Don't draw into the UI panel area
+            startCol + currentCol < COLUMNS - 1 && // Stay within the right border
+            startRow + currentRow > 0 &&           // Stay below the top border
+            startCol + currentCol > 0)             // Stay to the right of the left border
+        {
             // Place the character at the calculated position on the game grid
             gameGrid[startRow + currentRow][startCol + currentCol] = ch;
         }
@@ -284,7 +299,7 @@ inline void drawTextOnMap(char gameGrid[ROWS][COLUMNS], const std::string &text,
         // Ensure we're writing within valid map boundaries (not in borders or UI area)
         if (row < ROWS - 6 && row > 0 && startCol + i > 0)
         {
-            gameGrid[row][startCol + i] = text[i];  // Place each character at its calculated position
+            gameGrid[row][startCol + i] = text[i]; // Place each character at its calculated position
         }
     }
 }
@@ -294,9 +309,9 @@ inline void drawTextOnMap(char gameGrid[ROWS][COLUMNS], const std::string &text,
 // Parameter: gameMap - reference to the map object that will display the encounter scene
 inline void showBushEncounter(Map &gameMap)
 {
-    char (&grid)[ROWS][COLUMNS] = gameMap.getGrid();  // Get direct reference to the map's character grid
-    gameMap.reset(); // Clear the current map and redraw borders for a clean encounter scene
-    
+    char (&grid)[ROWS][COLUMNS] = gameMap.getGrid(); // Get direct reference to the map's character grid
+    gameMap.reset();                                 // Clear the current map and redraw borders for a clean encounter scene
+
     // Define ASCII art for a bush using raw string literal - this represents the source of the encounter
     std::string bushArt = R"(
      @@@@@@@@
@@ -309,30 +324,30 @@ inline void showBushEncounter(Map &gameMap)
        ||||
        ||||
 )";
-    
+
     // Position the bush in the center of the map for dramatic effect
-    int bushRow = 8;   // Vertical position (roughly center of playable area)
-    int bushCol = 35;  // Horizontal position (roughly center of map width)
-    drawAsciiArt(grid, bushArt, bushRow, bushCol);  // Place the bush art on the map
-    
+    int bushRow = 8;                               // Vertical position (roughly center of playable area)
+    int bushCol = 35;                              // Horizontal position (roughly center of map width)
+    drawAsciiArt(grid, bushArt, bushRow, bushCol); // Place the bush art on the map
+
     // Create atmospheric text messages that build tension before the encounter
-    std::string message1 = "You sense something in the distance...";    // Initial warning message
-    std::string message2 = "The bushes rustle ominously...";           // Building suspense
-    std::string message3 = "Press any key to continue...";             // User interaction prompt
-    
+    std::string message1 = "You sense something in the distance..."; // Initial warning message
+    std::string message2 = "The bushes rustle ominously...";         // Building suspense
+    std::string message3 = "Press any key to continue...";           // User interaction prompt
+
     // Position the text messages below the bush for clear visibility
-    int textRow1 = 18;  // First message row
-    int textRow2 = 19;  // Second message row  
-    int textRow3 = 21;  // Instruction row (with extra space)
-    
+    int textRow1 = 18; // First message row
+    int textRow2 = 19; // Second message row
+    int textRow3 = 21; // Instruction row (with extra space)
+
     // Center each message horizontally on the screen for better presentation
     drawTextOnMap(grid, message1, textRow1, (COLUMNS - message1.length()) / 2);
     drawTextOnMap(grid, message2, textRow2, (COLUMNS - message2.length()) / 2);
     drawTextOnMap(grid, message3, textRow3, (COLUMNS - message3.length()) / 2);
-    
+
     // Display the encounter scene to the player
-    system("cls");        // Clear the console screen
-    gameMap.display();    // Show the bush encounter scene
+    system("cls");     // Clear the console screen
+    gameMap.display(); // Show the bush encounter scene
     // Note: _getch() pause is intentionally removed here - it will be handled by the calling RandomEncounter() function
 }
 
@@ -345,15 +360,15 @@ inline void showBushEncounter(Map &gameMap)
 inline void generateCenterTown(char gameGrid[ROWS][COLUMNS])
 {
     // Place buildings using the predefined structures from Townmap array
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 8, 40);   // Church (central landmark)
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);   // Normal house type 1 (upper left)
-    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 65);  // Normal house type 2 (lower right)
-    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20);  // Big house type 1 (lower left)
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 8, 40);  // Church (central landmark)
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);  // Normal house type 1 (upper left)
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 65); // Normal house type 2 (lower right)
+    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20); // Big house type 1 (lower left)
 
     // Create transition zones - special characters that trigger map changes when the player approaches
     // These act as "doors" to other map areas and are placed at strategic edge positions
     gameGrid[1][45] = 'N';           // North exit at top center - leads to North District
-    gameGrid[ROWS - 7][45] = 'S';    // South exit at bottom center - leads to South District  
+    gameGrid[ROWS - 7][45] = 'S';    // South exit at bottom center - leads to South District
     gameGrid[12][1] = 'W';           // West exit at left side - currently unused but ready for expansion
     gameGrid[12][COLUMNS - 2] = 'E'; // East exit at right side - leads to East District
 }
@@ -363,10 +378,10 @@ inline void generateCenterTown(char gameGrid[ROWS][COLUMNS])
 inline void generateNorthTown(char gameGrid[ROWS][COLUMNS])
 {
     // Arrange buildings in a different pattern than the center town for visual variety
-    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 8, 40);   // Normal house type 2 in center
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 5, 10);   // Church in upper left (moved from center)
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 12, 65);  // Normal house type 1 in lower right
-    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20);  // Big house type 1 in lower left
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 8, 40);  // Normal house type 2 in center
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 5, 10);  // Church in upper left (moved from center)
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 12, 65); // Normal house type 1 in lower right
+    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20); // Big house type 1 in lower left
 
     // Create return transition - only one exit back to the center (prevents getting lost)
     gameGrid[ROWS - 7][45] = 'S'; // South exit returns to Town Center
@@ -377,10 +392,10 @@ inline void generateNorthTown(char gameGrid[ROWS][COLUMNS])
 inline void generateSouthTown(char gameGrid[ROWS][COLUMNS])
 {
     // Use different building arrangements to create a unique feel for this district
-    drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 8, 40);   // Big house type 2 in center (unique to this area)
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);   // Normal house type 1 in upper left
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 12, 65);  // Church in lower right (moved from center)
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 15, 20);  // Another normal house type 1 in lower left
+    drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 8, 40);  // Big house type 2 in center (unique to this area)
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);  // Normal house type 1 in upper left
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 12, 65); // Church in lower right (moved from center)
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 15, 20); // Another normal house type 1 in lower left
 
     // Create return transition to center
     gameGrid[1][45] = 'N'; // North exit returns to Town Center
@@ -391,10 +406,10 @@ inline void generateSouthTown(char gameGrid[ROWS][COLUMNS])
 inline void generateEastTown(char gameGrid[ROWS][COLUMNS])
 {
     // Arrange buildings to suggest a commercial district with mixed architecture
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 8, 40);   // Church in center (spiritual anchor)
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);   // Normal house type 1 in upper left
-    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 65);  // Normal house type 2 in lower right
-    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20);  // Big house type 1 in lower left (suggests prosperity)
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 8, 40);  // Church in center (spiritual anchor)
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);  // Normal house type 1 in upper left
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 65); // Normal house type 2 in lower right
+    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20); // Big house type 1 in lower left (suggests prosperity)
 
     // Create return transition to center
     gameGrid[12][1] = 'W'; // West exit returns to Town Center
@@ -417,18 +432,18 @@ inline void generateCurrentMap(char gameGrid[ROWS][COLUMNS])
     switch (currentMap)
     {
     case 0:
-        generateCenterTown(gameGrid);   // Generate the main town center hub
-        break; 
+        generateCenterTown(gameGrid); // Generate the main town center hub
+        break;
     case 1:
-        generateNorthTown(gameGrid);    // Generate the northern residential district
-        break; 
+        generateNorthTown(gameGrid); // Generate the northern residential district
+        break;
     case 2:
-        generateSouthTown(gameGrid);    // Generate the southern residential district
-        break; 
+        generateSouthTown(gameGrid); // Generate the southern residential district
+        break;
     case 3:
-        generateEastTown(gameGrid);     // Generate the eastern commercial district
-        break; 
-    // Note: Additional cases can be added here for future map expansions
+        generateEastTown(gameGrid); // Generate the eastern commercial district
+        break;
+        // Note: Additional cases can be added here for future map expansions
     }
 }
 
@@ -442,15 +457,15 @@ inline std::string getCurrentMapName()
     switch (currentMap)
     {
     case 0:
-        return "Town Center";      // The main hub area
+        return "Town Center"; // The main hub area
     case 1:
-        return "North District";   // Northern residential area
+        return "North District"; // Northern residential area
     case 2:
-        return "South District";   // Southern residential area  
+        return "South District"; // Southern residential area
     case 3:
-        return "East District";    // Eastern commercial area
+        return "East District"; // Eastern commercial area
     default:
-        return "Unknown";          // Fallback for invalid map IDs
+        return "Unknown"; // Fallback for invalid map IDs
     }
 }
 
@@ -489,11 +504,11 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
         // Display informative message about why the transition is blocked
         std::cout << " You need to defeat " << (5 - playerSelected.getEnemiesKilled())
                   << " more enemies before you can advance to the next area!\n";
-        
+
         // Show current progress to help the player understand their goal
         std::cout << "Current enemies defeated: " << playerSelected.getEnemiesKilled() << "/5\n";
         std::cout << "Press any key to continue...";
-        _getch();  // Wait for player acknowledgment before continuing
+        _getch();     // Wait for player acknowledgment before continuing
         return false; // Prevent the map change and keep player in current area
     }
 
@@ -509,16 +524,16 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
         if (currentMap == 0)
         {
             // Center -> North District transition
-            newMap = 1; 
-            newX = ROWS - 8;  // Spawn near bottom of north map (coming from south)
-            newY = 45;        // Keep horizontal center position
+            newMap = 1;
+            newX = ROWS - 8; // Spawn near bottom of north map (coming from south)
+            newY = 45;       // Keep horizontal center position
         }
         else if (currentMap == 2)
         {
-            // South District -> Center transition  
-            newMap = 0; 
-            newX = ROWS - 8;  // Spawn near bottom of center map
-            newY = 45;        // Keep horizontal center position
+            // South District -> Center transition
+            newMap = 0;
+            newX = ROWS - 8; // Spawn near bottom of center map
+            newY = 45;       // Keep horizontal center position
         }
         break;
 
@@ -526,16 +541,16 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
         if (currentMap == 0)
         {
             // Center -> South District transition
-            newMap = 2; 
-            newX = 2;         // Spawn near top of south map (coming from north)
-            newY = 45;        // Keep horizontal center position
+            newMap = 2;
+            newX = 2;  // Spawn near top of south map (coming from north)
+            newY = 45; // Keep horizontal center position
         }
         else if (currentMap == 1)
         {
             // North District -> Center transition
-            newMap = 0; 
-            newX = 2;         // Spawn near top of center map  
-            newY = 45;        // Keep horizontal center position
+            newMap = 0;
+            newX = 2;  // Spawn near top of center map
+            newY = 45; // Keep horizontal center position
         }
         break;
 
@@ -543,19 +558,19 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
         if (currentMap == 0)
         {
             // Center -> East District transition
-            newMap = 3; 
-            newX = 12;        // Keep vertical center position
-            newY = 2;         // Spawn near left side of east map (coming from west)
+            newMap = 3;
+            newX = 12; // Keep vertical center position
+            newY = 2;  // Spawn near left side of east map (coming from west)
         }
         break;
 
-    case 'W': // Moving West  
+    case 'W': // Moving West
         if (currentMap == 3)
         {
             // East District -> Center transition
-            newMap = 0; 
-            newX = 12;                // Keep vertical center position
-            newY = COLUMNS - 3;       // Spawn near right side of center map (coming from east)
+            newMap = 0;
+            newX = 12;          // Keep vertical center position
+            newY = COLUMNS - 3; // Spawn near right side of center map (coming from east)
         }
         break;
     }
@@ -565,24 +580,24 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
     if (newMap != currentMap)
     {
         gameGrid[playerX][playerY] = ' '; // Clear the player's current position on the old map
-        
+
         // ======== PER-MAP ENEMY COUNTER SYSTEM ========
         // Update the enemy counter system to track progress per map area
         int oldMap = currentMap;
-        playerSelected.changeToMap(oldMap, newMap);  // Notify player object of map change
-        
+        playerSelected.changeToMap(oldMap, newMap); // Notify player object of map change
+
         // ======== UPDATE PLAYER STATE ========
-        currentMap = newMap;              // Set the new current map
-        playerX = newX;                   // Update player's vertical position  
-        playerY = newY;                   // Update player's horizontal position
-        
+        currentMap = newMap; // Set the new current map
+        playerX = newX;      // Update player's vertical position
+        playerY = newY;      // Update player's horizontal position
+
         // ======== PROVIDE FEEDBACK ========
         // Inform the player about the successful transition and their progress
         std::cout << "\nYou have advanced to a new area!\n";
         std::cout << "Enemy counter for this map: " << playerSelected.getEnemiesKilled() << "/5\n";
         std::cout << "Press any key to continue...";
-        _getch();  // Wait for player acknowledgment
-        
+        _getch(); // Wait for player acknowledgment
+
         return true; // Signal that the map change was successful
     }
 
@@ -603,7 +618,7 @@ inline bool movePlayer(Map &gameMap, char direction)
     {
         for (int j = 0; j < COLUMNS; j++)
         {
-            gameGrid[i][j] = gameMap.getGrid()[i][j];  // Copy each character from the map
+            gameGrid[i][j] = gameMap.getGrid()[i][j]; // Copy each character from the map
         }
     }
 
@@ -616,17 +631,17 @@ inline bool movePlayer(Map &gameMap, char direction)
     switch (direction)
     {
     case 'w':
-        newX--;  // Move up (decrease row number)
-        break; 
+        newX--; // Move up (decrease row number)
+        break;
     case 's':
-        newX++;  // Move down (increase row number)  
-        break; 
+        newX++; // Move down (increase row number)
+        break;
     case 'a':
-        newY--;  // Move left (decrease column number)
-        break; 
+        newY--; // Move left (decrease column number)
+        break;
     case 'd':
-        newY++;  // Move right (increase column number)
-        break; 
+        newY++; // Move right (increase column number)
+        break;
     default:
         return false; // Invalid direction - no movement occurs
     }
@@ -676,13 +691,13 @@ inline bool movePlayer(Map &gameMap, char direction)
                 // ======== BATTLE EXECUTION ========
                 // Start the random encounter battle - this function handles the entire combat sequence
                 bool playerSurvived = RandomEncounter(playerSelected, gameMap, enemy);
-                
+
                 // ======== DEATH HANDLING ========
                 // If the player died in combat, handle the death sequence
                 if (!playerSurvived)
                 {
-                    GameMenu::displayDeathScreen();  // Show death screen with options
-                    return false; // Signal that the player died (stops movement processing)
+                    GameMenu::displayDeathScreen(); // Show death screen with options
+                    return false;                   // Signal that the player died (stops movement processing)
                 }
                 // If player survived, the RandomEncounter function already displayed victory message
             }
@@ -715,7 +730,7 @@ inline void interact(Map &gameMap)
     // This array contains the characters in the cells around the player
     char adj[4] = {
         gameGrid[playerX - 1][playerY], // Cell directly above the player
-        gameGrid[playerX + 1][playerY], // Cell directly below the player  
+        gameGrid[playerX + 1][playerY], // Cell directly below the player
         gameGrid[playerX][playerY - 1], // Cell directly left of the player
         gameGrid[playerX][playerY + 1]  // Cell directly right of the player
     };
@@ -728,7 +743,7 @@ inline void interact(Map &gameMap)
         if (c == 'N' || c == 'S' || c == 'E' || c == 'W')
         {
             if (changeMap(gameGrid, c))
-            {           
+            {
                 return; // Exit the interaction function if map transition was successful
             }
         }
@@ -741,31 +756,24 @@ inline void interact(Map &gameMap)
     {
         if (c == '^' || c == '|' || c == '/' || c == '\\' || c == '_' || c == '+')
         {
-            // ======== BUILDING INTERACTION MESSAGE ========
-            // Provide feedback that the building is detected but not currently accessible
-            std::cout << "It's a building, but it's closed for now.\n";
-            
-            // ======== SPECIAL BOSS ENCOUNTER ========
-            // Trigger a special boss battle when interacting with buildings
-            // This provides an alternative way to encounter challenging enemies
-            Enemy enemy1 = enemy[11]; // Select a specific enemy (example: Slime at index 11)
-
+            // ======== BUILDING INTERACTION ========
+            // All buildings now trigger direct boss battles
+            std::cout << "\nYou approach a building..." << std::endl;
+            std::cout << "A guardian emerges to defend the building!" << std::endl;
+            std::cout << "Battle begins!" << std::endl;
+                
             // ======== BOSS BATTLE EXECUTION ========
-            // Create and initiate combat with a boss enemy
-            Boss boss1 = createBoss1();  // Create the first boss encounter
-            bool playerAlive = CombatBosss(playerSelected, boss1, gameMap);  // Execute boss combat
+            Boss boss1 = createBoss1();                                     
+            bool playerAlive = CombatBosss(playerSelected, boss1, gameMap); 
 
             // ======== POST-BATTLE FEEDBACK ========
-            // Provide appropriate message based on battle outcome
             if (playerAlive)
             {
                 std::cout << "You survived the battle! Continue exploring the map...\n";
-                // Player can continue exploring after victory
             }
             else
             {
                 std::cout << "Game Over. Try again.\n";
-                // Game over - player will be handled by death system
             }
 
             // ======== USER ACKNOWLEDGMENT ========
@@ -782,20 +790,32 @@ inline void interact(Map &gameMap)
     _getch(); // Wait for player acknowledgment
 }
 
+// Function to show inventory in console only
+inline void showInventoryInPanel(Map &gameMap)
+{
+    system("cls");
+    std::cout << "\n=== INVENTORY ===" << std::endl;
+    playerInventory.showAllItems();
+    std::cout << "\nPress any key to continue...";
+    _getch();
+}
+
+// ======== MAIN GAME LOOP ========
+// Main function that runs the game
 // ======== MAIN GAME LOOP SYSTEM ========
 // This is the central function that runs the entire gameplay experience
 // It handles map display, input processing, and coordinates all game systems
 inline void playGame()
 {
     // ======== GAME INITIALIZATION ========
-    InitializeEvent();  // Set up the random event system for encounters
-    Map gameMap;        // Create the main map object that will handle display and message panels
+    InitializeEvent(); // Set up the random event system for encounters
+    Map gameMap;       // Create the main map object that will handle display and message panels
 
     // ======== MAIN GAMEPLAY LOOP ========
     // This loop continues until the player quits or dies, handling all gameplay interactions
     char option; // Variable to store the player's input character
     while (true)
-    { 
+    {
         // ======== MAP REGENERATION ========
         // Refresh the map display for the current location - this happens every loop iteration
         gameMap.reset();                       // Clear existing content and redraw borders/UI
@@ -811,12 +831,12 @@ inline void playGame()
         std::cout << "Current Map: " << getCurrentMapName() << "\n";                    // Show which area they're in
         std::cout << "Player Position: (" << playerX << ", " << playerY << ")\n";       // Show exact coordinates (useful for debugging)
         std::cout << "Enemies Defeated: " << playerSelected.getEnemiesKilled() << "/5"; // Show progress toward area completion
-        
+
         // ======== PROGRESSION STATUS INDICATOR ========
         // Show if the player has met the requirements to advance to new areas
         if (playerSelected.canAdvanceToNextMap())
         {
-           std::cout << " - Ready to advance! ";  // Visual indicator that progression is unlocked
+            std::cout << " - Ready to advance! "; // Visual indicator that progression is unlocked
         }
         std::cout << "\n"; // Add spacing after status information
 
@@ -831,20 +851,26 @@ inline void playGame()
         {
             // ======== QUIT TO MAIN MENU ========
             // Return to the main menu system when player presses 'Q'
-            GameController::runMainMenu();  // Hand control back to the main menu system
-            break;                          // Exit the main game loop
+            GameController::runMainMenu(); // Hand control back to the main menu system
+            break;                         // Exit the main game loop
         }
         else if (option == 'e')
         {
             // ======== ENVIRONMENT INTERACTION ========
             // Handle interaction with buildings, transition zones, and other map elements
-            interact(gameMap); 
+            interact(gameMap); // Interact with environment
+        }
+
+        else if (option == 'i')
+        {
+            showInventoryInPanel(gameMap); // Show inventory using panel system
+            // Screen will refresh automatically on next loop iteration
         }
         else
         {
             // ======== MOVEMENT PROCESSING ========
             // Handle all movement-related actions (w/a/s/d keys)
-            bool mapChanged = movePlayer(gameMap, option); 
+            bool mapChanged = movePlayer(gameMap, option);
             // Note: The loop will automatically regenerate everything for the next iteration
             // This includes new map layouts if the player transitioned to a different area
         }
@@ -860,33 +886,33 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
 {
     // ======== ENEMY SELECTION ========
     // Randomly select an enemy from the available enemy types for variety in encounters
-    int randomEnemyIndex = rand() % 6;        // Generate random index (0-5 for 6 different enemy types)
+    int randomEnemyIndex = rand() % 6;           // Generate random index (0-5 for 6 different enemy types)
     Enemy wildEnemy = enemies[randomEnemyIndex]; // Create a copy of the selected enemy for this battle
 
     // ======== ENCOUNTER ANNOUNCEMENT SYSTEM ========
     // Create and display an informative message panel to announce the encounter
     // This provides context and builds anticipation before the battle begins
-    std::string text[MAX_EVENT_LINES];  // Array to hold the announcement text lines
-    text[0] = "*** WILD ENCOUNTER! ***";                        // Dramatic header to grab attention
-    text[1] = "A wild " + wildEnemy.getName() + " appears!";    // Identify the specific enemy type
-    text[2] = "Prepare for battle!";                            // Build tension and prepare player mentally
-    text[3] = "Press any key to continue...";                   // Instruction for user interaction
+    std::string text[MAX_EVENT_LINES];                       // Array to hold the announcement text lines
+    text[0] = "*** WILD ENCOUNTER! ***";                     // Dramatic header to grab attention
+    text[1] = "A wild " + wildEnemy.getName() + " appears!"; // Identify the specific enemy type
+    text[2] = "Prepare for battle!";                         // Build tension and prepare player mentally
+    text[3] = "Press any key to continue...";                // Instruction for user interaction
 
     // ======== MESSAGE PANEL DISPLAY ========
     // Use the map's panel system to display the encounter message properly
-    gameMap.setPanelText(4, text);  // Set 4 lines of text in the map's message panel
-    clearScreen();                  // Clear the console for clean display
-    gameMap.display();              // Show the map with the encounter message panel
-    _getch();                       // Wait for player acknowledgment before proceeding to combat
+    gameMap.setPanelText(4, text); // Set 4 lines of text in the map's message panel
+    clearScreen();                 // Clear the console for clean display
+    gameMap.display();             // Show the map with the encounter message panel
+    _getch();                      // Wait for player acknowledgment before proceeding to combat
 
     // ======== COMBAT EXECUTION ========
     // Initiate the actual battle between player and enemy
     // The Combat function handles all battle mechanics, turn-based fighting, and outcome determination
     bool playerSurvived = Combat(player, wildEnemy, gameMap);
-    
+
     // ======== RETURN BATTLE RESULT ========
     // Return the outcome so calling functions know whether to continue gameplay or handle death
-    return playerSurvived;  // true = player won and can continue, false = player died
+    return playerSurvived; // true = player won and can continue, false = player died
 }
 
 #endif // MAP_H

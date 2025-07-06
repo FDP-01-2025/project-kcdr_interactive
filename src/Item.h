@@ -15,6 +15,9 @@ private:
     int quantity;
 
 public:
+    // Constructor por defecto
+    HealingItem() : name(""), healAmount(0), quantity(0) {}
+    
     // Constructor para items de curación
     HealingItem(std::string n, int heal, int qty = 1)
     : name(n), healAmount(heal), quantity(qty) {}
@@ -43,6 +46,9 @@ private:
     int quantity;
 
 public:
+    // Constructor por defecto
+    DamageItem() : name(""), damage(0), quantity(0) {}
+    
     // Constructor para items de daño
     DamageItem(std::string n, int dmg, int qty = 1)
     : name(n), damage(dmg), quantity(qty) {}
