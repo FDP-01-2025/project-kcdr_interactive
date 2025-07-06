@@ -14,6 +14,7 @@ const int MAX_LINEAS = 7; // Define a constant for the number of columns in the 
 #include "EventsAleatory.h"
 #include "BossDraw.h" // Agregar esta línea
 #include "Boss.h"     // Agregar esta línea
+#include "InventoryMenu.h"
 
 // Forward declarations to avoid circular dependencies
 class Player;
@@ -128,7 +129,7 @@ private:
         }
 
         // Add control instructions in the bottom UI panel
-        std::string controls = "Move: W/A/S/D | Interact: E | Quit: Q | Map Transitions: Approach edges";
+        std::string controls = "Move: W/A/S/D | Interact: E | Inventory: I | Quit: Q | Map Transitions: Approach edges";
         int startCol = 2;          // Start position for text
         int controlRow = ROWS - 4; // Row for control instructions
         // Write control instructions character by character
@@ -651,6 +652,19 @@ inline void interact(Map &gameMap)
     _getch(); // Wait for key press
 }
 
+
+
+// Function to show inventory in console only
+inline void showInventoryInPanel(Map &gameMap)
+{
+    system("cls");
+    std::cout << "\n=== INVENTORY ===" << std::endl;
+    std::cout << "Gold: " << playerGold << std::endl;
+    playerInventory.showAllItems();
+    std::cout << "\nPress any key to continue...";
+    _getch();
+}
+
 // ======== MAIN GAME LOOP ========
 // Main function that runs the game
 inline void playGame()
@@ -688,6 +702,11 @@ inline void playGame()
             break; // Quit game
         else if (option == 'e')
             interact(gameMap); // Interact with environment
+        else if (option == 'i')
+        {
+            showInventoryInPanel(gameMap); // Show inventory using panel system
+            // Screen will refresh automatically on next loop iteration
+        }
         else
         {
             bool mapChanged = movePlayer(gameMap, option); // Move player

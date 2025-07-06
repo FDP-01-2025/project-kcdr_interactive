@@ -22,6 +22,11 @@ void clearScreen();
 #include "Enemy.h"
 #include "GameMenu.h"
 #include "Boss.h"
+#include "ItemFactory.h"
+
+// Variable global para el oro del jugador
+extern int playerGold;
+extern Inventory playerInventory;
 
 const int MAX_LINES = 6; // Maximum number of lines to display in the message box
 
@@ -90,8 +95,13 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             GameMenu::incrementEnemiesDefeated();
             GameMenu::saveProgressAfterCombat("Combat Area");
             
+            // Give battle rewards (gold and items)
+            ItemFactory::giveBattleReward(playerInventory, playerGold);
+            
             text[0] = enemy.getName() + " was defeated!";
-            lineCount = 1;
+            text[1] = "You received battle rewards!";
+            text[2] = "Gold: " + std::to_string(playerGold);
+            lineCount = 3;
 
             map.setPanelText(lineCount, text);
 
