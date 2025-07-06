@@ -102,8 +102,8 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             GameMenu::incrementEnemiesDefeated();
             GameMenu::saveProgressAfterCombat("Combat Area");
             
-            // Give battle rewards (gold and items)
-            ItemFactory::giveBattleReward(playerInventory, playerGold);
+            // Give enemy-specific drops
+            enemy.giveDropsToPlayer(playerInventory, playerGold);
             
             text[0] = enemy.getName() + " was defeated!";
 

@@ -12,6 +12,7 @@
 #include "src/SaveSystem.h"
 #include "src/Inventory.h"
 #include "src/ItemFactory.h"
+#include "src/EnemyDrops.h"  // Include enemy drops implementation
 
 using namespace std;
 

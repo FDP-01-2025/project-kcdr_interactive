@@ -6,6 +6,10 @@
 
 #include <string>   // Includes the string library to use std::string for storing text
 #include <iostream> // Includes the iostream library for input and output operations
+#include <cstdlib>  // For rand() function
+
+// Forward declarations to avoid circular dependencies
+class Inventory;
 
 // Definition of the Enemy class
 class Enemy {
@@ -32,6 +36,9 @@ public:
     // Applies damage to the enemy, reducing health based on defense
     void receiveDamage(int damage);
     // Note: This is not a const method because it modifies the health value
+
+    // Gives drops to player inventory based on enemy type
+    void giveDropsToPlayer(Inventory& inventory, int& playerGold) const;
 
     // ======== GETTERS (ACCESSORS) ========
 

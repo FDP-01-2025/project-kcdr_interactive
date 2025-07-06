@@ -1,7 +1,7 @@
 #ifndef ITEM_FACTORY_H
 #define ITEM_FACTORY_H
 
-#include "GameItems.h"
+#include "gameItems.h"
 #include "Inventory.h"
 #include <cstdlib>  // Para rand() y srand()
 #include <ctime>    // Para time()
@@ -18,9 +18,22 @@ public:
     
     static void giveStarterItems(Inventory& inventory) {
         std::cout << "\n=== Receiving Starter Pack ===" << std::endl;
-        inventory.addHealingItem(GameItems::smallPotion);
-        inventory.addDamageItem(GameItems::throwingKnife);
+        
+        // Dar pociones pequeñas 
+        int smallPotionsToGive = 2;  // Cambiar este número para dar más o menos pociones
+        for (int i = 0; i < smallPotionsToGive; i++) {
+            inventory.addHealingItem(GameItems::smallPotion);
+        }
+        
+        // Dar cuchillos arrojadizos 
+        int knivesToGive = 3;  // Cambiar este número para dar más o menos cuchillos
+        for (int i = 0; i < knivesToGive; i++) {
+            inventory.addDamageItem(GameItems::throwingKnife);
+        }
+        
         std::cout << "Starter pack received!" << std::endl;
+        std::cout << "- " << smallPotionsToGive << " Small Health Potions" << std::endl;
+        std::cout << "- " << knivesToGive << " Throwing Knives" << std::endl;
     }
     
     static void giveStarterGold(int& playerGold) {
@@ -113,13 +126,50 @@ public:
     // ==================== SHOP ITEMS ====================
     
     static void showShopItems() {
-        std::cout << "\n=== SHOP ITEMS ===" << std::endl;
+        std::cout << "\n========== MYSTICAL SHOP ==========" << std::endl;
+        std::cout << "Welcome, brave adventurer!" << std::endl;
+        std::cout << "===================================" << std::endl;
         std::cout << "1. Small Health Potion (25 HP) - 10 Gold" << std::endl;
         std::cout << "2. Medium Health Potion (50 HP) - 25 Gold" << std::endl;
         std::cout << "3. Throwing Knife (15 DMG) - 15 Gold" << std::endl;
         std::cout << "4. Grenade (45 DMG) - 40 Gold" << std::endl;
         std::cout << "5. Magic Elixir (150 HP) - 100 Gold" << std::endl;
         std::cout << "6. Lightning Bolt (100 DMG) - 150 Gold" << std::endl;
+        std::cout << "7. Exit Shop" << std::endl;
+        std::cout << "===================================" << std::endl;
+    }
+    
+    static void displayShop(Inventory& inventory, int& playerGold) {
+        bool inShop = true;
+        
+        while (inShop) {
+            system("cls");
+            std::cout << "Current Gold: " << playerGold << std::endl;
+            showShopItems();
+            std::cout << "Choose an item to purchase: ";
+            
+            int choice;
+            std::cin >> choice;
+            
+            if (choice == 7) {
+                std::cout << "\nThank you for visiting! May your journey be prosperous!" << std::endl;
+                inShop = false;
+            } else if (choice >= 1 && choice <= 6) {
+                if (buyItem(choice, inventory, playerGold)) {
+                    std::cout << "\nPurchase successful!" << std::endl;
+                    std::cout << "Item added to your inventory!" << std::endl;
+                } else {
+                    std::cout << "\nPurchase failed!" << std::endl;
+                }
+                std::cout << "Remaining Gold: " << playerGold << std::endl;
+                std::cout << "\nPress any key to continue...";
+                _getch();
+            } else {
+                std::cout << "\nInvalid choice! Please select a valid option." << std::endl;
+                std::cout << "Press any key to continue...";
+                _getch();
+            }
+        }
     }
     
     static bool buyItem(int choice, Inventory& inventory, int& playerGold) {
@@ -156,6 +206,13 @@ public:
                 if (playerGold >= 100) {
                     playerGold -= 100;
                     inventory.addHealingItem(GameItems::magicElixir);
+                    return true;
+                }
+                break;
+            case 6:
+                if (playerGold >= 150) {
+                    playerGold -= 150;
+                    inventory.addDamageItem(GameItems::lightningBolt);
                     return true;
                 }
                 break;

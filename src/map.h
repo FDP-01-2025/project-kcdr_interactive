@@ -32,13 +32,17 @@ const int MAX_LINEAS = 7; // Maximum number of text lines that can be displayed 
 #include "BossDraw.h"       // Boss character drawing and display functions
 #include "Boss.h"           // Boss character class and creation functions
 
+
 // ======== FORWARD DECLARATIONS ========
 // Declare classes and functions that will be defined elsewhere to avoid circular dependencies
 // This allows us to reference these types without including their full headers yet
 class Player;                 // Player character class - handles player stats, inventory, etc.
 class Enemy;                  // Enemy character class - handles enemy stats and behavior
 class GameController;         // Main game flow controller - handles menus and game states
+class Inventory;              // Inventory system for items
 extern Player playerSelected; // Global player instance that persists throughout the game
+extern Inventory playerInventory; // Global player inventory
+
 void playGame();              // Main game loop function - will be defined later in this file
 // ======== BUILDING STRUCTURE CLASS ========
 // This class represents individual buildings that can be placed on the game map
@@ -752,31 +756,24 @@ inline void interact(Map &gameMap)
     {
         if (c == '^' || c == '|' || c == '/' || c == '\\' || c == '_' || c == '+')
         {
-            // ======== BUILDING INTERACTION MESSAGE ========
-            // Provide feedback that the building is detected but not currently accessible
-            std::cout << "It's a building, but it's closed for now.\n";
-
-            // ======== SPECIAL BOSS ENCOUNTER ========
-            // Trigger a special boss battle when interacting with buildings
-            // This provides an alternative way to encounter challenging enemies
-            Enemy enemy1 = enemy[11]; // Select a specific enemy (example: Slime at index 11)
-
+            // ======== BUILDING INTERACTION ========
+            // All buildings now trigger direct boss battles
+            std::cout << "\nYou approach a building..." << std::endl;
+            std::cout << "A guardian emerges to defend the building!" << std::endl;
+            std::cout << "Battle begins!" << std::endl;
+                
             // ======== BOSS BATTLE EXECUTION ========
-            // Create and initiate combat with a boss enemy
-            Boss boss1 = createBoss1();                                     // Create the first boss encounter
-            bool playerAlive = CombatBosss(playerSelected, boss1, gameMap); // Execute boss combat
+            Boss boss1 = createBoss1();                                     
+            bool playerAlive = CombatBosss(playerSelected, boss1, gameMap); 
 
             // ======== POST-BATTLE FEEDBACK ========
-            // Provide appropriate message based on battle outcome
             if (playerAlive)
             {
                 std::cout << "You survived the battle! Continue exploring the map...\n";
-                // Player can continue exploring after victory
             }
             else
             {
                 std::cout << "Game Over. Try again.\n";
-                // Game over - player will be handled by death system
             }
 
             // ======== USER ACKNOWLEDGMENT ========
@@ -798,7 +795,6 @@ inline void showInventoryInPanel(Map &gameMap)
 {
     system("cls");
     std::cout << "\n=== INVENTORY ===" << std::endl;
-    std::cout << "Gold: " << playerGold << std::endl;
     playerInventory.showAllItems();
     std::cout << "\nPress any key to continue...";
     _getch();
