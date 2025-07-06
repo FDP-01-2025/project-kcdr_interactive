@@ -372,7 +372,7 @@ inline void generateCenterTown(char gameGrid[ROWS][COLUMNS])
     drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 8, 5);   // Shop on left side
     
     // Place other buildings with adjusted positions
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 4, 56);  // Church moved slightly right
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 4, 56);  // Church 
     drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 4, 25);  // Normal house type 1 
     drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 14, 70); // Normal house type 2 
     drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 14, 35); // Big house type 1 
@@ -384,46 +384,46 @@ inline void generateCenterTown(char gameGrid[ROWS][COLUMNS])
     gameGrid[12][COLUMNS - 2] = 'E'; // East exit at right side
 }
 
-// Map Area 2: North District - Residential area with a different architectural arrangement
+// Map Area 2: North District 
 inline void generateNorthTown(char gameGrid[ROWS][COLUMNS])
 {
     // Place shop on the left side
     drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 10, 5);  // Shop on left side
     
     // Arrange buildings in a different pattern than the center town for visual variety
-    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 8, 45);  // Normal house type 2 
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 5, 25);  // Church 
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 4, 45);  // Normal house type 2 
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 4, 25);  // Church 
     drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 12, 70); // Normal house type 1 
-    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 35); // Big house type 1 
+    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 14, 35); // Big house type 1 
 
     // Create return transition - only one exit back to the center (prevents getting lost)
     gameGrid[ROWS - 7][45] = 'S'; // South exit returns to Town Center
 }
 
-// Map Area 3: South District - Another residential area with its own unique building layout
+// Map Area 3: South District 
 inline void generateSouthTown(char gameGrid[ROWS][COLUMNS])
 {
     // Place shop on the left side
-    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 6, 5);   // Shop on left side
+    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 10, 5);   // Shop on left side
     
     // Use different building arrangements to create a unique feel for this district
     drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 8, 45);  // Big house type 2 
     drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 25);  // Normal house type 1 
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 12, 70); // Church 
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 13, 70); // Church 
     drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 15, 35); // Normal house type 1 
 
     // Create return transition to center
     gameGrid[1][45] = 'N'; // North exit returns to Town Center
 }
 
-// Map Area 4: East District - Commercial-style area with larger buildings
+// Map Area 4: East District 
 inline void generateEastTown(char gameGrid[ROWS][COLUMNS])
 {
     // Place shop on the left side
     drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 12, 5);  // Shop on left side
     
     // Arrange buildings to suggest a commercial district with mixed architecture
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 3, 65);  // Church in center 
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 3, 65);  // Church 
     drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 25);  // Normal house type 1 
     drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 70); // Normal house type 2 
     drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 15, 35); // Big house type 2 
