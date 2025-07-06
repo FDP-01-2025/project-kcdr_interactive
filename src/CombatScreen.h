@@ -47,20 +47,24 @@ void waitForKey()
 }
 
 // ===== Draw a Decorative Health Bar (Safe for Console Width) =====
-void drawHealthBar(char map[ROWS][COLUMNS], int row, int col, int current, const std::string &label)
+void drawHealthBar(char map[ROWS][COLUMNS], int row, int col, int currentHealth, int maxHealth, const std::string &label)
 {
     int barWidth = 20;
-
-    // Si la salud actual es mayor que el ancho, lo limitamos (protección opcional)
-    if (current > barWidth)
-        current = barWidth;
-    if (current < 0)
-        current = 0;
+    
+    // Calculate proportional fill based on current/max health
+    int fillAmount = 0;
+    if (maxHealth > 0) {
+        fillAmount = (currentHealth * barWidth) / maxHealth;
+    }
+    
+    // Ensure fill amount is within valid bounds
+    if (fillAmount > barWidth) fillAmount = barWidth;
+    if (fillAmount < 0) fillAmount = 0;
 
     std::string full = label + " [";
 
     for (int i = 0; i < barWidth; ++i)
-        full += (i < current) ? '=' : ' ';
+        full += (i < fillAmount) ? '=' : ' ';
     full += ']';
 
     for (size_t i = 0; i < full.length() && (col + i) < COLUMNS; ++i)
@@ -74,6 +78,14 @@ void drawName(char map[ROWS][COLUMNS], int row, int col, const std::string &name
     for (size_t i = 0; i < formatted.length(); ++i)
         if (col + i < COLUMNS)
             map[row][col + i] = formatted[i];
+}
+
+// ===== Draw Character Name with Health Value =====
+void drawNameWithHealth(char map[ROWS][COLUMNS], int row, int col, const std::string &name, int currentHealth, int maxHealth)
+{
+    std::string formatted = "<" + name + "> HP: " + std::to_string(currentHealth) + "/" + std::to_string(maxHealth);
+    for (size_t i = 0; i < formatted.length() && (col + i) < COLUMNS; ++i)
+        map[row][col + i] = formatted[i];
 }
 
 // ===== Draw Simple Combat Options with Fixed Borders =====
@@ -137,13 +149,13 @@ void drawCombatScreen(Map &map, const Player &player, const Enemy &enemy, bool p
     drawSelectedCharacter(grid, 8, 5); // Player character
     drawEnemy(enemy, grid, 8, 50);     // Enemy character safely on right
 
-    // Draw names
-    drawName(grid, 1, 5, player.getName());
-    drawName(grid, 1, 50, enemy.getName());
+    // Draw names with health values
+    drawNameWithHealth(grid, 1, 5, player.getName(), player.getHealth(), player.getMaxHealth());
+    drawNameWithHealth(grid, 1, 50, enemy.getName(), enemy.getHealth(), enemy.getMaxHealth());
 
-    // Draw health bars
-    drawHealthBar(grid, 2, 5, (player.getHealth() * 20) / 100, "HP");
-    drawHealthBar(grid, 2, 50, (enemy.getHealth() * 20) / 100, "HP"); // stays within width
+    // Draw health bars with proper proportional display
+    drawHealthBar(grid, 2, 5, player.getHealth(), player.getMaxHealth(), "HP");
+    drawHealthBar(grid, 2, 50, enemy.getHealth(), enemy.getMaxHealth(), "HP");
 
     // Draw message/options in bottom part of screen
     drawCombatMessage(grid, map.getPanelTexto(), map.getPanelLineCount());
@@ -168,26 +180,14 @@ void drawCombatScreenBoss(Map &map, const Player &player, const Boss &boss, bool
     drawSelectedCharacter(grid, 8, 5); // Player character
     drawBoss(boss, grid, 8, 50);      // Use drawBoss instead of drawEnemy
 
-    // Draw names
-    drawName(grid, 1, 5, player.getName());
-    drawName(grid, 1, 50, boss.getName());
+    // Draw names with health values
+    drawNameWithHealth(grid, 1, 5, player.getName(), player.getHealth(), player.getMaxHealth());
+    drawNameWithHealth(grid, 1, 50, boss.getName(), boss.getHealth(), boss.getMaxHealth());
 
-    // Draw health bars with proper scaling based on max health
-    // Player health bar (assuming max 100 HP)
-    int playerMaxHealth = 100; // You may want to add a getMaxHealth method to Player
-    int playerHealthPercent = (player.getHealth() * 20) / playerMaxHealth;
-    if (playerHealthPercent < 0) playerHealthPercent = 0;
-    if (playerHealthPercent > 20) playerHealthPercent = 20;
+    // Draw health bars with proper proportional display
+    drawHealthBar(grid, 2, 5, player.getHealth(), player.getMaxHealth(), "HP");
+    drawHealthBar(grid, 2, 50, boss.getHealth(), boss.getMaxHealth(), "HP");
     
-    // Boss health bar (max 200 HP for bosses)
-    int bossMaxHealth = 200; // You may want to add a getMaxHealth method to Boss
-    int bossHealthPercent = (boss.getHealth() * 20) / bossMaxHealth;
-    if (bossHealthPercent < 0) bossHealthPercent = 0;
-    if (bossHealthPercent > 20) bossHealthPercent = 20;
-    
-    drawHealthBar(grid, 2, 5, playerHealthPercent, "HP");
-    drawHealthBar(grid, 2, 50, bossHealthPercent, "HP");
-
     // Draw message/options in bottom part of screen
     drawCombatMessage(grid, map.getPanelTexto(), map.getPanelLineCount());
 

@@ -1,208 +1,318 @@
-#ifndef GAME_CONTROLLER_H
+#ifndef GAME_CONTROLLER_H // Header guard: prevents multiple inclusions during compilation
 #define GAME_CONTROLLER_H
 
-#include <iostream>
-#include <conio.h>
-#include "TitleScreen.h"
-#include "MenuSystem.h"
-#include "SaveManager.h"
-#include "configurationDifficulty.h"
-#include "unique_character.h"
-#include "map.h"
+// ======== REQUIRED SYSTEM LIBRARIES ========
+// Standard C++ libraries needed for game flow control and user interaction
+#include <iostream>  // For console input/output operations (std::cout, std::cin)
+#include <conio.h>   // For immediate key capture without pressing Enter (_getch function)
+#include <cstdlib>   // For program termination function (exit())
 
-// Forward declarations
-extern Player playerSelected;
-extern std::string selectedName;
-void playGame();
+// ======== GAME SYSTEM MODULES ========
+// Include custom game systems that the controller coordinates and manages
+#include "TitleScreen.h"            // Title screen display and branding functionality
+#include "MenuSystem.h"             // Menu navigation, input validation, and UI systems
+#include "SaveManager.h"            // Save/load game state management and file operations
+#include "configurationDifficulty.h" // Difficulty settings and enemy stat modifiers
+#include "unique_character.h"       // Character creation and selection system
+#include "map.h"                    // Map display, navigation, and world management
 
+// ======== EXTERNAL DEPENDENCIES ========
+// Forward declarations for global variables and functions defined in other modules
+// This avoids circular dependencies while allowing access to essential game components
+extern Player playerSelected;       // Global player instance - maintains character state throughout the game
+extern std::string selectedName;    // Global player name - used for display and save identification
+void playGame();                   // Main gameplay loop function - defined in map.h
+
+// ======== MAIN GAME FLOW CONTROLLER CLASS ========
+// This class serves as the central coordinator for all major game systems and user interactions
+// It manages the complete game lifecycle from startup to shutdown, including menus, save/load, and transitions
+// All methods are static to provide global access without requiring object instantiation
 class GameController
 {
 public:
-    // Main menu loop
+    // ======== CORE GAME FLOW METHODS ========
+    // These methods handle the primary game flow and state transitions
+    
+    // Controls the main menu loop - the central hub for all game operations
+    // Manages menu display, user input processing, and navigation to game functions
     static void runMainMenu();
     
-    // Handle new game creation
+    // Handles complete new game creation workflow
+    // Manages character creation, difficulty selection, save slot assignment, and game initialization
     static void handleNewGame();
     
-    // Handle load game functionality
+    // Manages the load game functionality and save file selection
+    // Handles save file validation, loading, and error management for missing saves
     static void handleLoadGame();
     
-    // Handle death screen
+    // Processes player death scenarios and recovery options
+    // Provides choice between returning to last checkpoint or main menu
     static void handleDeathScreen();
     
-    // Display character selection
+    // ======== USER INTERFACE AND DISPLAY METHODS ========
+    // These methods handle specialized UI screens and user interaction flows
+    
+    // Manages character selection screen and player customization
+    // Interfaces with the character creation system to allow player choice
     static void displayCharacterSelection();
     
-    // Display difficulty selection
+    // Presents difficulty selection interface and processes user choice
+    // Returns the selected difficulty configuration for game balance adjustment
     static configurationDifficulty displayDifficultySelection();
     
-    // Display all saves with info
+    // Shows all available save slots with detailed information
+    // Displays character names, creation dates, and slot availability status
     static void displayAllSaves();
     
-    // Show successful operations
+    // ======== FEEDBACK AND MESSAGING SYSTEM ========
+    // These methods provide consistent user feedback for various game operations
+    
+    // Displays success messages with consistent formatting and user acknowledgment
+    // Used for save confirmations, load successes, and positive feedback
     static void showSuccessMessage(const std::string& message);
+    
+    // Displays error messages with consistent formatting and recovery options
+    // Used for failed operations, missing files, and user guidance
     static void showErrorMessage(const std::string& message);
 };
 
+// ======== MAIN MENU CONTROL SYSTEM ========
+// This function implements the primary game loop that manages the main menu interface
+// It serves as the central hub for all game operations and maintains program flow
 void GameController::runMainMenu()
 {
+    // ======== SAVE SYSTEM INITIALIZATION ========
+    // Load all existing save files to make them available for the load game feature
+    // This ensures the save system is ready and all save slots are properly indexed
     SaveManager::loadExistingSaves();
     
-    int choice;
-    bool exitGame = false;
+    // ======== MENU LOOP VARIABLES ========
+    int choice;              // Stores the user's menu selection
+    bool exitGame = false;   // Flag to control the main menu loop (currently unused but kept for structure)
 
+    // ======== MAIN MENU LOOP ========
+    // Continuous loop that displays the menu and processes user choices until exit
     while (!exitGame)
     {
-        MenuSystem::displayMainMenu();
-        choice = MenuSystem::getValidatedInput(1, 3);
+        // ======== MENU DISPLAY AND INPUT ========
+        MenuSystem::displayMainMenu();                    // Show the main menu options to the user
+        choice = MenuSystem::getValidatedInput(1, 3);     // Get user input with validation (options 1-3)
 
+        // ======== MENU OPTION PROCESSING ========
+        // Process the user's menu selection and route to appropriate handler
         switch (choice)
         {
         case 1:
-            handleNewGame();
+            handleNewGame();    // Start new game creation workflow
             break;
         case 2:
-            handleLoadGame();
+            handleLoadGame();   // Start load game workflow
             break;
         case 3:
-            MenuSystem::displayExitScreen();
-            _getch();
-            exitGame = true;
+            // ======== GAME EXIT SEQUENCE ========
+            MenuSystem::displayExitScreen();   // Show farewell message to user
+            _getch();                          // Wait for user acknowledgment
+            exit(0);                           // Terminate program immediately (prevents nested loop issues)
             break;
         }
     }
 }
 
+// ======== NEW GAME CREATION WORKFLOW ========
+// This function manages the complete process of creating and starting a new game
+// It handles character creation, difficulty selection, save management, and game initialization
 void GameController::handleNewGame()
 {
-    MenuSystem::clearScreen();
+    // ======== SCREEN PREPARATION ========
+    MenuSystem::clearScreen();     // Clear console for clean display
     
-    Map gameMap;
-    char (&grid)[ROWS][COLUMNS] = gameMap.getGrid();
-    gameMap.reset();
+    // ======== WELCOME SCREEN SETUP ========
+    // Create a themed welcome screen using the map display system for consistency
+    Map gameMap;                                    // Create map object for display framework
+    char (&grid)[ROWS][COLUMNS] = gameMap.getGrid(); // Get reference to map grid for direct manipulation
+    gameMap.reset();                                // Clear map and setup borders/UI
     
-    std::string title = "NEW QUEST";
-    std::string message1 = "The dawn of a new adventure begins...";
-    std::string message2 = "Press any key to continue...";
+    // ======== WELCOME MESSAGE COMPOSITION ========
+    // Create atmospheric text for new game introduction
+    std::string title = "NEW QUEST";                           // Main header
+    std::string message1 = "The dawn of a new adventure begins..."; // Atmospheric subtitle
+    std::string message2 = "Press any key to continue...";     // User instruction
     
-    int startRow = 10;
-    int titleCol = (COLUMNS - title.length()) / 2;
-    int msg1Col = (COLUMNS - message1.length()) / 2;
-    int msg2Col = (COLUMNS - message2.length()) / 2;
+    // ======== TEXT POSITIONING CALCULATIONS ========
+    // Calculate center positions for each text element to ensure proper alignment
+    int startRow = 10;                                   // Vertical starting position
+    int titleCol = (COLUMNS - title.length()) / 2;      // Center title horizontally
+    int msg1Col = (COLUMNS - message1.length()) / 2;    // Center first message
+    int msg2Col = (COLUMNS - message2.length()) / 2;    // Center second message
     
+    // ======== TEXT RENDERING ========
+    // Manually place each character of the text strings into the map grid
     for (int i = 0; i < title.length(); ++i) grid[startRow][titleCol + i] = title[i];
     for (int i = 0; i < message1.length(); ++i) grid[startRow + 2][msg1Col + i] = message1[i];
     for (int i = 0; i < message2.length(); ++i) grid[startRow + 4][msg2Col + i] = message2[i];
     
-    gameMap.display();
-    _getch();
+    // ======== DISPLAY AND USER INTERACTION ========
+    gameMap.display();  // Render the welcome screen
+    _getch();          // Wait for user to acknowledge before proceeding
 
-    // Character selection first
-    displayCharacterSelection();
+    // ======== CHARACTER CREATION WORKFLOW ========
+    displayCharacterSelection();    // Show character selection screen and process user choice
     
-    // Then difficulty selection
-    configurationDifficulty selectedConfig = displayDifficultySelection();
-    SaveManager::setCurrentDifficulty(selectedConfig);
+    // ======== DIFFICULTY CONFIGURATION ========
+    configurationDifficulty selectedConfig = displayDifficultySelection(); // Get difficulty choice
+    SaveManager::setCurrentDifficulty(selectedConfig);                     // Store difficulty for game balance
 
-    // Find available save slot
-    int emptySlot = SaveManager::findEmptySlot();
-    std::string saveSlot = "Game" + std::to_string(emptySlot);
+    // ======== SAVE SLOT MANAGEMENT ========
+    // Find an available save slot or handle the case where all slots are occupied
+    int emptySlot = SaveManager::findEmptySlot();           // Search for first empty slot
+    std::string saveSlot = "Game" + std::to_string(emptySlot); // Create save slot identifier
     
-    if (emptySlot > 5) // MAX_SAVE_SLOTS
+    if (emptySlot > 5) // MAX_SAVE_SLOTS - all slots are occupied
     {
-        // All slots full, let user choose which to overwrite
+        // ======== SAVE SLOT OVERFLOW HANDLING ========
+        // When all slots are full, allow user to choose which save to overwrite
         MenuSystem::clearScreen();
-        displayAllSaves();
+        displayAllSaves();  // Show all existing saves for user reference
         std::cout << "\nAll save slots are full. Choose slot to overwrite (1-5): ";
-        int choice = MenuSystem::getValidatedInput(1, 5);
-        saveSlot = "Game" + std::to_string(choice);
+        int choice = MenuSystem::getValidatedInput(1, 5);      // Get user's choice
+        saveSlot = "Game" + std::to_string(choice);            // Update save slot to user's choice
     }
 
-    // Create comprehensive game data
-    GameData newGame(selectedName, SaveManager::getCurrentDateTime(), "Starting Village",
-                     playerSelected, selectedConfig, 0, 15, 45, 0);
-    SaveManager::saveGameData(saveSlot, newGame);
+    // ======== GAME DATA CREATION ========
+    // Create comprehensive game data structure with all necessary information
+    GameData newGame(selectedName,                      // Player's chosen character name
+                     SaveManager::getCurrentDateTime(), // Current timestamp for save tracking
+                     "Starting Village",                // Initial location description
+                     playerSelected,                    // Complete player character data
+                     selectedConfig,                    // Chosen difficulty configuration
+                     0,                                 // Current map ID (start at map 0)
+                     15,                               // Starting X coordinate
+                     45,                               // Starting Y coordinate  
+                     0);                               // Initial enemy kill count
+    SaveManager::saveGameData(saveSlot, newGame);      // Write the game data to file
 
-    showSuccessMessage("Quest log saved successfully!");
+    // ======== SUCCESS FEEDBACK ========
+    showSuccessMessage("Quest log saved successfully!"); // Inform user of successful save
 
-    // Start the game
-    playGame();
+    // ======== GAME LAUNCH ========
+    playGame();     // Start the main gameplay loop
 }
 
+// ======== LOAD GAME WORKFLOW MANAGEMENT ========
+// This function handles the complete process of loading existing saved games
+// It manages save file validation, user selection, and error handling for missing saves
 void GameController::handleLoadGame()
 {
+    // ======== SAVE SYSTEM REFRESH ========
+    // Reload save data to ensure we have the most current information
     SaveManager::loadExistingSaves();
     
-    // Check if any saves exist
-    bool hasAnySave = false;
-    std::map<std::string, GameData>& saves = SaveManager::getGameSaves();
+    // ======== SAVE AVAILABILITY CHECK ========
+    // Verify that at least one save file exists before showing the load interface
+    bool hasAnySave = false;                                    // Flag to track save existence
+    std::map<std::string, GameData>& saves = SaveManager::getGameSaves(); // Get reference to save data
     
+    // ======== SAVE SLOT ITERATION ========
+    // Check each of the 5 available save slots for existing save data
     for (int i = 1; i <= 5; i++)
     {
-        std::string saveKey = "Game" + std::to_string(i);
-        if (saves[saveKey].exists)
+        std::string saveKey = "Game" + std::to_string(i);   // Generate save slot identifier
+        if (saves[saveKey].exists)                          // Check if this slot contains valid save data
         {
-            hasAnySave = true;
-            break;
+            hasAnySave = true;  // Found at least one save file
+            break;              // Exit loop early since we only need to know if any exist
         }
     }
     
+    // ======== NO SAVES FOUND HANDLING ========
+    // If no save files exist, provide helpful feedback and redirect to new game creation
     if (!hasAnySave)
     {
-        showErrorMessage("No saved quests found in the archives.");
-        handleNewGame();
-        return;
+        showErrorMessage("No saved quests found in the archives."); // Inform user with thematic message
+        handleNewGame();                                           // Redirect to new game creation
+        return;                                                    // Exit function
     }
 
-    // Display all available saves
-    MenuSystem::clearScreen();
-    displayAllSaves();
+    // ======== SAVE SELECTION INTERFACE ========
+    // Display available saves and get user's choice
+    MenuSystem::clearScreen();     // Clear screen for clean display
+    displayAllSaves();            // Show detailed information about all save slots
     
-    int selectedSave = MenuSystem::getValidatedInput(1, 5);
+    // ======== USER INPUT AND VALIDATION ========
+    int selectedSave = MenuSystem::getValidatedInput(1, 5); // Get user's save slot choice (1-5)
     
+    // ======== SAVE LOADING ATTEMPT ========
+    // Try to load the selected save and handle potential failures
     if (!SaveManager::loadSave(selectedSave))
     {
-        showErrorMessage("Selected save slot is empty!");
-        return;
+        showErrorMessage("Selected save slot is empty!"); // Inform user of invalid selection
+        return;                                           // Return to previous menu
     }
 
-    showSuccessMessage("Quest loaded successfully!");
-    playGame();
+    // ======== SUCCESSFUL LOAD FEEDBACK AND GAME START ========
+    showSuccessMessage("Quest loaded successfully!"); // Confirm successful load operation
+    playGame();                                       // Start gameplay with loaded data
 }
 
+// ======== PLAYER DEATH RECOVERY SYSTEM ========
+// This function manages the player death scenario and provides recovery options
+// It handles checkpoint restoration and menu navigation after player death
 void GameController::handleDeathScreen()
 {
-    MenuSystem::displayDeathScreen();
-    std::cout << "\nEnter choice: ";
+    // ======== DEATH SCREEN DISPLAY ========
+    MenuSystem::displayDeathScreen();     // Show death screen with available options
+    std::cout << "\nEnter choice: ";      // Prompt user for their choice
     
-    int choice = MenuSystem::getValidatedInput(1, 2);
+    // ======== USER CHOICE INPUT ========
+    int choice = MenuSystem::getValidatedInput(1, 2); // Get validated input (options 1-2)
     
+    // ======== DEATH RECOVERY OPTIONS ========
     switch (choice)
     {
     case 1:
         {
-            // Find most recent save (no pointers)
-            GameData mostRecentSave;
-            bool foundSave = SaveManager::getMostRecentSave(mostRecentSave);
+            // ======== CHECKPOINT RESTORATION OPTION ========
+            // Attempt to restore the player's most recent save point
+            
+            // ======== SAVE DATA RETRIEVAL ========
+            GameData mostRecentSave;    // Container for the most recent save data
+            bool foundSave = SaveManager::getMostRecentSave(mostRecentSave); // Attempt to find recent save
             
             if (foundSave)
             {
-                playerSelected = mostRecentSave.playerData;
-                selectedName = mostRecentSave.characterName;
-                SaveManager::updatePlayerPosition(mostRecentSave.currentMapX, mostRecentSave.currentMapY);
-                SaveManager::setCurrentDifficulty(mostRecentSave.difficultyConfig);
+                // ======== COMPLETE GAME STATE RESTORATION ========
+                // Restore all aspects of the player's saved state
                 
-                showSuccessMessage("Returning to your last checkpoint...");
-                playGame();
+                // ======== PLAYER CHARACTER RESTORATION ========
+                playerSelected = mostRecentSave.playerData;     // Restore player stats, health, etc.
+                selectedName = mostRecentSave.characterName;    // Restore player name
+                
+                // ======== WORLD STATE RESTORATION ========
+                SaveManager::updatePlayerPosition(mostRecentSave.currentMapX, mostRecentSave.currentMapY); // Restore map position
+                SaveManager::setCurrentDifficulty(mostRecentSave.difficultyConfig);                        // Restore difficulty settings
+                
+                // ======== PROGRESSION DATA RESTORATION ========
+                // Critical: Restore the enemy defeat counters to maintain progression accuracy
+                playerSelected.setEnemiesKilled(mostRecentSave.currentMapEnemiesKilled);      // Current map progress
+                playerSelected.setEnemiesKilledPerMap(mostRecentSave.enemiesPerMap);          // Per-map progress tracking
+                
+                // ======== RESTORATION FEEDBACK AND GAME RESUME ========
+                showSuccessMessage("Returning to your last checkpoint...");  // Inform user of successful restoration
+                playGame();                                                  // Resume gameplay from checkpoint
             }
             else
             {
+                // ======== NO SAVE FOUND FALLBACK ========
+                // If no recent save exists, return to main menu for new game or manual load
                 runMainMenu();
             }
         }
         break;
         
     case 2:
+        // ======== RETURN TO MAIN MENU OPTION ========
+        // Allow player to return to main menu without loading a save
+        // This provides access to new game creation or manual save loading
         runMainMenu();
         break;
     }
