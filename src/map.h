@@ -32,18 +32,17 @@ const int MAX_LINEAS = 7; // Maximum number of text lines that can be displayed 
 #include "BossDraw.h"       // Boss character drawing and display functions
 #include "Boss.h"           // Boss character class and creation functions
 
-
 // ======== FORWARD DECLARATIONS ========
 // Declare classes and functions that will be defined elsewhere to avoid circular dependencies
 // This allows us to reference these types without including their full headers yet
-class Player;                 // Player character class - handles player stats, inventory, etc.
-class Enemy;                  // Enemy character class - handles enemy stats and behavior
-class GameController;         // Main game flow controller - handles menus and game states
-class Inventory;              // Inventory system for items
-extern Player playerSelected; // Global player instance that persists throughout the game
+class Player;                     // Player character class - handles player stats, inventory, etc.
+class Enemy;                      // Enemy character class - handles enemy stats and behavior
+class GameController;             // Main game flow controller - handles menus and game states
+class Inventory;                  // Inventory system for items
+extern Player playerSelected;     // Global player instance that persists throughout the game
 extern Inventory playerInventory; // Global player inventory
 
-void playGame();              // Main game loop function - will be defined later in this file
+void playGame(); // Main game loop function - will be defined later in this file
 // ======== BUILDING STRUCTURE CLASS ========
 // This class represents individual buildings that can be placed on the game map
 // Each building has a name and ASCII art representation for visual display
@@ -68,7 +67,7 @@ public:
 // Array containing all available building types that can be placed in the town
 // Each building is created with a name and ASCII art using raw string literals R"(...)"
 // These buildings will be randomly placed across different map areas
-StructureMap Townmap[5] = {
+StructureMap Townmap[6] = {
     // Building 0: Church - Main religious building, typically placed in town center
     // Features a cross symbol and bell tower design
     StructureMap("Iglesia", R"(
@@ -78,7 +77,7 @@ StructureMap Townmap[5] = {
   |  +  |
   | /_\ |
   | |_| |
- /_|_|_|_\
+ /_|   |_\
 )"),
 
     // Building 1: Standard House Type 1 - Basic residential building
@@ -130,6 +129,16 @@ StructureMap Townmap[5] = {
    |''|"|  |"| |' '||
    `""`"    "`"`""""`
         )"),
+
+    //Building 5: store - Here you can obtain items that will help you in your adventure. 
+    StructureMap("Shop", R"(
+   ':.
+     _________
+    /  \__ST__\
+    |  |''__''|
+    |  |'|  |'|
+    "`"`"    "`
+ )"),
 };
 
 // ======== MAIN MAP MANAGEMENT CLASS ========
@@ -359,57 +368,65 @@ inline void showBushEncounter(Map &gameMap)
 // Features the church as a central landmark with houses arranged around it
 inline void generateCenterTown(char gameGrid[ROWS][COLUMNS])
 {
-    // Place buildings using the predefined structures from Townmap array
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 8, 40);  // Church (central landmark)
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);  // Normal house type 1 (upper left)
-    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 65); // Normal house type 2 (lower right)
-    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20); // Big house type 1 (lower left)
+    // Place shop on the left side
+    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 8, 5);   // Shop on left side
+    
+    // Place other buildings with adjusted positions
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 4, 56);  // Church moved slightly right
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 4, 25);  // Normal house type 1 
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 14, 70); // Normal house type 2 
+    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 14, 35); // Big house type 1 
 
     // Create transition zones - special characters that trigger map changes when the player approaches
-    // These act as "doors" to other map areas and are placed at strategic edge positions
-    gameGrid[1][45] = 'N';           // North exit at top center - leads to North District
-    gameGrid[ROWS - 7][45] = 'S';    // South exit at bottom center - leads to South District
-    gameGrid[12][1] = 'W';           // West exit at left side - currently unused but ready for expansion
-    gameGrid[12][COLUMNS - 2] = 'E'; // East exit at right side - leads to East District
+    gameGrid[1][45] = 'N';           // North exit at top center
+    gameGrid[ROWS - 7][45] = 'S';    // South exit at bottom center
+    gameGrid[12][1] = 'W';           // West exit at left side
+    gameGrid[12][COLUMNS - 2] = 'E'; // East exit at right side
 }
 
 // Map Area 2: North District - Residential area with a different architectural arrangement
-// Features the same building types as the center but in a unique layout to provide variety
 inline void generateNorthTown(char gameGrid[ROWS][COLUMNS])
 {
+    // Place shop on the left side
+    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 10, 5);  // Shop on left side
+    
     // Arrange buildings in a different pattern than the center town for visual variety
-    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 8, 40);  // Normal house type 2 in center
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 5, 10);  // Church in upper left (moved from center)
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 12, 65); // Normal house type 1 in lower right
-    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20); // Big house type 1 in lower left
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 8, 45);  // Normal house type 2 
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 5, 25);  // Church 
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 12, 70); // Normal house type 1 
+    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 35); // Big house type 1 
 
     // Create return transition - only one exit back to the center (prevents getting lost)
     gameGrid[ROWS - 7][45] = 'S'; // South exit returns to Town Center
 }
 
 // Map Area 3: South District - Another residential area with its own unique building layout
-// Provides a third distinct environment for exploration and enemy encounters
 inline void generateSouthTown(char gameGrid[ROWS][COLUMNS])
 {
+    // Place shop on the left side
+    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 6, 5);   // Shop on left side
+    
     // Use different building arrangements to create a unique feel for this district
-    drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 8, 40);  // Big house type 2 in center (unique to this area)
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);  // Normal house type 1 in upper left
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 12, 65); // Church in lower right (moved from center)
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 15, 20); // Another normal house type 1 in lower left
+    drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 8, 45);  // Big house type 2 
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 25);  // Normal house type 1 
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 12, 70); // Church 
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 15, 35); // Normal house type 1 
 
     // Create return transition to center
     gameGrid[1][45] = 'N'; // North exit returns to Town Center
 }
 
 // Map Area 4: East District - Commercial-style area with larger buildings
-// Features a mix of building types suggesting a more developed commercial zone
 inline void generateEastTown(char gameGrid[ROWS][COLUMNS])
 {
+    // Place shop on the left side
+    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 12, 5);  // Shop on left side
+    
     // Arrange buildings to suggest a commercial district with mixed architecture
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 8, 40);  // Church in center (spiritual anchor)
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 10);  // Normal house type 1 in upper left
-    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 65); // Normal house type 2 in lower right
-    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 15, 20); // Big house type 1 in lower left (suggests prosperity)
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 3, 65);  // Church in center 
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 25);  // Normal house type 1 
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 70); // Normal house type 2 
+    drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 15, 35); // Big house type 2 
 
     // Create return transition to center
     gameGrid[12][1] = 'W'; // West exit returns to Town Center
@@ -761,10 +778,10 @@ inline void interact(Map &gameMap)
             std::cout << "\nYou approach a building..." << std::endl;
             std::cout << "A guardian emerges to defend the building!" << std::endl;
             std::cout << "Battle begins!" << std::endl;
-                
+
             // ======== BOSS BATTLE EXECUTION ========
-            Boss boss1 = createBoss1();                                     
-            bool playerAlive = CombatBosss(playerSelected, boss1, gameMap); 
+            Boss boss1 = createBoss1();
+            bool playerAlive = CombatBosss(playerSelected, boss1, gameMap);
 
             // ======== POST-BATTLE FEEDBACK ========
             if (playerAlive)
