@@ -13,6 +13,7 @@ class Boss
 private:
     std::string name;        // Boss name identifier
     int health;              // Current health points of the boss
+    int maxHealth;           // Maximum health points of the boss
     std::string asciiArt;    // ASCII art string for visual representation of the boss
     int attack;              // Base attack damage value
     int defense;             // Defense points to reduce incoming damage
@@ -24,6 +25,7 @@ public:
     // Getter methods to access private member variables
     std::string getName() const { return name; }            // Get boss name
     int getHealth() const { return health; }                // Get current health value
+    int getMaxHealth() const { return maxHealth; }          // Get maximum health value
     int getAttack() const { return attack; }                // Get base attack damage
     int getDefense() const { return defense; }              // Get defense points
     int getSpecialAttack() const { return specialAttack; }  // Get special attack damage
@@ -54,7 +56,7 @@ public:
 // ========== Constructor Implementation ==========
 // Initialize all member variables using the constructor parameter list for efficiency
 inline Boss::Boss(const std::string &name, int health, int attack, int defense, int specialAttack, const std::string &art)
-    : name(name), health(health), attack(attack), defense(defense), specialAttack(specialAttack), asciiArt(art) {
+    : name(name), health(health), maxHealth(health), attack(attack), defense(defense), specialAttack(specialAttack), asciiArt(art) {
 }
 
 // ========== Boss Creation Functions ==========

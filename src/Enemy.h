@@ -13,7 +13,8 @@ private:
     // ======== PRIVATE ATTRIBUTES ========
     std::string name;     // Name of the enemy (used for display or identification)
     std::string asciiArt; // ASCII art string for visual representation of the enemy
-    int health;           // Total life points or hit points (HP) of the enemy
+    int health;           // Current life points or hit points (HP) of the enemy
+    int maxHealth;        // Maximum life points of the enemy
     int attack;           // Offensive power — how much damage the enemy can deal
     int defense;          // Defensive strength — how much incoming damage is reduced
 
@@ -40,6 +41,9 @@ public:
     // Returns the current health of the enemy
     int getHealth() const;
 
+    // Returns the maximum health of the enemy
+    int getMaxHealth() const;
+
     // Returns the current defense of the enemy
     int getDefense() const;
 
@@ -59,7 +63,7 @@ public:
 
 // Constructor: initializes all attributes using an initializer list
 inline Enemy::Enemy(const std::string &name, int health, int attack, int defense, const std::string &art)
-    : name(name), asciiArt(art), health(health), attack(attack), defense(defense) {}
+    : name(name), asciiArt(art), health(health), maxHealth(health), attack(attack), defense(defense) {}
 
 // Prints the enemy's name, health, attack, and defense to the console
 inline void Enemy::showStats() const {
@@ -90,6 +94,11 @@ inline int Enemy::getAttack() const {
 // Getter: returns the current health of the enemy
 inline int Enemy::getHealth() const {
     return health;
+}
+
+// Getter: returns the maximum health of the enemy
+inline int Enemy::getMaxHealth() const {
+    return maxHealth;
 }
 
 inline int Enemy::getDefense() const{

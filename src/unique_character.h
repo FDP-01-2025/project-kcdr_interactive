@@ -11,10 +11,10 @@
 
 // Create character instances as Player class objects
 const Player allCharacters[4] = {
-    Player(60, 100, 40, 120), // Rhaekor
-    Player(80, 40, 100, 60),  // Cerephios
-    Player(100, 60, 60, 90),  // Kaelren
-    Player(70, 80, 70, 100)   // Valdrik
+    Player(80, 25, 40, 35),  // Rhaekor - Balanced warrior (HP, ATK, DEF, SP)
+    Player(100, 15, 50, 20), // Cerephios - Tank (high HP/DEF, low ATK)
+    Player(120, 20, 35, 30), // Kaelren - High HP character
+    Player(90, 22, 45, 28)   // Valdrik - Balanced fighter
 };
 
 // Name of each character, to identify which one has been chosen

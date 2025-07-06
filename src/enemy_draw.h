@@ -14,15 +14,15 @@
 // - defense value (int)
 // - ASCII art (string literal using raw string syntax `R"(...)`)
 Enemy enemy[12] = {
-    // Slime enemy: small, basic creature with a simple ASCII representation
-    Enemy("Slime", 20, 5, 2, R"(
+    // Slime enemy: small, basic creature with increased health for longer combat
+    Enemy("Slime", 45, 8, 2, R"(
    __
   ( oo )
   /|__|\
 )"),
 
-    // Goblin enemy: weak humanoid enemy with a slightly more complex ASCII art
-    Enemy("Goblin", 25, 7, 3, R"(
+    // Goblin enemy: weak humanoid enemy with balanced stats
+    Enemy("Goblin", 55, 12, 3, R"(
   ,      ,
  /(.-""-.)\
  |\  \/  /|
@@ -32,8 +32,8 @@ Enemy enemy[12] = {
    `----`
 )"),
 
-    // Orc: stronger enemy with powerful stats and ASCII drawing
-    Enemy("Orc", 35, 10, 5, R"(
+    // Orc: stronger enemy with increased health and moderate damage
+    Enemy("Orc", 80, 18, 5, R"(
   ,   A           {}
  / \, | ,        .--.
 |    =|= >      /.--.\
@@ -48,8 +48,8 @@ Enemy enemy[12] = {
       |       |        |
 )"),
 
-    // Wraith: ghost-like entity with haunting appearance
-    Enemy("Wraith", 22, 6, 2, R"(
+    // Wraith: ghost-like entity with moderate health
+    Enemy("Wraith", 50, 10, 2, R"(
    .-.
   (   )
    \_/
@@ -58,16 +58,16 @@ Enemy enemy[12] = {
   \___/
 )"),
 
-    // Gremlin: mischievous and quick creature
-    Enemy("Gremlin", 22, 6, 1, R"(  ,     ,
+    // Gremlin: mischievous and quick creature with low defense
+    Enemy("Gremlin", 40, 9, 1, R"(  ,     ,
  ( o o )
  /  V  \
 /(  _  )\
   ^^ ^^
 )"),
 
-    // Skeleton: undead warrior with bones and swords shown
-    Enemy("Skeleton", 18, 9, 2, R"(
+    // Skeleton: undead warrior with balanced stats
+    Enemy("Skeleton", 48, 14, 2, R"(
    .-.
   (o.o)
    |=|
@@ -82,8 +82,8 @@ Enemy enemy[12] = {
   ==' '==
 )"),
 
-    // Bat: flying enemy with wings, suitable for caves/dark places
-    Enemy("Bat", 15, 4, 1, R"(
+    // Bat: flying enemy with low health but decent speed
+    Enemy("Bat", 35, 7, 1, R"(
    /\                 /\
   / \'._   (\_/)   _.'/ \
  /_.''._'--('.')--'_.''._\
@@ -92,8 +92,8 @@ Enemy enemy[12] = {
           \(/|\)/  
 )"),
 
-    // Boar: aggressive beast with tusks
-    Enemy("Boar", 24, 7, 2, R"(
+    // Boar: aggressive beast with good health and attack
+    Enemy("Boar", 60, 13, 3, R"(
    (\____/)
    ( o  o )
   /   --   \
@@ -102,8 +102,8 @@ Enemy enemy[12] = {
    \______/
 )"),
 
-    // Ghoul: creepy undead with ragged appearance
-    Enemy("Ghoul", 28, 7, 3, R"(
+    // Ghoul: creepy undead with high health
+    Enemy("Ghoul", 70, 11, 4, R"(
    .-"      "-.
   /            \
  |              |
@@ -117,8 +117,8 @@ Enemy enemy[12] = {
     `--------`
 )"),
 
-    // Imp: small demonic creature
-    Enemy("Imp", 19, 5, 1, R"(
+    // Imp: small demonic creature with moderate stats
+    Enemy("Imp", 42, 8, 1, R"(
    ,     ,
   ( o o )
  (   -   )
@@ -126,8 +126,8 @@ Enemy enemy[12] = {
    \___/
 )"),
 
-    // Golem: powerful stone guardian, high defense
-    Enemy("Golem", 40, 12, 8, R"(
+    // Golem: powerful stone guardian, high health and defense
+    Enemy("Golem", 120, 20, 12, R"(
    _______
   /       \
  |  .-. .-.|
@@ -137,8 +137,8 @@ Enemy enemy[12] = {
  |_|     |_|
 )"),
 
-    // Dragonling: baby dragon, high damage and strong defense
-    Enemy("Dragonling", 180, 15, 6, R"(
+    // Dragonling: mini-boss level enemy with very high stats
+    Enemy("Dragonling", 200, 25, 8, R"(
        / \  //\
  .-"\  \_/  //
 |    \     //

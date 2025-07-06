@@ -47,9 +47,9 @@ configurationDifficulty selectDifficult()
     
     // Draw difficulty options in the main grid
     std::string difficulties[3] = {
-        "1. Easy   (Enemies weaker: -5 HP, -2 ATK)",
+        "1. Easy   (Enemies weaker: -10 HP, -3 ATK)",
         "2. Normal (Enemies standard stats)",
-        "3. Hard   (Enemies stronger: +10 HP, +5 ATK)"
+        "3. Hard   (Enemies stronger: +15 HP, +8 ATK)"
     };
     
     for (int i = 0; i < 3; ++i) {
@@ -96,7 +96,7 @@ configurationDifficulty selectDifficult()
                 gameMap.display();
                 _getch();
                 
-                return configurationDifficulty(-5, -2); // Enemigos mas debiles
+                return configurationDifficulty(-10, -3); // Enemigos mas debiles
             }
             break;
             
@@ -144,7 +144,7 @@ configurationDifficulty selectDifficult()
                 gameMap.display();
                 _getch();
                 
-                return configurationDifficulty(10, 5); //Enemigos mas fuertes
+                return configurationDifficulty(15, 8); //Enemigos mas fuertes
             }
             break;
             

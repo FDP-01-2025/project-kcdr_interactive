@@ -46,10 +46,14 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
         // Set text in the map and display screen
         map.setPanelText(lineCount, text);
         clearScreen();
-        drawCombatScreen(map, player, enemy, false); // No pause before input
+        drawCombatScreen(map, player, enemy);
 
         int option = 0;
-        std::cin >> option;  // Use normal input with Enter
+        std::cin >> option;
+        
+        // Clear input buffer to prevent issues
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         
         // Validate input
         if (option < 1 || option > 2) {
@@ -74,12 +78,15 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             break;
         }
 
-       
         enemy.receiveDamage(damage);
-        text[1] = enemy.getName() + "health: " + std::to_string(enemy.getHealth());
+        text[1] = enemy.getName() + " health: " + std::to_string(enemy.getHealth());
         lineCount = 2;
         map.setPanelText(lineCount, text);
-        drawCombatScreen(map, player, enemy, true);
+        drawCombatScreen(map, player, enemy, false);
+        
+        // Pause to show attack result
+        std::cout << "\nPress any key to continue...";
+        _getch();
 
         //Logica cuando el enemigo es derrotado
         if (enemy.getHealth() <= 0)
@@ -91,11 +98,14 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             GameMenu::saveProgressAfterCombat("Combat Area");
             
             text[0] = enemy.getName() + " was defeated!";
-            lineCount = 1;
+            text[1] = "Press any key to continue...";
+            lineCount = 2;
 
             map.setPanelText(lineCount, text);
 
-            drawCombatScreen(map, player, enemy);
+            drawCombatScreen(map, player, enemy, false);
+            std::cout << "\nPress any key to continue...";
+            _getch(); // Single controlled pause
             break;
         }
 
@@ -110,34 +120,35 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
         text[1] = "Your health: " + std::to_string(player.getHealth());
         lineCount = 2;
         map.setPanelText(lineCount, text);
-        drawCombatScreen(map, player, enemy, true);
+        drawCombatScreen(map, player, enemy, false);
+        
+        // Pause to show enemy attack result
+        std::cout << "\nPress any key to continue...";
+        _getch();
 
         if (player.getHealth() <= 0)
         {
             text[0] = "You were defeated in battle...";
-            lineCount = 1;
+            text[1] = "Press any key to continue...";
+            lineCount = 2;
 
             map.setPanelText(lineCount, text);
 
-            drawCombatScreen(map, player, enemy, true);
+            drawCombatScreen(map, player, enemy, false);
+            std::cout << "\nPress any key to continue...";
+            _getch(); // Single controlled pause
             isPlayerAlive = false;
             
             // Show death screen
             GameMenu::displayDeathScreen();
             break;
         }
-
-        // Show enemy turn result
-        map.setPanelText(lineCount, text);
-
-        drawCombatScreen(map, player, enemy);
     }
 
     text[0] = "Combat ended.";
-    text[1] = "Press any key to continue...";
-    lineCount = 2;
+    lineCount = 1;
     map.setPanelText(lineCount, text);
-    drawCombatScreen(map, player, enemy, true); // Add pause to read the message
+    drawCombatScreen(map, player, enemy, false); // No pause here to avoid double input
 
     return isPlayerAlive;
 }
@@ -151,11 +162,11 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
 
     // Initial message
     text[0] = "*** BOSS BATTLE ***";
-    text[1] = boss.getName() + "appears before you!";
+    text[1] = boss.getName() + " appears before you!";
     lineCount = 2;
     map.setPanelText(lineCount, text);
     clearScreen();
-    drawCombatScreenBoss(map, player, boss, true);
+    drawCombatScreenBoss(map, player, boss, false); // No pause to avoid double input
 
     while (player.getHealth() > 0 && boss.getHealth() > 0)
     {
@@ -169,10 +180,14 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
         // Set text in the map and display screen
         map.setPanelText(lineCount, text);
         clearScreen();
-        drawCombatScreenBoss(map, player, boss, false); // No pause before input
+        drawCombatScreenBoss(map, player, boss, false); // No pause to avoid double input
 
         int option = 0;
-        std::cin >> option;  // Use normal input with Enter
+        std::cin >> option;
+        
+        // Clear input buffer to prevent issues
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         
         // Validate input
         if (option < 1 || option > 2) {
@@ -198,11 +213,15 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
 
         boss.takeDamage(damage);
 
-        text[1] = boss.getName() + "health: " + std::to_string(boss.getHealth());
+        text[1] = boss.getName() + " health: " + std::to_string(boss.getHealth());
         lineCount = 2;
 
         map.setPanelText(lineCount, text);
-        drawCombatScreenBoss(map, player, boss, true);
+        drawCombatScreenBoss(map, player, boss, false);
+        
+        // Pause to show attack result
+        std::cout << "\nPress any key to continue...";
+        _getch();
 
         if (boss.getHealth() <= 0)
         {
@@ -212,10 +231,13 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             
             text[0] = "*** " + boss.getName() + " HAS BEEN DEFEATED! ***";
             text[1] = "Victory is yours!";
-            lineCount = 2;
+            text[2] = "Press any key to continue...";
+            lineCount = 3;
 
             map.setPanelText(lineCount, text);
-            drawCombatScreenBoss(map, player, boss, true);
+            drawCombatScreenBoss(map, player, boss, false);
+            std::cout << "\nPress any key to continue...";
+            _getch(); // Single controlled pause
             break;
         }
 
@@ -239,31 +261,34 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
         text[1] = "Your health: " + std::to_string(player.getHealth());
         lineCount = 2;
         map.setPanelText(lineCount, text);
-        drawCombatScreenBoss(map, player, boss, true);
+        drawCombatScreenBoss(map, player, boss, false);
+        
+        // Pause to show boss attack result
+        std::cout << "\nPress any key to continue...";
+        _getch();
 
         if (player.getHealth() <= 0)
         {
             text[0] = "*** YOU HAVE BEEN DEFEATED ***";
             text[1] = boss.getName() + " stands victorious...";
-            lineCount = 2;
+            text[2] = "Press any key to continue...";
+            lineCount = 3;
 
             map.setPanelText(lineCount, text);
-            drawCombatScreenBoss(map, player, boss, true);
+            drawCombatScreenBoss(map, player, boss, false);
+            std::cout << "\nPress any key to continue...";
+            _getch(); // Single controlled pause
             isPlayerAlive = false;
             
             // Show death screen
             GameMenu::displayDeathScreen();
             break;
         }
-        // Show boss turn result
-        map.setPanelText(lineCount, text);
-        drawCombatScreenBoss(map, player, boss , true);
     }
     text[0] = "Boss battle ended.";
-    text[1] = "Press any key to continue...";
-    lineCount = 2;
+    lineCount = 1;
     map.setPanelText(lineCount, text);
-    drawCombatScreenBoss(map, player, boss, true); // Add pause to read the message
+    drawCombatScreenBoss(map, player, boss, false); // No pause here to avoid double input
 
     return isPlayerAlive;
 }

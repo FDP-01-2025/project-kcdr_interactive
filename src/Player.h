@@ -1,114 +1,202 @@
-#ifndef PLAYER_H // Header guard: ensures this file is included only once per compilation
+#ifndef PLAYER_H // Header guard: prevents multiple inclusions of this file during compilation
 #define PLAYER_H
 
-#include <string>   // Include support for the std::string data type
-#include <iostream> // Include for console output (e.g., std::cout)
-#include <map>      // Include for std::map to handle per-map enemy counters
+// ======== REQUIRED SYSTEM LIBRARIES ========
+// These standard C++ libraries provide essential functionality for the Player class
+#include <string>   // For std::string data type - used for player name storage
+#include <iostream> // For console input/output operations (std::cout for displaying messages)
+#include <map>      // For std::map container - used to track enemy defeats per map area
 
-// Declaration of the Player class, which represents a playable character in the game
+// ======== PLAYER CHARACTER CLASS DEFINITION ========
+// This class represents the main playable character and manages all player-related data
+// It handles stats, combat mechanics, progression tracking, and map-based enemy counters
 class Player
 {
 private:
-    std::string name;  // Name of the player character (currently set to a default value)
-    int health;        // Player's current health points
-    int attack;        // Player's basic attack power
-    int defense;       // Player's defense points which reduce incoming damage
-    int specialAttack; // Player's special ability power (used in special attacks)
-    int enemiesKilled; // Current map enemy counter (for backward compatibility)
-    std::map<int, int> enemiesKilledPerMap; // Counter per map (map_id -> enemy_count)
-public:
-    // Constructor for initializing a player object with health, attack, defense, and specialAttack values
-    Player(int health, int attack, int defense, int specialAttack)
-        : name("Player"),  // Will be updated by setName
-          health(health),   // Initializes health using the provided constructor argument
-          attack(attack),   // Initializes attack power
-          defense(defense), // Initializes defense points
-          specialAttack(specialAttack),
-          enemiesKilled(0)
-    {
-    } // Initializes special attack power
+    // ======== CORE CHARACTER ATTRIBUTES ========
+    // These variables store the fundamental characteristics that define the player character
+    
+    std::string name;  // Player's chosen name - displayed in UI and combat messages
+    int health;        // Current health points - when this reaches 0, the player dies
+    int attack;        // Base attack power - determines damage dealt to enemies in combat
+    int maxHealth;     // Maximum possible health points - used for healing calculations and display
+    int defense;       // Defensive capability - reduces incoming damage through mitigation formula
+    int specialAttack; // Special ability power - used for powerful special attacks in combat
+    
+    // ======== PROGRESSION TRACKING SYSTEM ========
+    // These variables manage the player's progress through different map areas
+    
+    int enemiesKilled; // Current map's enemy defeat counter - tracks progress in active area
+    std::map<int, int> enemiesKilledPerMap; // Per-map enemy counters (map_id -> enemy_count)
+                                           // Allows tracking progress across multiple areas independently
 
-    // Method to set the player's name
-    void setName(const std::string& playerName) {
-        name = playerName;
+public:
+    // ======== PLAYER CHARACTER CONSTRUCTOR ========
+    // Initializes a new player character with specified combat statistics
+    // This constructor sets up all the basic attributes needed for gameplay
+    // Parameters: health - starting/maximum HP, attack - base damage, defense - damage reduction, specialAttack - special ability power
+    Player(int health, int attack, int defense, int specialAttack)
+        : name("Player"),                    // Default name - will be customized later via setName()
+          health(health),                    // Set current health to the provided starting value
+          attack(attack),                    // Set base attack power for combat calculations
+          defense(defense),                  // Set defensive capability for damage mitigation
+          specialAttack(specialAttack),      // Set special attack power for powerful abilities
+          maxHealth(health),                 // Set maximum health equal to starting health
+          enemiesKilled(0)                   // Initialize enemy counter to 0 (no enemies defeated yet)
+    {
+        // Constructor body is empty - all initialization is handled in the member initializer list above
     }
 
-    // Method to display the player's current stats in the console
+    // ======== PLAYER NAME CUSTOMIZATION ========
+    // Method to set a custom name for the player character
+    // This allows personalization and is typically called during character creation
+    // Parameter: playerName - the desired name string for this player character
+    void setName(const std::string& playerName) {
+        name = playerName;  // Store the provided name, replacing the default "Player"
+    }
+
+    // ======== HEALTH RESTORATION SYSTEM ========
+    // Method to restore the player's health points, typically used at save points or with healing items
+    // Implements intelligent healing that prevents exceeding maximum health capacity
+    // Parameter: amount - number of health points to restore
+    void heal(int amount){
+        // ======== HEALTH CALCULATION ========
+        // Add the healing amount to current health
+        health += amount;
+        
+        // ======== MAXIMUM HEALTH ENFORCEMENT ========
+        // Prevent health from exceeding the maximum allowed value
+        // This maintains game balance and prevents exploitation
+        if (health > maxHealth)
+        {
+            health = maxHealth;  // Cap health at maximum value
+        }
+        
+        // ======== HEALING FEEDBACK ========
+        // Provide clear information to the player about the healing effect
+        std::cout << "You cured " << amount << "HP. Current life: " << health << "/" << maxHealth << std::endl;
+    }
+
+    // ======== PLAYER STATUS DISPLAY SYSTEM ========
+    // Method to display comprehensive player statistics in a formatted, readable way
+    // This is used in menus, debug screens, and status checks throughout the game
     void showStats() const
     {
-        std::cout << "Player: " << name
-                  << " | Health: " << health
-                  << " | Attack: " << attack
-                  << " | Defense: " << defense
-                  << " | Special: " << specialAttack 
-                  << " | Enemies Killed: " << enemiesKilled << std::endl;
-
+        // ======== FORMATTED STATUS OUTPUT ========
+        // Display all important player information in a single, organized line
+        // Format: "Player: [name] | Health: [current] | Attack: [value] | Defense: [value] | Special: [value] | Enemies Killed: [count]"
+        std::cout << "Player: " << name                    // Player's custom name
+                  << " | Health: " << health               // Current health points
+                  << " | Attack: " << attack               // Base attack power
+                  << " | Defense: " << defense             // Defensive capability
+                  << " | Special: " << specialAttack       // Special attack power
+                  << " | Enemies Killed: " << enemiesKilled << std::endl;  // Current map progress
     }
 
-    // Method to apply damage to the player based on incoming attack value
+    // ======== DAMAGE RECEPTION AND MITIGATION SYSTEM ========
+    // Method to handle incoming damage with defense-based mitigation calculations
+    // This implements the core defensive mechanics that make defense stats meaningful
+    // Parameter: damage - raw damage amount before any defensive calculations
     void receiveDamage(int damage)
-{
-    if (damage <= 0)
-        return;
+    {
+        // ======== INVALID DAMAGE PROTECTION ========
+        // Prevent processing of zero or negative damage values
+        if (damage <= 0)
+            return;
 
-    // Proportional mitigation based on defense:  
-    // Reduced damage = damage * 100/(100 + defense)
-    int mitigatedDamage = (damage * 100) / (100 + defense);
+        // ======== PROPORTIONAL DEFENSE MITIGATION ========
+        // Calculate reduced damage using a proportional formula that scales with defense
+        // Formula: mitigated_damage = original_damage * 100 / (100 + defense)
+        // This means higher defense provides diminishing returns, preventing invincibility
+        // Example: 10 defense = ~9% damage reduction, 50 defense = ~33% reduction, 100 defense = 50% reduction
+        int mitigatedDamage = (damage * 100) / (100 + defense);
 
-    health -= mitigatedDamage;
+        // ======== HEALTH REDUCTION ========
+        // Apply the calculated damage to the player's current health
+        health -= mitigatedDamage;
 
-    std::cout << "Player received " << mitigatedDamage << " damage after mitigation." << std::endl;
+        // ======== DAMAGE FEEDBACK ========
+        // Inform the player about the actual damage taken after defensive mitigation
+        std::cout << "Player received " << mitigatedDamage << " damage after mitigation." << std::endl;
 
-    if (health < 0)
-        health = 0;
-}
+        // ======== DEATH PREVENTION ========
+        // Ensure health never goes below 0 for clean death handling
+        if (health < 0)
+            health = 0;
+    }
 
-    // Getter for player's current health
+    // ======== BASIC ATTRIBUTE GETTER METHODS ========
+    // These methods provide safe read-only access to player statistics
+    // They follow the encapsulation principle by keeping data private while allowing controlled access
+    
+    // Returns current health points - used for combat calculations and UI display
     int getHealth() const { return health; }
 
-    // Getter for player's attack stat
+    // Returns maximum possible health - used for healing limits and health bar displays
+    int getMaxHealth() const { return maxHealth; }
+
+    // Returns base attack power - used in combat damage calculations
     int getAttack() const { return attack; }
 
-    // Getter for player's defense stat
+    // Returns defensive capability - used in damage mitigation calculations
     int getDefense() const { return defense; }
 
-    // Getter for player's special attack stat
+    // Returns special attack power - used for special ability damage calculations
     int getSpecialAttack() const { return specialAttack; }
 
-    // Getter for player's name
+    // Returns player's current name - used for display in UI and combat messages
     std::string getName() const { return name; }
 
-    //Getter para obtener el contador del mapa actual
+    // ======== ENEMY DEFEAT TRACKING SYSTEM ========
+    // These methods manage the progression system that tracks enemy defeats per map area
+    
+    // Returns the current map's enemy defeat count - used to check progression requirements
     int getEnemiesKilled() const {return enemiesKilled;}
 
-    //Se manda a llamar cada vez que el jugador derrota a un enemigo
+    // Increments the enemy defeat counter when the player wins a battle
+    // Called automatically after successful combat encounters
     void addEnemyKill() {enemiesKilled++;}
 
-    //Metodo para verificar si puede avanzar al siguiente mapa
+    // Checks if the player has defeated enough enemies to advance to new map areas
+    // Returns true if the player has defeated 5 or more enemies in the current area
     bool canAdvanceToNextMap(){return enemiesKilled >= 5;}
 
-    //Metodo para cambiar de mapa (guarda contador actual y carga el del nuevo mapa)
+    // ======== MAP TRANSITION AND PROGRESS MANAGEMENT ========
+    // This method handles the complex logic of switching between different map areas
+    // while preserving individual progress counters for each area
+    // Parameters: currentMapId - ID of the map being left, newMapId - ID of the destination map
     void changeToMap(int currentMapId, int newMapId) {
-        // Guardar contador del mapa actual
+        // ======== SAVE CURRENT PROGRESS ========
+        // Store the current map's enemy defeat count in the per-map tracking system
+        // This ensures progress isn't lost when leaving an area
         enemiesKilledPerMap[currentMapId] = enemiesKilled;
-        // Cargar contador del nuevo mapa (0 si es la primera vez)
+        
+        // ======== LOAD DESTINATION PROGRESS ========
+        // Retrieve the enemy defeat count for the destination map
+        // If this is the first visit to the map, the count will default to 0
         enemiesKilled = enemiesKilledPerMap[newMapId];
     }
     
-    //Metodo para reiniciar el contador al ingresar a un nuevo mapa (solo para compatibilidad)
+    // ======== SAVE/LOAD SYSTEM SUPPORT METHODS ========
+    // These methods provide the interface needed for game save and load functionality
+    // They allow external systems to preserve and restore player progress
+    
+    // Resets the current map's enemy counter to 0 - used for compatibility with older systems
     void resetEnemyCount() {enemiesKilled = 0;}
     
-    //Metodo para establecer el contador de enemigos (usado al cargar partida)
+    // Directly sets the enemy defeat count - used when loading saved game data
+    // Parameter: count - the saved enemy defeat count to restore
     void setEnemiesKilled(int count) {enemiesKilled = count;}
     
-    //Metodo para obtener el contador actual (usado al guardar partida)
+    // Returns the current enemy defeat count - used when saving game progress
     int getCurrentEnemiesKilled() const {return enemiesKilled;}
     
-    //Metodo para obtener todos los contadores por mapa
+    // Returns the complete map-to-counter data structure - used for comprehensive save operations
     std::map<int, int> getEnemiesKilledPerMap() const {return enemiesKilledPerMap;}
     
-    //Metodo para establecer todos los contadores por mapa (usado al cargar partida)
+    // Restores the complete map-to-counter data structure - used when loading saved games
+    // Parameter: mapCounters - the saved per-map enemy defeat data to restore
     void setEnemiesKilledPerMap(const std::map<int, int>& mapCounters) {enemiesKilledPerMap = mapCounters;}
 };
 
-#endif // End of header guard
+#endif // End of header guard - matches the #ifndef at the beginning of the file
