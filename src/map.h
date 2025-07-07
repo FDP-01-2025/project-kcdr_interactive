@@ -805,8 +805,8 @@ inline void interact(Map &gameMap)
         if(gameGrid[playerX - 1][playerY] == 'S' && gameGrid[playerX - 1][playerY + 1 ]== 'T'
         || gameGrid[playerX - 1][playerY] == 'T' && gameGrid[playerX - 1][playerY - 1 ]== 'S'){
 
-            // Execute shop menu using the new panel system with borders
-            showShopInPanel(gameMap);
+            // Execute shop menu using the new panel system
+            ItemFactory::displayShop(playerInventory, playerGold);
             return; // Exit interaction function
         }
 
