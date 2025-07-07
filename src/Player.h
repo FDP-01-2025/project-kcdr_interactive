@@ -195,6 +195,21 @@ public:
     // Restores the complete map-to-counter data structure - used when loading saved games
     // Parameter: mapCounters - the saved per-map enemy defeat data to restore
     void setEnemiesKilledPerMap(const std::map<int, int>& mapCounters) {enemiesKilledPerMap = mapCounters;}
+    
+ 
+    // Method to directly set player's current health - used when loading saved game data
+    // This allows restoring the exact health value without triggering healing effects
+    // Parameter: newHealth - the health value to set (will be clamped to valid range)
+    void setHealth(int newHealth) {
+        // Ensure health stays within valid bounds (0 to maxHealth)
+        if (newHealth < 0) {
+            health = 0;
+        } else if (newHealth > maxHealth) {
+            health = maxHealth;
+        } else {
+            health = newHealth;
+        }
+    }
 };
 
 #endif // End of header guard - matches the #ifndef at the beginning of the file

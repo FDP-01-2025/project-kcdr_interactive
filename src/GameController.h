@@ -289,14 +289,18 @@ void GameController::handleDeathScreen()
                 // ======== PLAYER CHARACTER RESTORATION ========
                 playerSelected = mostRecentSave.playerData;     // Restore player stats, health, etc.
                 selectedName = mostRecentSave.characterName;    // Restore player name
+            
+                // Restore player's inventory and gold from saved data
+                mostRecentSave.restoreInventoryToGlobal(::playerInventory);
+                ::playerGold = mostRecentSave.playerGold;
                 
                 // ======== WORLD STATE RESTORATION ========
                 SaveManager::updatePlayerPosition(mostRecentSave.currentMapX, mostRecentSave.currentMapY); // Restore map position
                 SaveManager::setCurrentDifficulty(mostRecentSave.difficultyConfig);                        // Restore difficulty settings
                 applyDifficultyEnemies(mostRecentSave.difficultyConfig);                                    // Apply difficulty scaling to enemies
                 
-                // ======== PROGRESSION DATA RESTORATION ========
-                // Critical: Restore the enemy defeat counters to maintain progression accuracy
+                
+                // Restore the enemy defeat counters to maintain progression accuracy
                 playerSelected.setEnemiesKilled(mostRecentSave.currentMapEnemiesKilled);      // Current map progress
                 playerSelected.setEnemiesKilledPerMap(mostRecentSave.enemiesPerMap);          // Per-map progress tracking
                 

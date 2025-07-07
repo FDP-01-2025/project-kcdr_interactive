@@ -11,7 +11,7 @@ const int MAX_LINEAS = 7; // Maximum number of text lines that can be displayed 
 // The game now features different enemy types in each map area for progression:
 // - Town Center (Map 0): Basic enemies (indices 0-2) - Slime, Goblin, Orc
 // - North District (Map 1): Intermediate enemies (indices 3-5) - Wraith, Gremlin, Skeleton
-// - South District (Map 2): Advanced enemies (indices 6-8) - Bat, Boar, Ghoul  
+// - South District (Map 2): Advanced enemies (indices 6-8) - Bat, Boar, Ghoul
 // - East District (Map 3): Elite enemies (indices 9-11) - Imp, Golem, Dragonling
 // This creates a natural difficulty progression as players explore different areas
 
@@ -54,6 +54,7 @@ extern Inventory playerInventory; // Global player inventory
 
 void playGame(); // Main game loop function - will be defined later in this file
 void showShopInPanel(Map &gameMap); // Forward declaration for shop panel function
+void showShopInGrid(Map &gameMap); // Forward declaration for shop grid function
 
 // ======== BUILDING STRUCTURE CLASS ========
 // This class represents individual buildings that can be placed on the game map
@@ -275,6 +276,7 @@ public:
 #include "Player.h"         // Player class definition and stats management
 #include "combat_system.h"  // Combat mechanics and battle flow
 #include "GameController.h" // Main game state management and menu systems
+#include "SaveSystem.h"     // Save system functions - must be after Map class definition
 
 // ======== UTILITY FUNCTIONS FOR MAP MANIPULATION ========
 
@@ -523,11 +525,61 @@ inline void initializePlayer(char gameGrid[ROWS][COLUMNS])
 // Function to handle transitions between different map areas when the player approaches transition zones
 // This implements the progression system where players must defeat enemies before advancing
 // Parameters: gameGrid - current map grid, transitionChar - the character representing the transition direction
+static bool bossDefeated[4] = {false, false, false, false}; // Control de boss por mapa
 inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
 {
+    // ======== TRANSITION CALCULATION (ANTES DEL COMBATE) ========
+    int newMap = currentMap;
+    int newX = playerX, newY = playerY;
+    switch (transitionChar)
+    {
+    case 'N':
+        if (currentMap == 0)
+        {
+            newMap = 1;
+            newX = ROWS - 8;
+            newY = 45;
+        }
+        else if (currentMap == 2)
+        {
+            newMap = 0;
+            newX = ROWS - 8;
+            newY = 45;
+        }
+        break;
+    case 'S':
+        if (currentMap == 0)
+        {
+            newMap = 2;
+            newX = 2;
+            newY = 45;
+        }
+        else if (currentMap == 1)
+        {
+            newMap = 0;
+            newX = 2;
+            newY = 45;
+        }
+        break;
+    case 'E':
+        if (currentMap == 0)
+        {
+            newMap = 3;
+            newX = 12;
+            newY = 2;
+        }
+        break;
+    case 'W':
+        if (currentMap == 3)
+        {
+            newMap = 0;
+            newX = 12;
+            newY = COLUMNS - 3;
+        }
+        break;
+    }
+
     // ======== PROGRESSION GATE CHECK ========
-    // Validate that the player has defeated enough enemies to advance to the next area
-    // This creates a gameplay requirement and prevents players from skipping combat
     if (!playerSelected.canAdvanceToNextMap())
     {
         // Display informative message about why the transition is blocked
@@ -537,100 +589,75 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
         // Show current progress to help the player understand their goal
         std::cout << "Current enemies defeated: " << playerSelected.getEnemiesKilled() << "/5\n";
         std::cout << "Press any key to continue...";
-        _getch();     // Wait for player acknowledgment before continuing
-        return false; // Prevent the map change and keep player in current area
+        _getch();
+        return false;
     }
 
-    // ======== TRANSITION CALCULATION ========
-    // Initialize destination variables with current values (default to no change)
-    int newMap = currentMap;            // Destination map ID
-    int newX = playerX, newY = playerY; // Destination coordinates for player spawn
-
-    // Determine destination map and spawn position based on the transition direction
-    switch (transitionChar)
+    // ======== SI YA DERROTÓ AL BOSS EN ESTE MAPA, SOLO AVANZA ========
+    if (bossDefeated[newMap])
     {
-    case 'N': // Moving North
-        if (currentMap == 0)
-        {
-            // Center -> North District transition
-            newMap = 1;
-            newX = ROWS - 8; // Spawn near bottom of north map (coming from south)
-            newY = 45;       // Keep horizontal center position
-        }
-        else if (currentMap == 2)
-        {
-            // South District -> Center transition
-            newMap = 0;
-            newX = ROWS - 8; // Spawn near bottom of center map
-            newY = 45;       // Keep horizontal center position
-        }
-        break;
+        std::cout << "You have already defeated the area guardian!" << std::endl;
+        std::cout << "You advance to the next area!"<< std::endl;
+        std::cout << ""<< std::endl;
+        std::cout << "Press any key to continue..."<< std::endl;
+        _getch();
+        // Ejecuta el cambio de mapa
+        gameGrid[playerX][playerY] = ' ';
+        int oldMap = currentMap;
+        playerSelected.changeToMap(oldMap, newMap);
+        currentMap = newMap;
+        playerX = newX;
+        playerY = newY;
+        return true;
+    }
 
-    case 'S': // Moving South
-        if (currentMap == 0)
-        {
-            // Center -> South District transition
-            newMap = 2;
-            newX = 2;  // Spawn near top of south map (coming from north)
-            newY = 45; // Keep horizontal center position
-        }
-        else if (currentMap == 1)
-        {
-            // North District -> Center transition
-            newMap = 0;
-            newX = 2;  // Spawn near top of center map
-            newY = 45; // Keep horizontal center position
-        }
-        break;
+    // ======== BOSS BATTLE REQUIREMENT ========
+    {
+        // If player has defeated 5 enemies, trigger boss battle before allowing map transition
+    std::cout << "\nYou have defeated enough enemies to advance!" << std::endl;
+    std::cout << "But first, you must face the area guardian..." << std::endl;
+    std::cout << "A powerful boss emerges to challenge you!" << std::endl;
+    std::cout << "Press any key to begin the boss battle...";
+        _getch();
+    }
 
-    case 'E': // Moving East
-        if (currentMap == 0)
-        {
-            // Center -> East District transition
-            newMap = 3;
-            newX = 12; // Keep vertical center position
-            newY = 2;  // Spawn near left side of east map (coming from west)
-        }
-        break;
+    // ======== BOSS BATTLE EXECUTION ========
+    Boss areaBoss = createBoss1();
+    Map gameMap;
+    bool playerWonBossBattle = CombatBosss(playerSelected, areaBoss, gameMap);
 
-    case 'W': // Moving West
-        if (currentMap == 3)
-        {
-            // East District -> Center transition
-            newMap = 0;
-            newX = 12;          // Keep vertical center position
-            newY = COLUMNS - 3; // Spawn near right side of center map (coming from east)
-        }
-        break;
+    // ======== BOSS BATTLE RESULT HANDLING ========
+    if (!playerWonBossBattle)
+    {
+        // Player lost the boss battle
+        std::cout << "\nYou were defeated by the area guardian!" << std::endl;
+        std::cout << "You must try again to advance to the next area." << std::endl;
+        std::cout << "Press any key to continue...";
+        _getch();
+        return false;
+    }
+
+    // Si gana, marca el boss como derrotado para ese mapa
+    bossDefeated[newMap] = true;
+
+    // Mensaje de victoria
+    {
+       // Player won the boss battle - proceed with map transition
+    std::cout << "\nYou have defeated the area guardian!" << std::endl;
+    std::cout << "You can now advance to the next area!" << std::endl;
+    std::cout << "Press any key to continue...";
+    _getch();
+
     }
 
     // ======== EXECUTE TRANSITION ========
-    // Only proceed if we calculated a valid destination different from current location
-    if (newMap != currentMap)
-    {
-        gameGrid[playerX][playerY] = ' '; // Clear the player's current position on the old map
-
-        // ======== PER-MAP ENEMY COUNTER SYSTEM ========
-        // Update the enemy counter system to track progress per map area
-        int oldMap = currentMap;
-        playerSelected.changeToMap(oldMap, newMap); // Notify player object of map change
-
-        // ======== UPDATE PLAYER STATE ========
-        currentMap = newMap; // Set the new current map
-        playerX = newX;      // Update player's vertical position
-        playerY = newY;      // Update player's horizontal position
-
-        // ======== PROVIDE FEEDBACK ========
-        // Inform the player about the successful transition and their progress
-        std::cout << "\nYou have advanced to a new area!\n";
-        std::cout << "Enemy counter for this map: " << playerSelected.getEnemiesKilled() << "/5\n";
-        std::cout << "Press any key to continue...";
-        _getch(); // Wait for player acknowledgment
-
-        return true; // Signal that the map change was successful
-    }
-
-    return false; // No valid transition occurred - stay in current map
+    gameGrid[playerX][playerY] = ' ';
+    int oldMap = currentMap;
+    playerSelected.changeToMap(oldMap, newMap);
+    currentMap = newMap;
+    playerX = newX;
+    playerY = newY;
+    return true;
 }
 
 // ======== PLAYER MOVEMENT SYSTEM ========
@@ -802,15 +829,14 @@ inline void interact(Map &gameMap)
     // These characters represent different parts of ASCII art buildings
     for (char c : adj)
     {
-        if(gameGrid[playerX - 1][playerY] == 'S' && gameGrid[playerX - 1][playerY + 1 ]== 'T'
-        || gameGrid[playerX - 1][playerY] == 'T' && gameGrid[playerX - 1][playerY - 1 ]== 'S'){
-
-            // Execute shop menu using the new panel system
-            ItemFactory::displayShop(playerInventory, playerGold);
+        if (gameGrid[playerX - 1][playerY] == 'S' && gameGrid[playerX - 1][playerY + 1] == 'T' || gameGrid[playerX - 1][playerY] == 'T' && gameGrid[playerX - 1][playerY - 1] == 'S')
+        {
+            // Execute shop menu using the grid system
+            showShopInGrid(gameMap);
             return; // Exit interaction function
         }
 
-        else if(c == '^' || c == '|' || c == '/' || c == '\\' || c == '_' || c == '+')
+        else if (c == '^' || c == '|' || c == '/' || c == '\\' || c == '_' || c == '+')
         {
             // ======== BUILDING INTERACTION ========
             // All buildings now trigger direct boss battles
@@ -882,16 +908,37 @@ inline void showInventoryInPanel(Map &gameMap)
         drawTextOnMap(grid, healingHeader, currentRow++, leftMargin);
         currentRow++; // Add spacing
         
-        // Display each healing item with quantity
+        // Collect healing items with quantities > 0 (using fixed array)
+        std::string healingItems[20]; // Maximum 20 healing items
+        int healingCount = 0;
+        
         for (int i = 0; i < playerInventory.getHealingItemCount(); i++) {
             const HealingItem& item = playerInventory.getHealingItem(i);
             if (item.getQuantity() > 0) {
                 std::string itemText = "  " + item.getName() + ": x" + std::to_string(item.getQuantity());
-                drawTextOnMap(grid, itemText, currentRow++, leftMargin);
+                healingItems[healingCount] = itemText;
+                healingCount++;
                 hasItems = true;
             }
         }
-        currentRow++; // Add spacing after healing items
+        
+        // Display healing items in two columns
+        int leftColumnMargin = leftMargin;
+        int rightColumnMargin = leftMargin + 35; // Adjust spacing between columns
+        int startRow = currentRow;
+        
+        for (int i = 0; i < healingCount; i++) {
+            if (i % 2 == 0) {
+                // Left column (even indices: 0, 2, 4, 6)
+                drawTextOnMap(grid, healingItems[i], startRow + (i / 2), leftColumnMargin);
+            } else {
+                // Right column (odd indices: 1, 3, 5, 7)
+                drawTextOnMap(grid, healingItems[i], startRow + (i / 2), rightColumnMargin);
+            }
+        }
+        
+        // Update currentRow to continue after the columns
+        currentRow = startRow + ((healingCount + 1) / 2) + 1; // Add spacing after healing items
     }
     
     // ======== DAMAGE ITEMS SECTION ========
@@ -900,15 +947,37 @@ inline void showInventoryInPanel(Map &gameMap)
         drawTextOnMap(grid, damageHeader, currentRow++, leftMargin);
         currentRow++; // Add spacing
         
-        // Display each damage item with quantity
+        // Collect damage items with quantities > 0 (using fixed array)
+        std::string damageItems[20]; // Maximum 20 damage items
+        int damageCount = 0;
+        
         for (int i = 0; i < playerInventory.getDamageItemCount(); i++) {
             const DamageItem& item = playerInventory.getDamageItem(i);
             if (item.getQuantity() > 0) {
                 std::string itemText = "  " + item.getName() + ": x" + std::to_string(item.getQuantity());
-                drawTextOnMap(grid, itemText, currentRow++, leftMargin);
+                damageItems[damageCount] = itemText;
+                damageCount++;
                 hasItems = true;
             }
         }
+        
+        // Display damage items in two columns
+        int leftColumnMargin = leftMargin;
+        int rightColumnMargin = leftMargin + 35; // Adjust spacing between columns
+        int startRow = currentRow;
+        
+        for (int i = 0; i < damageCount; i++) {
+            if (i % 2 == 0) {
+                // Left column (even indices: 0, 2, 4, 6)
+                drawTextOnMap(grid, damageItems[i], startRow + (i / 2), leftColumnMargin);
+            } else {
+                // Right column (odd indices: 1, 3, 5, 7)
+                drawTextOnMap(grid, damageItems[i], startRow + (i / 2), rightColumnMargin);
+            }
+        }
+        
+        // Update currentRow to continue after the columns
+        currentRow = startRow + ((damageCount + 1) / 2);
     }
     
     // ======== EMPTY INVENTORY MESSAGE ========
@@ -1161,6 +1230,215 @@ inline void showShopInPanel(Map &gameMap)
     }
 }
 
+// Function to show shop directly in the map grid
+inline void showShopInGrid(Map &gameMap)
+{
+    bool inShop = true;
+    
+    while (inShop) {
+        // ======== SHOP GRID SETUP ========
+        char (&grid)[ROWS][COLUMNS] = gameMap.getGrid();
+        gameMap.reset(); // Clear and redraw borders
+        
+        // ======== SHOP TITLE ========
+        std::string title = "=== MYSTICAL SHOP ===";
+        int titleRow = 3;
+        int titleCol = (COLUMNS - title.length()) / 2;
+        drawTextOnMap(grid, title, titleRow, titleCol);
+        
+        // ======== GOLD DISPLAY ========
+        std::string goldText = "Your Gold: " + std::to_string(playerGold) + " coins";
+        int goldRow = 5;
+        int goldCol = (COLUMNS - goldText.length()) / 2;
+        drawTextOnMap(grid, goldText, goldRow, goldCol);
+        
+        // ======== SHOP ITEMS DISPLAY ========
+        int currentRow = 8;
+        int leftMargin = 15;
+        
+        drawTextOnMap(grid, "1. Small Health Potion (25 HP) - 10 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "2. Medium Health Potion (50 HP) - 25 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "3. Throwing Knife (15 DMG) - 15 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "4. Grenade (45 DMG) - 40 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "5. Magic Elixir (150 HP) - 100 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "6. Lightning Bolt (100 DMG) - 150 Gold", currentRow++, leftMargin);
+        currentRow++;
+        drawTextOnMap(grid, "7. Exit Shop", currentRow++, leftMargin);
+        
+        // ======== INSTRUCTION ========
+        std::string instruction = "Choose an item to purchase (1-7):";
+        int instrRow = currentRow + 2;
+        int instrCol = (COLUMNS - instruction.length()) / 2;
+        drawTextOnMap(grid, instruction, instrRow, instrCol);
+        
+        // ======== DISPLAY THE SHOP ========
+        system("cls");
+        gameMap.display();
+        
+        // ======== GET USER INPUT ========
+        char choice = _getch();
+        int itemChoice = choice - '0'; // Convert char to int
+        
+        // ======== PROCESS PURCHASE ========
+        if (itemChoice == 7) {
+            // Exit shop
+            inShop = false;
+            
+            // Show farewell message
+            gameMap.reset();
+            std::string farewell = "Thank you for visiting the Mystical Shop!";
+            int farewellRow = 10;
+            int farewellCol = (COLUMNS - farewell.length()) / 2;
+            drawTextOnMap(grid, farewell, farewellRow, farewellCol);
+            
+            std::string wishes = "May your journey be prosperous!";
+            int wishesRow = 12;
+            int wishesCol = (COLUMNS - wishes.length()) / 2;
+            drawTextOnMap(grid, wishes, wishesRow, wishesCol);
+            
+            std::string exitInstr = "Press any key to return to map...";
+            int exitRow = 14;
+            int exitCol = (COLUMNS - exitInstr.length()) / 2;
+            drawTextOnMap(grid, exitInstr, exitRow, exitCol);
+            
+            system("cls");
+            gameMap.display();
+            _getch();
+            
+        } else if (itemChoice >= 1 && itemChoice <= 6) {
+            // Process item purchase
+            bool purchaseSuccess = false;
+            std::string itemName = "";
+            int itemCost = 0;
+            
+            switch (itemChoice) {
+                case 1:
+                    if (playerGold >= 10) {
+                        playerGold -= 10;
+                        playerInventory.addHealingItem(GameItems::smallPotion);
+                        purchaseSuccess = true;
+                        itemName = "Small Health Potion";
+                        itemCost = 10;
+                    }
+                    break;
+                case 2:
+                    if (playerGold >= 25) {
+                        playerGold -= 25;
+                        playerInventory.addHealingItem(GameItems::mediumPotion);
+                        purchaseSuccess = true;
+                        itemName = "Medium Health Potion";
+                        itemCost = 25;
+                    }
+                    break;
+                case 3:
+                    if (playerGold >= 15) {
+                        playerGold -= 15;
+                        playerInventory.addDamageItem(GameItems::throwingKnife);
+                        purchaseSuccess = true;
+                        itemName = "Throwing Knife";
+                        itemCost = 15;
+                    }
+                    break;
+                case 4:
+                    if (playerGold >= 40) {
+                        playerGold -= 40;
+                        playerInventory.addDamageItem(GameItems::grenade);
+                        purchaseSuccess = true;
+                        itemName = "Grenade";
+                        itemCost = 40;
+                    }
+                    break;
+                case 5:
+                    if (playerGold >= 100) {
+                        playerGold -= 100;
+                        playerInventory.addHealingItem(GameItems::magicElixir);
+                        purchaseSuccess = true;
+                        itemName = "Magic Elixir";
+                        itemCost = 100;
+                    }
+                    break;
+                case 6:
+                    if (playerGold >= 150) {
+                        playerGold -= 150;
+                        playerInventory.addDamageItem(GameItems::lightningBolt);
+                        purchaseSuccess = true;
+                        itemName = "Lightning Bolt";
+                        itemCost = 150;
+                    }
+                    break;
+            }
+            
+            // ======== SHOW PURCHASE RESULT ========
+            gameMap.reset();
+            
+            if (purchaseSuccess) {
+                std::string successTitle = "PURCHASE SUCCESSFUL!";
+                int successRow = 8;
+                int successCol = (COLUMNS - successTitle.length()) / 2;
+                drawTextOnMap(grid, successTitle, successRow, successCol);
+                
+                std::string itemText = "You bought: " + itemName;
+                int itemRow = 10;
+                int itemCol = (COLUMNS - itemText.length()) / 2;
+                drawTextOnMap(grid, itemText, itemRow, itemCol);
+                
+                std::string costText = "Cost: " + std::to_string(itemCost) + " gold";
+                int costRow = 11;
+                int costCol = (COLUMNS - costText.length()) / 2;
+                drawTextOnMap(grid, costText, costRow, costCol);
+                
+                std::string remainingText = "Remaining Gold: " + std::to_string(playerGold);
+                int remainingRow = 13;
+                int remainingCol = (COLUMNS - remainingText.length()) / 2;
+                drawTextOnMap(grid, remainingText, remainingRow, remainingCol);
+                
+            } else {
+                std::string failTitle = "PURCHASE FAILED!";
+                int failRow = 10;
+                int failCol = (COLUMNS - failTitle.length()) / 2;
+                drawTextOnMap(grid, failTitle, failRow, failCol);
+                
+                std::string reason = "Not enough gold!";
+                int reasonRow = 12;
+                int reasonCol = (COLUMNS - reason.length()) / 2;
+                drawTextOnMap(grid, reason, reasonRow, reasonCol);
+            }
+            
+            std::string continueText = "Press any key to continue shopping...";
+            int continueRow = 16;
+            int continueCol = (COLUMNS - continueText.length()) / 2;
+            drawTextOnMap(grid, continueText, continueRow, continueCol);
+            
+            system("cls");
+            gameMap.display();
+            _getch();
+            
+        } else {
+            // Invalid choice
+            gameMap.reset();
+            
+            std::string errorTitle = "INVALID CHOICE!";
+            int errorRow = 10;
+            int errorCol = (COLUMNS - errorTitle.length()) / 2;
+            drawTextOnMap(grid, errorTitle, errorRow, errorCol);
+            
+            std::string errorMsg = "Please select a valid option (1-7)";
+            int msgRow = 12;
+            int msgCol = (COLUMNS - errorMsg.length()) / 2;
+            drawTextOnMap(grid, errorMsg, msgRow, msgCol);
+            
+            std::string tryAgain = "Press any key to try again...";
+            int tryRow = 14;
+            int tryCol = (COLUMNS - tryAgain.length()) / 2;
+            drawTextOnMap(grid, tryAgain, tryRow, tryCol);
+            
+            system("cls");
+            gameMap.display();
+            _getch();
+        }
+    }
+}
+
 // ======== MAIN GAME LOOP ========
 // Main function that runs the game
 // ======== MAIN GAME LOOP SYSTEM ========
@@ -1189,8 +1467,8 @@ inline void playGame()
 
         // ======== GAME STATUS INFORMATION ========
         // Display important information below the map for player reference
-        std::cout << "Current Map: " << getCurrentMapName();                        // Show which area they're in
-        
+        std::cout << "Current Map: " << getCurrentMapName(); // Show which area they're in
+
         // Add zone information to help players understand enemy difficulty
         std::string zoneInfo = "";
         switch (currentMap)
@@ -1209,7 +1487,7 @@ inline void playGame()
             break;
         }
         std::cout << zoneInfo << "\n";
-        
+
         std::cout << "Player Position: (" << playerX << ", " << playerY << ")\n";       // Show exact coordinates (useful for debugging)
         std::cout << "Enemies Defeated: " << playerSelected.getEnemiesKilled() << "/5"; // Show progress toward area completion
 
@@ -1230,6 +1508,11 @@ inline void playGame()
         // Process the player's input and trigger appropriate game actions
         if (option == 'q')
         {
+            // ======== AUTO-SAVE BEFORE QUIT ========
+            // Save current progress including inventory before returning to main menu
+            std::string currentLocation = getCurrentLocationString();
+            saveCurrentProgress(currentLocation);
+            
             // ======== QUIT TO MAIN MENU ========
             // Return to the main menu system when player presses 'Q'
             GameController::runMainMenu(); // Hand control back to the main menu system
@@ -1269,7 +1552,7 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     // Different map areas have different enemy types for progression and variety
     int minEnemyIndex = 0; // Minimum enemy index for current zone
     int maxEnemyIndex = 2; // Maximum enemy index for current zone (inclusive)
-    
+
     // Determine enemy range based on current map area
     switch (currentMap)
     {
@@ -1294,7 +1577,7 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
         maxEnemyIndex = 2;
         break;
     }
-    
+
     // ======== ENEMY SELECTION ========
     // Randomly select an enemy from the zone-specific range for variety in encounters
     int enemyRange = maxEnemyIndex - minEnemyIndex + 1;           // Calculate number of enemies in range

@@ -99,17 +99,47 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                 text[1] = "Select an item to use:";
                 lineCount = 2;
                 
-                // Show available healing items
+                // Show available healing items in two columns (4 and 4)
                 int availableItems = 0;
-                for (int i = 0; i < playerInventory.getHealingItemCount(); i++) {
+                int leftColumn[4] = {-1, -1, -1, -1};  // Store item indices for left column
+                int rightColumn[4] = {-1, -1, -1, -1}; // Store item indices for right column
+                
+                // Collect available items and organize in columns
+                for (int i = 0; i < playerInventory.getHealingItemCount() && availableItems < 8; i++) {
                     if (playerInventory.getHealingItem(i).isAvailable()) {
-                        std::string itemText = std::to_string(i+1) + ". " + 
-                                             playerInventory.getHealingItem(i).getName() + 
-                                             " (Heals " + std::to_string(playerInventory.getHealingItem(i).getHealAmount()) + 
-                                             " HP, Qty: " + std::to_string(playerInventory.getHealingItem(i).getQuantity()) + ")";
-                        text[lineCount] = itemText;
-                        lineCount++;
+                        if (availableItems < 4) {
+                            leftColumn[availableItems] = i;
+                        } else {
+                            rightColumn[availableItems - 4] = i;
+                        }
                         availableItems++;
+                    }
+                }
+                
+                // Display left column items
+                for (int i = 0; i < 4 && leftColumn[i] != -1; i++) {
+                    int itemIndex = leftColumn[i];
+                    std::string itemText = std::to_string(i + 1) + ". " + 
+                                         playerInventory.getHealingItem(itemIndex).getName() + 
+                                         " (+" + std::to_string(playerInventory.getHealingItem(itemIndex).getHealAmount()) + 
+                                         " HP, x" + std::to_string(playerInventory.getHealingItem(itemIndex).getQuantity()) + ")";
+                    text[lineCount] = itemText;
+                    lineCount++;
+                }
+                
+                // Display right column items
+                for (int i = 0; i < 4 && rightColumn[i] != -1; i++) {
+                    int itemIndex = rightColumn[i];
+                    std::string itemText = std::to_string(i + 5) + ". " + 
+                                         playerInventory.getHealingItem(itemIndex).getName() + 
+                                         " (+" + std::to_string(playerInventory.getHealingItem(itemIndex).getHealAmount()) + 
+                                         " HP, x" + std::to_string(playerInventory.getHealingItem(itemIndex).getQuantity()) + ")";
+                    // Add to existing line if there's space, or create new line
+                    if (lineCount - 2 - i > 0 && lineCount - 2 - i <= 4) {
+                        text[lineCount - 4 + i] += "     " + itemText; // Add spacing and right column item
+                    } else {
+                        text[lineCount] = "     " + itemText;
+                        lineCount++;
                     }
                 }
                 
@@ -119,32 +149,40 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                     
                     map.setPanelText(lineCount, text);
                     clearScreen();
-                    drawCombatScreen(map, player, enemy);
+                    drawCombatScreen(map, player, enemy, false);
                     
                     int itemChoice = 0;
                     std::cin >> itemChoice;
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     
-                    if (itemChoice > 0 && itemChoice <= playerInventory.getHealingItemCount()) {
-                        if (playerInventory.useHealingItem(itemChoice, player)) {
+                    if (itemChoice > 0 && itemChoice <= availableItems) {
+                        // Find the actual item index
+                        int actualIndex = -1;
+                        if (itemChoice <= 4 && leftColumn[itemChoice - 1] != -1) {
+                            actualIndex = leftColumn[itemChoice - 1] + 1; // +1 because useHealingItem expects 1-based index
+                        } else if (itemChoice > 4 && rightColumn[itemChoice - 5] != -1) {
+                            actualIndex = rightColumn[itemChoice - 5] + 1;
+                        }
+                        
+                        if (actualIndex != -1 && playerInventory.useHealingItem(actualIndex, player)) {
                             text[0] = "You used a healing item!";
                             text[1] = "Your health: " + std::to_string(player.getHealth());
                             lineCount = 2;
                         } else {
                             text[0] = "Couldn't use that item!";
                             lineCount = 1;
-                            playerUsedTurn = false; // Don't consume turn if item use failed
+                            playerUsedTurn = false;
                         }
                     } else {
                         text[0] = "Cancelled item use.";
                         lineCount = 1;
-                        playerUsedTurn = false; // Don't consume turn if cancelled
+                        playerUsedTurn = false;
                     }
                 } else {
                     text[0] = "No healing items available!";
                     lineCount = 1;
-                    playerUsedTurn = false; // Don't consume turn if no items
+                    playerUsedTurn = false;
                 }
             } else {
                 text[0] = "No healing items available!";
@@ -159,17 +197,47 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                 text[1] = "Select an item to use:";
                 lineCount = 2;
                 
-                // Show available damage items
+                // Show available damage items in two columns (4 and 4)
                 int availableItems = 0;
-                for (int i = 0; i < playerInventory.getDamageItemCount(); i++) {
+                int leftColumn[4] = {-1, -1, -1, -1};  // Store item indices for left column
+                int rightColumn[4] = {-1, -1, -1, -1}; // Store item indices for right column
+                
+                // Collect available items and organize in columns
+                for (int i = 0; i < playerInventory.getDamageItemCount() && availableItems < 8; i++) {
                     if (playerInventory.getDamageItem(i).isAvailable()) {
-                        std::string itemText = std::to_string(i+1) + ". " + 
-                                             playerInventory.getDamageItem(i).getName() + 
-                                             " (Dmg: " + std::to_string(playerInventory.getDamageItem(i).getDamage()) + 
-                                             ", Qty: " + std::to_string(playerInventory.getDamageItem(i).getQuantity()) + ")";
-                        text[lineCount] = itemText;
-                        lineCount++;
+                        if (availableItems < 4) {
+                            leftColumn[availableItems] = i;
+                        } else {
+                            rightColumn[availableItems - 4] = i;
+                        }
                         availableItems++;
+                    }
+                }
+                
+                // Display left column items
+                for (int i = 0; i < 4 && leftColumn[i] != -1; i++) {
+                    int itemIndex = leftColumn[i];
+                    std::string itemText = std::to_string(i + 1) + ". " + 
+                                         playerInventory.getDamageItem(itemIndex).getName() + 
+                                         " (" + std::to_string(playerInventory.getDamageItem(itemIndex).getDamage()) + 
+                                         " DMG, x" + std::to_string(playerInventory.getDamageItem(itemIndex).getQuantity()) + ")";
+                    text[lineCount] = itemText;
+                    lineCount++;
+                }
+                
+                // Display right column items
+                for (int i = 0; i < 4 && rightColumn[i] != -1; i++) {
+                    int itemIndex = rightColumn[i];
+                    std::string itemText = std::to_string(i + 5) + ". " + 
+                                         playerInventory.getDamageItem(itemIndex).getName() + 
+                                         " (" + std::to_string(playerInventory.getDamageItem(itemIndex).getDamage()) + 
+                                         " DMG, x" + std::to_string(playerInventory.getDamageItem(itemIndex).getQuantity()) + ")";
+                    // Add to existing line if there's space, or create new line
+                    if (lineCount - 2 - i > 0 && lineCount - 2 - i <= 4) {
+                        text[lineCount - 4 + i] += "     " + itemText; // Add spacing and right column item
+                    } else {
+                        text[lineCount] = "     " + itemText;
+                        lineCount++;
                     }
                 }
                 
@@ -179,32 +247,40 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                     
                     map.setPanelText(lineCount, text);
                     clearScreen();
-                    drawCombatScreen(map, player, enemy);
+                    drawCombatScreen(map, player, enemy, false);
                     
                     int itemChoice = 0;
                     std::cin >> itemChoice;
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     
-                    if (itemChoice > 0 && itemChoice <= playerInventory.getDamageItemCount()) {
-                        if (playerInventory.useDamageItem(itemChoice, player, enemy)) {
+                    if (itemChoice > 0 && itemChoice <= availableItems) {
+                        // Find the actual item index
+                        int actualIndex = -1;
+                        if (itemChoice <= 4 && leftColumn[itemChoice - 1] != -1) {
+                            actualIndex = leftColumn[itemChoice - 1] + 1; // +1 because useDamageItem expects 1-based index
+                        } else if (itemChoice > 4 && rightColumn[itemChoice - 5] != -1) {
+                            actualIndex = rightColumn[itemChoice - 5] + 1;
+                        }
+                        
+                        if (actualIndex != -1 && playerInventory.useDamageItem(actualIndex, player, enemy)) {
                             text[0] = "You used a damage item!";
                             text[1] = enemy.getName() + " health: " + std::to_string(enemy.getHealth());
                             lineCount = 2;
                         } else {
                             text[0] = "Couldn't use that item!";
                             lineCount = 1;
-                            playerUsedTurn = false; // Don't consume turn if item use failed
+                            playerUsedTurn = false;
                         }
                     } else {
                         text[0] = "Cancelled item use.";
                         lineCount = 1;
-                        playerUsedTurn = false; // Don't consume turn if cancelled
+                        playerUsedTurn = false;
                     }
                 } else {
                     text[0] = "No damage items available!";
                     lineCount = 1;
-                    playerUsedTurn = false; // Don't consume turn if no items
+                    playerUsedTurn = false;
                 }
             } else {
                 text[0] = "No damage items available!";

@@ -309,7 +309,8 @@ void saveGameState(const GameData &data, const std::string &filename)
     { 
         // Write player stats in space-separated format for easy parsing
         file << data.playerData.getHealth() << ' ' << data.playerData.getAttack() << ' ' 
-             << data.playerData.getDefense() << ' ' << data.playerData.getSpecialAttack() << '\n';
+             << data.playerData.getDefense() << ' ' << data.playerData.getSpecialAttack() << ' '
+             << data.playerData.getMaxHealth() << '\n';
         
         // Write difficulty settings on second line
         file << data.difficultyConfig.enemyHealth << ' ' << data.difficultyConfig.enemyAttack << '\n';
@@ -341,7 +342,7 @@ void loadGameState(GameData &data, const std::string &filename)
     if (file.is_open())
     {
         // Temporary variables for reading player stats
-        int health, attack, defense, specialAttack;
+        int health, attack, defense, specialAttack, maxHealth;
         int enemyHealth, enemyAttack;
         int gold = 100; // Default gold if not present in old saves
         
@@ -349,9 +350,16 @@ void loadGameState(GameData &data, const std::string &filename)
         int apple = 0, bread = 0, meat = 0, smallPotion = 0, mediumPotion = 0, herbTea = 0;
         int throwingKnife = 0, shuriken = 0, grenade = 0, javelin = 0, fireball = 0;
 
-        // Read player stats from first line
+        // Read player stats from first line (try to read maxHealth, fallback if not present)
         file >> health >> attack >> defense >> specialAttack;
-        data.playerData = Player(health, attack, defense, specialAttack);
+        if (file >> maxHealth) {
+            // New save format with maxHealth
+            data.playerData = Player(maxHealth, attack, defense, specialAttack);
+            data.playerData.setHealth(health); // Set current health separately
+        } else {
+            // Old save format without maxHealth - use health as maxHealth
+            data.playerData = Player(health, attack, defense, specialAttack);
+        }
 
         // Read difficulty settings from second line
         file >> enemyHealth >> enemyAttack;
@@ -729,9 +737,15 @@ std::map<std::string, GameData>& getGameSavesMap()
 //   - location: Human-readable description of current location for metadata
 void saveCurrentProgress(const std::string& location)
 {
+    // ======== ENSURE SAVE SYSTEM IS INITIALIZED ========
+    // Make sure all existing saves are loaded before attempting to save
+    loadAllExistingSaves();
+    
     // ======== FIND CURRENT CHARACTER'S SAVE SLOT ========
     // Search through all save slots to find the one belonging to current character
     std::string currentSaveSlot = "Game1";  // Default to first slot if not found
+    bool slotFound = false;
+    
     for (int i = 1; i <= MAX_SAVE_SLOTS; i++)
     {
         std::string saveKey = "Game" + std::to_string(i);
@@ -739,16 +753,36 @@ void saveCurrentProgress(const std::string& location)
         if (gameSaves[saveKey].exists && gameSaves[saveKey].characterName == selectedName)
         {
             currentSaveSlot = saveKey;
+            slotFound = true;
             break;  // Found the correct save slot for this character
+        }
+    }
+    
+    // If no existing slot found for this character, find the first empty or use Game1
+    if (!slotFound) {
+        for (int i = 1; i <= MAX_SAVE_SLOTS; i++)
+        {
+            std::string saveKey = "Game" + std::to_string(i);
+            if (!gameSaves[saveKey].exists)
+            {
+                currentSaveSlot = saveKey;
+                break;
+            }
         }
     }
     
     // ======== CREATE UPDATED SAVE DATA ========
     // Construct complete GameData object with current game state
+    // NOTE: The GameData constructor automatically calls loadInventoryFromGlobal()
+    // which extracts ALL current inventory items and quantities for saving
     GameData updatedData(selectedName, getCurrentDateTime(), location,
                          playerSelected, currentDifficulty, 
                          totalEnemiesDefeated, currentPlayerX, currentPlayerY, 
                          playerSelected.getCurrentEnemiesKilled(), ::playerGold);
+    
+    // ======== ENSURE INVENTORY IS CAPTURED ========
+    // Force refresh inventory data from global inventory to guarantee it's current
+    updatedData.loadInventoryFromGlobal(::playerInventory);
     
     // ======== INCLUDE MAP-SPECIFIC PROGRESS DATA ========
     // Ensure map progression and enemy tracking data is preserved
