@@ -1,4 +1,0 @@
-Rhaekor
-Mon Jul 07 14:36:34 2025
-Combat Area
-12 15 45 12
