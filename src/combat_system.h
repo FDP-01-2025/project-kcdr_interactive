@@ -87,8 +87,14 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             lineCount = 2;
             break;
         case 3:
-            // Use healing item
-            if (playerInventory.hasHealingItems()) {
+            // Use healing item - First check if player needs healing
+            if (player.getHealth() >= player.getMaxHealth()) {
+                text[0] = "Your health is already full!";
+                text[1] = "No need to use healing items.";
+                lineCount = 2;
+                playerUsedTurn = false; // Don't consume turn if health is full
+            }
+            else if (playerInventory.hasHealingItems()) {
                 text[0] = "=== HEALING ITEMS ===";
                 text[1] = "Select an item to use:";
                 lineCount = 2;
@@ -365,8 +371,14 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             lineCount = 2;
             break;
         case 3:
-            // Use healing item (same logic as in regular combat)
-            if (playerInventory.hasHealingItems()) {
+            // Use healing item - First check if player needs healing
+            if (player.getHealth() >= player.getMaxHealth()) {
+                text[0] = "Your health is already full!";
+                text[1] = "No need to use healing items.";
+                lineCount = 2;
+                playerUsedTurn = false; // Don't consume turn if health is full
+            }
+            else if (playerInventory.hasHealingItems()) {
                 text[0] = "=== HEALING ITEMS ===";
                 text[1] = "Select an item to use:";
                 lineCount = 2;
