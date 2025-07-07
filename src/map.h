@@ -11,7 +11,7 @@ const int MAX_LINEAS = 7; // Maximum number of text lines that can be displayed 
 // The game now features different enemy types in each map area for progression:
 // - Town Center (Map 0): Basic enemies (indices 0-2) - Slime, Goblin, Orc
 // - North District (Map 1): Intermediate enemies (indices 3-5) - Wraith, Gremlin, Skeleton
-// - South District (Map 2): Advanced enemies (indices 6-8) - Bat, Boar, Ghoul  
+// - South District (Map 2): Advanced enemies (indices 6-8) - Bat, Boar, Ghoul
 // - East District (Map 3): Elite enemies (indices 9-11) - Imp, Golem, Dragonling
 // This creates a natural difficulty progression as players explore different areas
 
@@ -519,11 +519,61 @@ inline void initializePlayer(char gameGrid[ROWS][COLUMNS])
 // Function to handle transitions between different map areas when the player approaches transition zones
 // This implements the progression system where players must defeat enemies before advancing
 // Parameters: gameGrid - current map grid, transitionChar - the character representing the transition direction
+static bool bossDefeated[4] = {false, false, false, false}; // Control de boss por mapa
 inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
 {
+    // ======== TRANSITION CALCULATION (ANTES DEL COMBATE) ========
+    int newMap = currentMap;
+    int newX = playerX, newY = playerY;
+    switch (transitionChar)
+    {
+    case 'N':
+        if (currentMap == 0)
+        {
+            newMap = 1;
+            newX = ROWS - 8;
+            newY = 45;
+        }
+        else if (currentMap == 2)
+        {
+            newMap = 0;
+            newX = ROWS - 8;
+            newY = 45;
+        }
+        break;
+    case 'S':
+        if (currentMap == 0)
+        {
+            newMap = 2;
+            newX = 2;
+            newY = 45;
+        }
+        else if (currentMap == 1)
+        {
+            newMap = 0;
+            newX = 2;
+            newY = 45;
+        }
+        break;
+    case 'E':
+        if (currentMap == 0)
+        {
+            newMap = 3;
+            newX = 12;
+            newY = 2;
+        }
+        break;
+    case 'W':
+        if (currentMap == 3)
+        {
+            newMap = 0;
+            newX = 12;
+            newY = COLUMNS - 3;
+        }
+        break;
+    }
+
     // ======== PROGRESSION GATE CHECK ========
-    // Validate that the player has defeated enough enemies to advance to the next area
-    // This creates a gameplay requirement and prevents players from skipping combat
     if (!playerSelected.canAdvanceToNextMap())
     {
         // Display informative message about why the transition is blocked
@@ -533,100 +583,75 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
         // Show current progress to help the player understand their goal
         std::cout << "Current enemies defeated: " << playerSelected.getEnemiesKilled() << "/5\n";
         std::cout << "Press any key to continue...";
-        _getch();     // Wait for player acknowledgment before continuing
-        return false; // Prevent the map change and keep player in current area
+        _getch();
+        return false;
     }
 
-    // ======== TRANSITION CALCULATION ========
-    // Initialize destination variables with current values (default to no change)
-    int newMap = currentMap;            // Destination map ID
-    int newX = playerX, newY = playerY; // Destination coordinates for player spawn
-
-    // Determine destination map and spawn position based on the transition direction
-    switch (transitionChar)
+    // ======== SI YA DERROTÓ AL BOSS EN ESTE MAPA, SOLO AVANZA ========
+    if (bossDefeated[newMap])
     {
-    case 'N': // Moving North
-        if (currentMap == 0)
-        {
-            // Center -> North District transition
-            newMap = 1;
-            newX = ROWS - 8; // Spawn near bottom of north map (coming from south)
-            newY = 45;       // Keep horizontal center position
-        }
-        else if (currentMap == 2)
-        {
-            // South District -> Center transition
-            newMap = 0;
-            newX = ROWS - 8; // Spawn near bottom of center map
-            newY = 45;       // Keep horizontal center position
-        }
-        break;
+        std::cout << "You have already defeated the area guardian!" << std::endl;
+        std::cout << "You advance to the next area!"<< std::endl;
+        std::cout << ""<< std::endl;
+        std::cout << "Press any key to continue..."<< std::endl;
+        _getch();
+        // Ejecuta el cambio de mapa
+        gameGrid[playerX][playerY] = ' ';
+        int oldMap = currentMap;
+        playerSelected.changeToMap(oldMap, newMap);
+        currentMap = newMap;
+        playerX = newX;
+        playerY = newY;
+        return true;
+    }
 
-    case 'S': // Moving South
-        if (currentMap == 0)
-        {
-            // Center -> South District transition
-            newMap = 2;
-            newX = 2;  // Spawn near top of south map (coming from north)
-            newY = 45; // Keep horizontal center position
-        }
-        else if (currentMap == 1)
-        {
-            // North District -> Center transition
-            newMap = 0;
-            newX = 2;  // Spawn near top of center map
-            newY = 45; // Keep horizontal center position
-        }
-        break;
+    // ======== BOSS BATTLE REQUIREMENT ========
+    {
+        // If player has defeated 5 enemies, trigger boss battle before allowing map transition
+    std::cout << "\nYou have defeated enough enemies to advance!" << std::endl;
+    std::cout << "But first, you must face the area guardian..." << std::endl;
+    std::cout << "A powerful boss emerges to challenge you!" << std::endl;
+    std::cout << "Press any key to begin the boss battle...";
+        _getch();
+    }
 
-    case 'E': // Moving East
-        if (currentMap == 0)
-        {
-            // Center -> East District transition
-            newMap = 3;
-            newX = 12; // Keep vertical center position
-            newY = 2;  // Spawn near left side of east map (coming from west)
-        }
-        break;
+    // ======== BOSS BATTLE EXECUTION ========
+    Boss areaBoss = createBoss1();
+    Map gameMap;
+    bool playerWonBossBattle = CombatBosss(playerSelected, areaBoss, gameMap);
 
-    case 'W': // Moving West
-        if (currentMap == 3)
-        {
-            // East District -> Center transition
-            newMap = 0;
-            newX = 12;          // Keep vertical center position
-            newY = COLUMNS - 3; // Spawn near right side of center map (coming from east)
-        }
-        break;
+    // ======== BOSS BATTLE RESULT HANDLING ========
+    if (!playerWonBossBattle)
+    {
+        // Player lost the boss battle
+        std::cout << "\nYou were defeated by the area guardian!" << std::endl;
+        std::cout << "You must try again to advance to the next area." << std::endl;
+        std::cout << "Press any key to continue...";
+        _getch();
+        return false;
+    }
+
+    // Si gana, marca el boss como derrotado para ese mapa
+    bossDefeated[newMap] = true;
+
+    // Mensaje de victoria
+    {
+       // Player won the boss battle - proceed with map transition
+    std::cout << "\nYou have defeated the area guardian!" << std::endl;
+    std::cout << "You can now advance to the next area!" << std::endl;
+    std::cout << "Press any key to continue...";
+    _getch();
+
     }
 
     // ======== EXECUTE TRANSITION ========
-    // Only proceed if we calculated a valid destination different from current location
-    if (newMap != currentMap)
-    {
-        gameGrid[playerX][playerY] = ' '; // Clear the player's current position on the old map
-
-        // ======== PER-MAP ENEMY COUNTER SYSTEM ========
-        // Update the enemy counter system to track progress per map area
-        int oldMap = currentMap;
-        playerSelected.changeToMap(oldMap, newMap); // Notify player object of map change
-
-        // ======== UPDATE PLAYER STATE ========
-        currentMap = newMap; // Set the new current map
-        playerX = newX;      // Update player's vertical position
-        playerY = newY;      // Update player's horizontal position
-
-        // ======== PROVIDE FEEDBACK ========
-        // Inform the player about the successful transition and their progress
-        std::cout << "\nYou have advanced to a new area!\n";
-        std::cout << "Enemy counter for this map: " << playerSelected.getEnemiesKilled() << "/5\n";
-        std::cout << "Press any key to continue...";
-        _getch(); // Wait for player acknowledgment
-
-        return true; // Signal that the map change was successful
-    }
-
-    return false; // No valid transition occurred - stay in current map
+    gameGrid[playerX][playerY] = ' ';
+    int oldMap = currentMap;
+    playerSelected.changeToMap(oldMap, newMap);
+    currentMap = newMap;
+    playerX = newX;
+    playerY = newY;
+    return true;
 }
 
 // ======== PLAYER MOVEMENT SYSTEM ========
@@ -798,15 +823,15 @@ inline void interact(Map &gameMap)
     // These characters represent different parts of ASCII art buildings
     for (char c : adj)
     {
-        if(gameGrid[playerX - 1][playerY] == 'S' && gameGrid[playerX - 1][playerY + 1 ]== 'T'
-        || gameGrid[playerX - 1][playerY] == 'T' && gameGrid[playerX - 1][playerY - 1 ]== 'S'){
+        if (gameGrid[playerX - 1][playerY] == 'S' && gameGrid[playerX - 1][playerY + 1] == 'T' || gameGrid[playerX - 1][playerY] == 'T' && gameGrid[playerX - 1][playerY - 1] == 'S')
+        {
 
             // Execute shop menu
             InventoryMenu::displayShopMenu();
             return; // Exit interaction function
         }
 
-        else if(c == '^' || c == '|' || c == '/' || c == '\\' || c == '_' || c == '+')
+        else if (c == '^' || c == '|' || c == '/' || c == '\\' || c == '_' || c == '+')
         {
             // ======== BUILDING INTERACTION ========
             // All buildings now trigger direct boss battles
@@ -884,8 +909,8 @@ inline void playGame()
 
         // ======== GAME STATUS INFORMATION ========
         // Display important information below the map for player reference
-        std::cout << "Current Map: " << getCurrentMapName();                        // Show which area they're in
-        
+        std::cout << "Current Map: " << getCurrentMapName(); // Show which area they're in
+
         // Add zone information to help players understand enemy difficulty
         std::string zoneInfo = "";
         switch (currentMap)
@@ -904,7 +929,7 @@ inline void playGame()
             break;
         }
         std::cout << zoneInfo << "\n";
-        
+
         std::cout << "Player Position: (" << playerX << ", " << playerY << ")\n";       // Show exact coordinates (useful for debugging)
         std::cout << "Enemies Defeated: " << playerSelected.getEnemiesKilled() << "/5"; // Show progress toward area completion
 
@@ -964,7 +989,7 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     // Different map areas have different enemy types for progression and variety
     int minEnemyIndex = 0; // Minimum enemy index for current zone
     int maxEnemyIndex = 2; // Maximum enemy index for current zone (inclusive)
-    
+
     // Determine enemy range based on current map area
     switch (currentMap)
     {
@@ -989,7 +1014,7 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
         maxEnemyIndex = 2;
         break;
     }
-    
+
     // ======== ENEMY SELECTION ========
     // Randomly select an enemy from the zone-specific range for variety in encounters
     int enemyRange = maxEnemyIndex - minEnemyIndex + 1;           // Calculate number of enemies in range

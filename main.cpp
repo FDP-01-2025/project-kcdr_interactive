@@ -17,7 +17,7 @@
 using namespace std;
 
 // Global variables for player inventory and gold
-int playerGold = 100;  // Starting gold
+int playerGold = 1000;  // Starting gold
 Inventory playerInventory;
 
 int main()
