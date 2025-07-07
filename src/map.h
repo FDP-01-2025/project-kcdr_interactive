@@ -25,6 +25,7 @@ const int MAX_LINEAS = 7; // Maximum number of text lines that can be displayed 
 #include "BossDraw.h" // Agregar esta línea
 #include "Boss.h"     // Agregar esta línea
 #include "InventoryMenu.h"
+#include "GameItems.h"  // For shop items
 
 // ======== REQUIRED LIBRARIES ========
 // Standard C++ libraries needed for game functionality
@@ -47,10 +48,14 @@ class Player;                     // Player character class - handles player sta
 class Enemy;                      // Enemy character class - handles enemy stats and behavior
 class GameController;             // Main game flow controller - handles menus and game states
 class Inventory;                  // Inventory system for items
+class Map;                        // Map class for panel display system
 extern Player playerSelected;     // Global player instance that persists throughout the game
 extern Inventory playerInventory; // Global player inventory
 
 void playGame(); // Main game loop function - will be defined later in this file
+void showShopInPanel(Map &gameMap); // Forward declaration for shop panel function
+void showShopInGrid(Map &gameMap); // Forward declaration for shop grid function
+
 // ======== BUILDING STRUCTURE CLASS ========
 // This class represents individual buildings that can be placed on the game map
 // Each building has a name and ASCII art representation for visual display
@@ -271,6 +276,7 @@ public:
 #include "Player.h"         // Player class definition and stats management
 #include "combat_system.h"  // Combat mechanics and battle flow
 #include "GameController.h" // Main game state management and menu systems
+#include "SaveSystem.h"     // Save system functions - must be after Map class definition
 
 // ======== UTILITY FUNCTIONS FOR MAP MANIPULATION ========
 
@@ -825,9 +831,8 @@ inline void interact(Map &gameMap)
     {
         if (gameGrid[playerX - 1][playerY] == 'S' && gameGrid[playerX - 1][playerY + 1] == 'T' || gameGrid[playerX - 1][playerY] == 'T' && gameGrid[playerX - 1][playerY - 1] == 'S')
         {
-
-            // Execute shop menu
-            InventoryMenu::displayShopMenu();
+            // Execute shop menu using the grid system
+            showShopInGrid(gameMap);
             return; // Exit interaction function
         }
 
@@ -871,14 +876,567 @@ inline void interact(Map &gameMap)
     _getch(); // Wait for player acknowledgment
 }
 
-// Function to show inventory in console only
+// Function to show inventory using the same bordered panel system as the main game
 inline void showInventoryInPanel(Map &gameMap)
 {
+    // ======== INVENTORY PANEL SETUP ========
+    // Create a fresh map with borders for the inventory display
+    Map inventoryMap;
+    char (&grid)[ROWS][COLUMNS] = inventoryMap.getGrid();
+    
+    // ======== INVENTORY TITLE ========
+    std::string title = "INVENTORY";
+    int titleRow = 2;
+    int titleCol = (COLUMNS - title.length()) / 2;
+    drawTextOnMap(grid, title, titleRow, titleCol);
+    
+    // ======== GOLD DISPLAY ========
+    std::string goldText = "Gold: " + std::to_string(playerGold) + " coins";
+    int goldRow = 4;
+    int goldCol = (COLUMNS - goldText.length()) / 2;
+    drawTextOnMap(grid, goldText, goldRow, goldCol);
+    
+    // ======== INVENTORY ITEMS DISPLAY ========
+    // Get inventory items and display them in the main panel area
+    int currentRow = 6; // Start below the gold display
+    int leftMargin = 5; // Left margin for item list
+    bool hasItems = false;
+    
+    // ======== HEALING ITEMS SECTION ========
+    if (playerInventory.getHealingItemCount() > 0) {
+        std::string healingHeader = "HEALING ITEMS:";
+        drawTextOnMap(grid, healingHeader, currentRow++, leftMargin);
+        currentRow++; // Add spacing
+        
+        // Collect healing items with quantities > 0 (using fixed array)
+        std::string healingItems[20]; // Maximum 20 healing items
+        int healingCount = 0;
+        
+        for (int i = 0; i < playerInventory.getHealingItemCount(); i++) {
+            const HealingItem& item = playerInventory.getHealingItem(i);
+            if (item.getQuantity() > 0) {
+                std::string itemText = "  " + item.getName() + ": x" + std::to_string(item.getQuantity());
+                healingItems[healingCount] = itemText;
+                healingCount++;
+                hasItems = true;
+            }
+        }
+        
+        // Display healing items in two columns
+        int leftColumnMargin = leftMargin;
+        int rightColumnMargin = leftMargin + 35; // Adjust spacing between columns
+        int startRow = currentRow;
+        
+        for (int i = 0; i < healingCount; i++) {
+            if (i % 2 == 0) {
+                // Left column (even indices: 0, 2, 4, 6)
+                drawTextOnMap(grid, healingItems[i], startRow + (i / 2), leftColumnMargin);
+            } else {
+                // Right column (odd indices: 1, 3, 5, 7)
+                drawTextOnMap(grid, healingItems[i], startRow + (i / 2), rightColumnMargin);
+            }
+        }
+        
+        // Update currentRow to continue after the columns
+        currentRow = startRow + ((healingCount + 1) / 2) + 1; // Add spacing after healing items
+    }
+    
+    // ======== DAMAGE ITEMS SECTION ========
+    if (playerInventory.getDamageItemCount() > 0) {
+        std::string damageHeader = "DAMAGE ITEMS:";
+        drawTextOnMap(grid, damageHeader, currentRow++, leftMargin);
+        currentRow++; // Add spacing
+        
+        // Collect damage items with quantities > 0 (using fixed array)
+        std::string damageItems[20]; // Maximum 20 damage items
+        int damageCount = 0;
+        
+        for (int i = 0; i < playerInventory.getDamageItemCount(); i++) {
+            const DamageItem& item = playerInventory.getDamageItem(i);
+            if (item.getQuantity() > 0) {
+                std::string itemText = "  " + item.getName() + ": x" + std::to_string(item.getQuantity());
+                damageItems[damageCount] = itemText;
+                damageCount++;
+                hasItems = true;
+            }
+        }
+        
+        // Display damage items in two columns
+        int leftColumnMargin = leftMargin;
+        int rightColumnMargin = leftMargin + 35; // Adjust spacing between columns
+        int startRow = currentRow;
+        
+        for (int i = 0; i < damageCount; i++) {
+            if (i % 2 == 0) {
+                // Left column (even indices: 0, 2, 4, 6)
+                drawTextOnMap(grid, damageItems[i], startRow + (i / 2), leftColumnMargin);
+            } else {
+                // Right column (odd indices: 1, 3, 5, 7)
+                drawTextOnMap(grid, damageItems[i], startRow + (i / 2), rightColumnMargin);
+            }
+        }
+        
+        // Update currentRow to continue after the columns
+        currentRow = startRow + ((damageCount + 1) / 2);
+    }
+    
+    // ======== EMPTY INVENTORY MESSAGE ========
+    if (!hasItems) {
+        std::string emptyText = "Your inventory is empty";
+        int emptyCol = (COLUMNS - emptyText.length()) / 2;
+        drawTextOnMap(grid, emptyText, currentRow, emptyCol);
+    }
+    
+    // ======== INSTRUCTION MESSAGES ========
+    // Set up the instruction panel message that appears below the game area
+    std::string instructions[MAX_LINEAS];
+    instructions[0] = "View your collected items and gold";
+    instructions[1] = "Items can be used during combat";
+    instructions[2] = "Press any key to return to map";
+    
+    // Apply the instruction panel to the map
+    inventoryMap.setPanelText(3, instructions);
+    
+    // ======== DISPLAY THE INVENTORY PANEL ========
     system("cls");
-    std::cout << "\n=== INVENTORY ===" << std::endl;
-    playerInventory.showAllItems();
-    std::cout << "\nPress any key to continue...";
+    inventoryMap.display();
     _getch();
+}
+
+// Function to show shop using the same bordered panel system as the main game
+inline void showShopInPanel(Map &gameMap)
+{
+    bool inShop = true;
+    
+    while (inShop) {
+        // ======== SHOP PANEL SETUP ========
+        // Create a fresh map with borders for the shop display
+        Map shopMap;
+        char (&grid)[ROWS][COLUMNS] = shopMap.getGrid();
+        
+        // ======== SHOP TITLE ========
+        std::string title = "MYSTICAL SHOP";
+        int titleRow = 2;
+        int titleCol = (COLUMNS - title.length()) / 2;
+        drawTextOnMap(grid, title, titleRow, titleCol);
+        
+        // ======== GOLD DISPLAY ========
+        std::string goldText = "Your Gold: " + std::to_string(playerGold) + " coins";
+        int goldRow = 4;
+        int goldCol = (COLUMNS - goldText.length()) / 2;
+        drawTextOnMap(grid, goldText, goldRow, goldCol);
+        
+        // ======== SHOP ITEMS DISPLAY ========
+        int currentRow = 6;
+        int leftMargin = 10;
+        
+        drawTextOnMap(grid, "1. Small Health Potion (25 HP) - 10 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "2. Medium Health Potion (50 HP) - 25 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "3. Throwing Knife (15 DMG) - 15 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "4. Grenade (45 DMG) - 40 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "5. Magic Elixir (150 HP) - 100 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "6. Lightning Bolt (100 DMG) - 150 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "7. Exit Shop", currentRow++, leftMargin);
+        
+        // ======== INSTRUCTION MESSAGES ========
+        std::string instructions[MAX_LINEAS];
+        instructions[0] = "Welcome to the Mystical Shop!";
+        instructions[1] = "Enter item number to purchase";
+        instructions[2] = "Choose wisely, adventurer!";
+        
+        // Apply the instruction panel to the map
+        shopMap.setPanelText(3, instructions);
+        
+        // ======== DISPLAY THE SHOP PANEL ========
+        system("cls");
+        shopMap.display();
+        
+        // ======== GET USER INPUT ========
+        std::cout << "Choose an item to purchase (1-7): ";
+        char choice = _getch();
+        int itemChoice = choice - '0'; // Convert char to int
+        
+        // ======== PROCESS PURCHASE ========
+        if (itemChoice == 7) {
+            // Exit shop
+            inShop = false;
+            
+            // Show farewell message
+            Map farewellMap;
+            char (&farewellGrid)[ROWS][COLUMNS] = farewellMap.getGrid();
+            
+            std::string farewell = "Thank you for visiting!";
+            int farewellRow = 10;
+            int farewellCol = (COLUMNS - farewell.length()) / 2;
+            drawTextOnMap(farewellGrid, farewell, farewellRow, farewellCol);
+            
+            std::string wishes = "May your journey be prosperous!";
+            int wishesRow = 12;
+            int wishesCol = (COLUMNS - wishes.length()) / 2;
+            drawTextOnMap(farewellGrid, wishes, wishesRow, wishesCol);
+            
+            std::string exitInstr[MAX_LINEAS];
+            exitInstr[0] = "Farewell, brave adventurer!";
+            exitInstr[1] = "Press any key to return to map";
+            farewellMap.setPanelText(2, exitInstr);
+            
+            system("cls");
+            farewellMap.display();
+            _getch();
+            
+        } else if (itemChoice >= 1 && itemChoice <= 6) {
+            // Process item purchase
+            bool purchaseSuccess = false;
+            std::string itemName = "";
+            int itemCost = 0;
+            
+            switch (itemChoice) {
+                case 1:
+                    if (playerGold >= 10) {
+                        playerGold -= 10;
+                        playerInventory.addHealingItem(GameItems::smallPotion);
+                        purchaseSuccess = true;
+                        itemName = "Small Health Potion";
+                        itemCost = 10;
+                    }
+                    break;
+                case 2:
+                    if (playerGold >= 25) {
+                        playerGold -= 25;
+                        playerInventory.addHealingItem(GameItems::mediumPotion);
+                        purchaseSuccess = true;
+                        itemName = "Medium Health Potion";
+                        itemCost = 25;
+                    }
+                    break;
+                case 3:
+                    if (playerGold >= 15) {
+                        playerGold -= 15;
+                        playerInventory.addDamageItem(GameItems::throwingKnife);
+                        purchaseSuccess = true;
+                        itemName = "Throwing Knife";
+                        itemCost = 15;
+                    }
+                    break;
+                case 4:
+                    if (playerGold >= 40) {
+                        playerGold -= 40;
+                        playerInventory.addDamageItem(GameItems::grenade);
+                        purchaseSuccess = true;
+                        itemName = "Grenade";
+                        itemCost = 40;
+                    }
+                    break;
+                case 5:
+                    if (playerGold >= 100) {
+                        playerGold -= 100;
+                        playerInventory.addHealingItem(GameItems::magicElixir);
+                        purchaseSuccess = true;
+                        itemName = "Magic Elixir";
+                        itemCost = 100;
+                    }
+                    break;
+                case 6:
+                    if (playerGold >= 150) {
+                        playerGold -= 150;
+                        playerInventory.addDamageItem(GameItems::lightningBolt);
+                        purchaseSuccess = true;
+                        itemName = "Lightning Bolt";
+                        itemCost = 150;
+                    }
+                    break;
+            }
+            
+            // ======== SHOW PURCHASE RESULT ========
+            Map resultMap;
+            char (&resultGrid)[ROWS][COLUMNS] = resultMap.getGrid();
+            
+            if (purchaseSuccess) {
+                std::string successTitle = "PURCHASE SUCCESSFUL!";
+                int successRow = 8;
+                int successCol = (COLUMNS - successTitle.length()) / 2;
+                drawTextOnMap(resultGrid, successTitle, successRow, successCol);
+                
+                std::string itemText = "You bought: " + itemName;
+                int itemRow = 10;
+                int itemCol = (COLUMNS - itemText.length()) / 2;
+                drawTextOnMap(resultGrid, itemText, itemRow, itemCol);
+                
+                std::string costText = "Cost: " + std::to_string(itemCost) + " gold";
+                int costRow = 11;
+                int costCol = (COLUMNS - costText.length()) / 2;
+                drawTextOnMap(resultGrid, costText, costRow, costCol);
+                
+                std::string remainingText = "Remaining Gold: " + std::to_string(playerGold);
+                int remainingRow = 13;
+                int remainingCol = (COLUMNS - remainingText.length()) / 2;
+                drawTextOnMap(resultGrid, remainingText, remainingRow, remainingCol);
+                
+            } else {
+                std::string failTitle = "PURCHASE FAILED!";
+                int failRow = 10;
+                int failCol = (COLUMNS - failTitle.length()) / 2;
+                drawTextOnMap(resultGrid, failTitle, failRow, failCol);
+                
+                std::string reason = "Not enough gold!";
+                int reasonRow = 12;
+                int reasonCol = (COLUMNS - reason.length()) / 2;
+                drawTextOnMap(resultGrid, reason, reasonRow, reasonCol);
+            }
+            
+            std::string resultInstr[MAX_LINEAS];
+            if (purchaseSuccess) {
+                resultInstr[0] = "Item added to your inventory!";
+                resultInstr[1] = "Thank you for your purchase!";
+                resultInstr[2] = "Press any key to continue shopping";
+            } else {
+                resultInstr[0] = "You need more gold for this item";
+                resultInstr[1] = "Defeat enemies to earn more gold";
+                resultInstr[2] = "Press any key to continue shopping";
+            }
+            
+            resultMap.setPanelText(3, resultInstr);
+            
+            system("cls");
+            resultMap.display();
+            _getch();
+            
+        } else {
+            // Invalid choice
+            Map errorMap;
+            char (&errorGrid)[ROWS][COLUMNS] = errorMap.getGrid();
+            
+            std::string errorTitle = "INVALID CHOICE!";
+            int errorRow = 10;
+            int errorCol = (COLUMNS - errorTitle.length()) / 2;
+            drawTextOnMap(errorGrid, errorTitle, errorRow, errorCol);
+            
+            std::string errorMsg = "Please select a valid option (1-7)";
+            int msgRow = 12;
+            int msgCol = (COLUMNS - errorMsg.length()) / 2;
+            drawTextOnMap(errorGrid, errorMsg, msgRow, msgCol);
+            
+            std::string errorInstr[MAX_LINEAS];
+            errorInstr[0] = "Invalid selection detected";
+            errorInstr[1] = "Please choose a number from 1-7";
+            errorInstr[2] = "Press any key to try again";
+            
+            errorMap.setPanelText(3, errorInstr);
+            
+            system("cls");
+            errorMap.display();
+            _getch();
+        }
+    }
+}
+
+// Function to show shop directly in the map grid
+inline void showShopInGrid(Map &gameMap)
+{
+    bool inShop = true;
+    
+    while (inShop) {
+        // ======== SHOP GRID SETUP ========
+        char (&grid)[ROWS][COLUMNS] = gameMap.getGrid();
+        gameMap.reset(); // Clear and redraw borders
+        
+        // ======== SHOP TITLE ========
+        std::string title = "=== MYSTICAL SHOP ===";
+        int titleRow = 3;
+        int titleCol = (COLUMNS - title.length()) / 2;
+        drawTextOnMap(grid, title, titleRow, titleCol);
+        
+        // ======== GOLD DISPLAY ========
+        std::string goldText = "Your Gold: " + std::to_string(playerGold) + " coins";
+        int goldRow = 5;
+        int goldCol = (COLUMNS - goldText.length()) / 2;
+        drawTextOnMap(grid, goldText, goldRow, goldCol);
+        
+        // ======== SHOP ITEMS DISPLAY ========
+        int currentRow = 8;
+        int leftMargin = 15;
+        
+        drawTextOnMap(grid, "1. Small Health Potion (25 HP) - 10 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "2. Medium Health Potion (50 HP) - 25 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "3. Throwing Knife (15 DMG) - 15 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "4. Grenade (45 DMG) - 40 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "5. Magic Elixir (150 HP) - 100 Gold", currentRow++, leftMargin);
+        drawTextOnMap(grid, "6. Lightning Bolt (100 DMG) - 150 Gold", currentRow++, leftMargin);
+        currentRow++;
+        drawTextOnMap(grid, "7. Exit Shop", currentRow++, leftMargin);
+        
+        // ======== INSTRUCTION ========
+        std::string instruction = "Choose an item to purchase (1-7):";
+        int instrRow = currentRow + 2;
+        int instrCol = (COLUMNS - instruction.length()) / 2;
+        drawTextOnMap(grid, instruction, instrRow, instrCol);
+        
+        // ======== DISPLAY THE SHOP ========
+        system("cls");
+        gameMap.display();
+        
+        // ======== GET USER INPUT ========
+        char choice = _getch();
+        int itemChoice = choice - '0'; // Convert char to int
+        
+        // ======== PROCESS PURCHASE ========
+        if (itemChoice == 7) {
+            // Exit shop
+            inShop = false;
+            
+            // Show farewell message
+            gameMap.reset();
+            std::string farewell = "Thank you for visiting the Mystical Shop!";
+            int farewellRow = 10;
+            int farewellCol = (COLUMNS - farewell.length()) / 2;
+            drawTextOnMap(grid, farewell, farewellRow, farewellCol);
+            
+            std::string wishes = "May your journey be prosperous!";
+            int wishesRow = 12;
+            int wishesCol = (COLUMNS - wishes.length()) / 2;
+            drawTextOnMap(grid, wishes, wishesRow, wishesCol);
+            
+            std::string exitInstr = "Press any key to return to map...";
+            int exitRow = 14;
+            int exitCol = (COLUMNS - exitInstr.length()) / 2;
+            drawTextOnMap(grid, exitInstr, exitRow, exitCol);
+            
+            system("cls");
+            gameMap.display();
+            _getch();
+            
+        } else if (itemChoice >= 1 && itemChoice <= 6) {
+            // Process item purchase
+            bool purchaseSuccess = false;
+            std::string itemName = "";
+            int itemCost = 0;
+            
+            switch (itemChoice) {
+                case 1:
+                    if (playerGold >= 10) {
+                        playerGold -= 10;
+                        playerInventory.addHealingItem(GameItems::smallPotion);
+                        purchaseSuccess = true;
+                        itemName = "Small Health Potion";
+                        itemCost = 10;
+                    }
+                    break;
+                case 2:
+                    if (playerGold >= 25) {
+                        playerGold -= 25;
+                        playerInventory.addHealingItem(GameItems::mediumPotion);
+                        purchaseSuccess = true;
+                        itemName = "Medium Health Potion";
+                        itemCost = 25;
+                    }
+                    break;
+                case 3:
+                    if (playerGold >= 15) {
+                        playerGold -= 15;
+                        playerInventory.addDamageItem(GameItems::throwingKnife);
+                        purchaseSuccess = true;
+                        itemName = "Throwing Knife";
+                        itemCost = 15;
+                    }
+                    break;
+                case 4:
+                    if (playerGold >= 40) {
+                        playerGold -= 40;
+                        playerInventory.addDamageItem(GameItems::grenade);
+                        purchaseSuccess = true;
+                        itemName = "Grenade";
+                        itemCost = 40;
+                    }
+                    break;
+                case 5:
+                    if (playerGold >= 100) {
+                        playerGold -= 100;
+                        playerInventory.addHealingItem(GameItems::magicElixir);
+                        purchaseSuccess = true;
+                        itemName = "Magic Elixir";
+                        itemCost = 100;
+                    }
+                    break;
+                case 6:
+                    if (playerGold >= 150) {
+                        playerGold -= 150;
+                        playerInventory.addDamageItem(GameItems::lightningBolt);
+                        purchaseSuccess = true;
+                        itemName = "Lightning Bolt";
+                        itemCost = 150;
+                    }
+                    break;
+            }
+            
+            // ======== SHOW PURCHASE RESULT ========
+            gameMap.reset();
+            
+            if (purchaseSuccess) {
+                std::string successTitle = "PURCHASE SUCCESSFUL!";
+                int successRow = 8;
+                int successCol = (COLUMNS - successTitle.length()) / 2;
+                drawTextOnMap(grid, successTitle, successRow, successCol);
+                
+                std::string itemText = "You bought: " + itemName;
+                int itemRow = 10;
+                int itemCol = (COLUMNS - itemText.length()) / 2;
+                drawTextOnMap(grid, itemText, itemRow, itemCol);
+                
+                std::string costText = "Cost: " + std::to_string(itemCost) + " gold";
+                int costRow = 11;
+                int costCol = (COLUMNS - costText.length()) / 2;
+                drawTextOnMap(grid, costText, costRow, costCol);
+                
+                std::string remainingText = "Remaining Gold: " + std::to_string(playerGold);
+                int remainingRow = 13;
+                int remainingCol = (COLUMNS - remainingText.length()) / 2;
+                drawTextOnMap(grid, remainingText, remainingRow, remainingCol);
+                
+            } else {
+                std::string failTitle = "PURCHASE FAILED!";
+                int failRow = 10;
+                int failCol = (COLUMNS - failTitle.length()) / 2;
+                drawTextOnMap(grid, failTitle, failRow, failCol);
+                
+                std::string reason = "Not enough gold!";
+                int reasonRow = 12;
+                int reasonCol = (COLUMNS - reason.length()) / 2;
+                drawTextOnMap(grid, reason, reasonRow, reasonCol);
+            }
+            
+            std::string continueText = "Press any key to continue shopping...";
+            int continueRow = 16;
+            int continueCol = (COLUMNS - continueText.length()) / 2;
+            drawTextOnMap(grid, continueText, continueRow, continueCol);
+            
+            system("cls");
+            gameMap.display();
+            _getch();
+            
+        } else {
+            // Invalid choice
+            gameMap.reset();
+            
+            std::string errorTitle = "INVALID CHOICE!";
+            int errorRow = 10;
+            int errorCol = (COLUMNS - errorTitle.length()) / 2;
+            drawTextOnMap(grid, errorTitle, errorRow, errorCol);
+            
+            std::string errorMsg = "Please select a valid option (1-7)";
+            int msgRow = 12;
+            int msgCol = (COLUMNS - errorMsg.length()) / 2;
+            drawTextOnMap(grid, errorMsg, msgRow, msgCol);
+            
+            std::string tryAgain = "Press any key to try again...";
+            int tryRow = 14;
+            int tryCol = (COLUMNS - tryAgain.length()) / 2;
+            drawTextOnMap(grid, tryAgain, tryRow, tryCol);
+            
+            system("cls");
+            gameMap.display();
+            _getch();
+        }
+    }
 }
 
 // ======== MAIN GAME LOOP ========
@@ -950,6 +1508,11 @@ inline void playGame()
         // Process the player's input and trigger appropriate game actions
         if (option == 'q')
         {
+            // ======== AUTO-SAVE BEFORE QUIT ========
+            // Save current progress including inventory before returning to main menu
+            std::string currentLocation = getCurrentLocationString();
+            saveCurrentProgress(currentLocation);
+            
             // ======== QUIT TO MAIN MENU ========
             // Return to the main menu system when player presses 'Q'
             GameController::runMainMenu(); // Hand control back to the main menu system
