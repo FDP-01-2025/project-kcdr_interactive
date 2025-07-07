@@ -529,6 +529,37 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
         return false; // Prevent the map change and keep player in current area
     }
 
+    // ======== BOSS BATTLE REQUIREMENT ========
+    // If player has defeated 5 enemies, trigger boss battle before allowing map transition
+    std::cout << "\nYou have defeated enough enemies to advance!" << std::endl;
+    std::cout << "But first, you must face the area guardian..." << std::endl;
+    std::cout << "A powerful boss emerges to challenge you!" << std::endl;
+    std::cout << "Press any key to begin the boss battle...";
+    _getch();
+
+    // ======== BOSS BATTLE EXECUTION ========
+    // Create and fight the boss for this area
+    Boss areaBoss = createBoss1(); // Create the boss enemy
+    Map gameMap;
+    bool playerWonBossBattle = CombatBosss(playerSelected, areaBoss, gameMap);
+
+    // ======== BOSS BATTLE RESULT HANDLING ========
+    if (!playerWonBossBattle)
+    {
+        // Player lost the boss battle
+        std::cout << "\nYou were defeated by the area guardian!" << std::endl;
+        std::cout << "You must try again to advance to the next area." << std::endl;
+        std::cout << "Press any key to continue...";
+        _getch();
+        return false; // Stay in current map, don't allow transition
+    }
+
+    // Player won the boss battle - proceed with map transition
+    std::cout << "\nYou have defeated the area guardian!" << std::endl;
+    std::cout << "You can now advance to the next area!" << std::endl;
+    std::cout << "Press any key to continue...";
+    _getch();
+
     // ======== TRANSITION CALCULATION ========
     // Initialize destination variables with current values (default to no change)
     int newMap = currentMap;            // Destination map ID
@@ -610,7 +641,7 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
 
         // ======== PROVIDE FEEDBACK ========
         // Inform the player about the successful transition and their progress
-        std::cout << "\nYou have advanced to a new area!\n";
+        std::cout << "\nYou have successfully advanced to a new area!\n";
         std::cout << "Enemy counter for this map: " << playerSelected.getEnemiesKilled() << "/5\n";
         std::cout << "Press any key to continue...";
         _getch(); // Wait for player acknowledgment
