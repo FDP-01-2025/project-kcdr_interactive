@@ -7,6 +7,14 @@
 #define COLUMNS 90        // Total number of columns in the game map (horizontal size)
 const int MAX_LINEAS = 7; // Maximum number of text lines that can be displayed in message panels
 
+// ======== ZONE-BASED ENEMY SYSTEM ========
+// The game now features different enemy types in each map area for progression:
+// - Town Center (Map 0): Basic enemies (indices 0-2) - Slime, Goblin, Orc
+// - North District (Map 1): Intermediate enemies (indices 3-5) - Wraith, Gremlin, Skeleton
+// - South District (Map 2): Advanced enemies (indices 6-8) - Bat, Boar, Ghoul  
+// - East District (Map 3): Elite enemies (indices 9-11) - Imp, Golem, Dragonling
+// This creates a natural difficulty progression as players explore different areas
+
 // ======== LIBRARIES ========
 #include <string>   // For std::string operations
 #include <iostream> // For input/output operations (cout, cin)
@@ -907,7 +915,27 @@ inline void playGame()
 
         // ======== GAME STATUS INFORMATION ========
         // Display important information below the map for player reference
-        std::cout << "Current Map: " << getCurrentMapName() << "\n";                    // Show which area they're in
+        std::cout << "Current Map: " << getCurrentMapName();                        // Show which area they're in
+        
+        // Add zone information to help players understand enemy difficulty
+        std::string zoneInfo = "";
+        switch (currentMap)
+        {
+        case 0:
+            zoneInfo = " (Basic Enemies)";
+            break;
+        case 1:
+            zoneInfo = " (Intermediate Enemies)";
+            break;
+        case 2:
+            zoneInfo = " (Advanced Enemies)";
+            break;
+        case 3:
+            zoneInfo = " (Elite Enemies)";
+            break;
+        }
+        std::cout << zoneInfo << "\n";
+        
         std::cout << "Player Position: (" << playerX << ", " << playerY << ")\n";       // Show exact coordinates (useful for debugging)
         std::cout << "Enemies Defeated: " << playerSelected.getEnemiesKilled() << "/5"; // Show progress toward area completion
 
@@ -963,10 +991,41 @@ inline void playGame()
 // Returns: bool - true if player survived the encounter, false if player died
 bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
 {
+    // ======== ZONE-BASED ENEMY SELECTION ========
+    // Different map areas have different enemy types for progression and variety
+    int minEnemyIndex = 0; // Minimum enemy index for current zone
+    int maxEnemyIndex = 2; // Maximum enemy index for current zone (inclusive)
+    
+    // Determine enemy range based on current map area
+    switch (currentMap)
+    {
+    case 0: // Town Center - Basic enemies (Slime, Goblin, Orc)
+        minEnemyIndex = 0;
+        maxEnemyIndex = 2;
+        break;
+    case 1: // North District - Intermediate enemies
+        minEnemyIndex = 3;
+        maxEnemyIndex = 5;
+        break;
+    case 2: // South District - Advanced enemies
+        minEnemyIndex = 6;
+        maxEnemyIndex = 8;
+        break;
+    case 3: // East District - Elite enemies
+        minEnemyIndex = 9;
+        maxEnemyIndex = 11;
+        break;
+    default: // Fallback to basic enemies
+        minEnemyIndex = 0;
+        maxEnemyIndex = 2;
+        break;
+    }
+    
     // ======== ENEMY SELECTION ========
-    // Randomly select an enemy from the available enemy types for variety in encounters
-    int randomEnemyIndex = rand() % 6;           // Generate random index (0-5 for 6 different enemy types)
-    Enemy wildEnemy = enemies[randomEnemyIndex]; // Create a copy of the selected enemy for this battle
+    // Randomly select an enemy from the zone-specific range for variety in encounters
+    int enemyRange = maxEnemyIndex - minEnemyIndex + 1;           // Calculate number of enemies in range
+    int randomEnemyIndex = minEnemyIndex + (rand() % enemyRange); // Generate random index within zone range
+    Enemy wildEnemy = enemies[randomEnemyIndex];                  // Create a copy of the selected enemy for this battle
 
     // ======== ENCOUNTER ANNOUNCEMENT SYSTEM ========
     // Create and display an informative message panel to announce the encounter
@@ -974,12 +1033,13 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     std::string text[MAX_EVENT_LINES];                       // Array to hold the announcement text lines
     text[0] = "*** WILD ENCOUNTER! ***";                     // Dramatic header to grab attention
     text[1] = "A wild " + wildEnemy.getName() + " appears!"; // Identify the specific enemy type
-    text[2] = "Prepare for battle!";                         // Build tension and prepare player mentally
-    text[3] = "Press any key to continue...";                // Instruction for user interaction
+    text[2] = "Zone: " + getCurrentMapName();                // Show which zone the encounter is in
+    text[3] = "Prepare for battle!";                         // Build tension and prepare player mentally
+    text[4] = "Press any key to continue...";                // Instruction for user interaction
 
     // ======== MESSAGE PANEL DISPLAY ========
     // Use the map's panel system to display the encounter message properly
-    gameMap.setPanelText(4, text); // Set 4 lines of text in the map's message panel
+    gameMap.setPanelText(5, text); // Set 5 lines of text in the map's message panel
     clearScreen();                 // Clear the console for clean display
     gameMap.display();             // Show the map with the encounter message panel
     _getch();                      // Wait for player acknowledgment before proceeding to combat
