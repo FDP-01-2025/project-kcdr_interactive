@@ -37,10 +37,26 @@ public:
     }
     
     static void giveStarterGold(int& playerGold) {
-        playerGold += 50;  // Oro inicial para poder comprar algunas cosas
+        playerGold += 100;  // Oro inicial para poder comprar algunas cosas
         std::cout << "\n=== Starting Gold ===" << std::endl;
-        std::cout << "You start your adventure with 50 gold coins!" << std::endl;
+        std::cout << "You start your adventure with 100 gold coins!" << std::endl;
         std::cout << "Current Gold: " << playerGold << std::endl;
+    }
+    
+    // ==================== COMPLETE PLAYER INITIALIZATION ====================
+    
+    static void initializeNewPlayer(Inventory& inventory, int& playerGold) {
+        std::cout << "\n=== Initializing New Player ===" << std::endl;
+        
+        // Initialize gold to 0 first (clean slate)
+        playerGold = 0;
+        
+        // Give starter items and gold
+        giveStarterItems(inventory);
+        giveStarterGold(playerGold);
+        
+        std::cout << "Player initialization complete!" << std::endl;
+        std::cout << "===================================\n" << std::endl;
     }
     
     // ==================== REWARD PACKS ====================
