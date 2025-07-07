@@ -32,7 +32,7 @@ inline void InitializeEvent()
 // Función que verifica si ocurre un encuentro aleatorio
 inline bool cheekRandomEncounter(){
     double probality = rand() % 100;
-    return (probality < 15); // 15% de probabilidad
+    return (probality < 8); // 15% de probabilidad
 }
 
 // Function that handles random encounters using the panel system
