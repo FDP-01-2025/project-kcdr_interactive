@@ -37,10 +37,26 @@ public:
     }
     
     static void giveStarterGold(int& playerGold) {
-        playerGold += 50;  // Oro inicial para poder comprar algunas cosas
+        playerGold += 100;  // Oro inicial para poder comprar algunas cosas
         std::cout << "\n=== Starting Gold ===" << std::endl;
-        std::cout << "You start your adventure with 50 gold coins!" << std::endl;
+        std::cout << "You start your adventure with 100 gold coins!" << std::endl;
         std::cout << "Current Gold: " << playerGold << std::endl;
+    }
+    
+    // ==================== COMPLETE PLAYER INITIALIZATION ====================
+    
+    static void initializeNewPlayer(Inventory& inventory, int& playerGold) {
+        std::cout << "\n=== Initializing New Player ===" << std::endl;
+        
+        // Initialize gold to 0 first (clean slate)
+        playerGold = 0;
+        
+        // Give starter items and gold
+        giveStarterItems(inventory);
+        giveStarterGold(playerGold);
+        
+        std::cout << "Player initialization complete!" << std::endl;
+        std::cout << "===================================\n" << std::endl;
     }
     
     // ==================== REWARD PACKS ====================
@@ -121,107 +137,6 @@ public:
         
         std::cout << "Current Gold: " << playerGold << std::endl;
         std::cout << "=== End of reward check ===" << std::endl;
-    }
-    
-    // ==================== SHOP ITEMS ====================
-    
-    static void showShopItems() {
-        std::cout << "\n========== MYSTICAL SHOP ==========" << std::endl;
-        std::cout << "Welcome, brave adventurer!" << std::endl;
-        std::cout << "===================================" << std::endl;
-        std::cout << "1. Small Health Potion (25 HP) - 10 Gold" << std::endl;
-        std::cout << "2. Medium Health Potion (50 HP) - 25 Gold" << std::endl;
-        std::cout << "3. Throwing Knife (15 DMG) - 15 Gold" << std::endl;
-        std::cout << "4. Grenade (45 DMG) - 40 Gold" << std::endl;
-        std::cout << "5. Magic Elixir (150 HP) - 100 Gold" << std::endl;
-        std::cout << "6. Lightning Bolt (100 DMG) - 150 Gold" << std::endl;
-        std::cout << "7. Exit Shop" << std::endl;
-        std::cout << "===================================" << std::endl;
-    }
-    
-    static void displayShop(Inventory& inventory, int& playerGold) {
-        bool inShop = true;
-        
-        while (inShop) {
-            system("cls");
-            std::cout << "Current Gold: " << playerGold << std::endl;
-            showShopItems();
-            std::cout << "Choose an item to purchase: ";
-            
-            int choice;
-            std::cin >> choice;
-            
-            if (choice == 7) {
-                std::cout << "\nThank you for visiting! May your journey be prosperous!" << std::endl;
-                inShop = false;
-            } else if (choice >= 1 && choice <= 6) {
-                if (buyItem(choice, inventory, playerGold)) {
-                    std::cout << "\nPurchase successful!" << std::endl;
-                    std::cout << "Item added to your inventory!" << std::endl;
-                } else {
-                    std::cout << "\nPurchase failed!" << std::endl;
-                }
-                std::cout << "Remaining Gold: " << playerGold << std::endl;
-                std::cout << "\nPress any key to continue...";
-                _getch();
-            } else {
-                std::cout << "\nInvalid choice! Please select a valid option." << std::endl;
-                std::cout << "Press any key to continue...";
-                _getch();
-            }
-        }
-    }
-    
-    static bool buyItem(int choice, Inventory& inventory, int& playerGold) {
-        switch (choice) {
-            case 1:
-                if (playerGold >= 10) {
-                    playerGold -= 10;
-                    inventory.addHealingItem(GameItems::smallPotion);
-                    return true;
-                }
-                break;
-            case 2:
-                if (playerGold >= 25) {
-                    playerGold -= 25;
-                    inventory.addHealingItem(GameItems::mediumPotion);
-                    return true;
-                }
-                break;
-            case 3:
-                if (playerGold >= 15) {
-                    playerGold -= 15;
-                    inventory.addDamageItem(GameItems::throwingKnife);
-                    return true;
-                }
-                break;
-            case 4:
-                if (playerGold >= 40) {
-                    playerGold -= 40;
-                    inventory.addDamageItem(GameItems::grenade);
-                    return true;
-                }
-                break;
-            case 5:
-                if (playerGold >= 100) {
-                    playerGold -= 100;
-                    inventory.addHealingItem(GameItems::magicElixir);
-                    return true;
-                }
-                break;
-            case 6:
-                if (playerGold >= 150) {
-                    playerGold -= 150;
-                    inventory.addDamageItem(GameItems::lightningBolt);
-                    return true;
-                }
-                break;
-            default:
-                std::cout << "Invalid choice!" << std::endl;
-                return false;
-        }
-        std::cout << "Not enough gold!" << std::endl;
-        return false;
     }
     
     // ==================== RANDOM DROPS ====================

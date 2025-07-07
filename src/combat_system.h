@@ -99,26 +99,24 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                 text[1] = "Select an item to use:";
                 lineCount = 2;
                 
-                // Show available healing items in two columns (4 and 4)
+                // Create a list of available items with continuous numbering
+                int availableItemIndices[8]; // Store actual inventory indices of available items
                 int availableItems = 0;
-                int leftColumn[4] = {-1, -1, -1, -1};  // Store item indices for left column
-                int rightColumn[4] = {-1, -1, -1, -1}; // Store item indices for right column
                 
-                // Collect available items and organize in columns
+                // Collect available items
                 for (int i = 0; i < playerInventory.getHealingItemCount() && availableItems < 8; i++) {
                     if (playerInventory.getHealingItem(i).isAvailable()) {
-                        if (availableItems < 4) {
-                            leftColumn[availableItems] = i;
-                        } else {
-                            rightColumn[availableItems - 4] = i;
-                        }
+                        availableItemIndices[availableItems] = i;
                         availableItems++;
                     }
                 }
                 
+                // Display items in two columns with continuous numbering
+                int leftColumnItems = (availableItems + 1) / 2;  // Ceiling division
+                
                 // Display left column items
-                for (int i = 0; i < 4 && leftColumn[i] != -1; i++) {
-                    int itemIndex = leftColumn[i];
+                for (int i = 0; i < leftColumnItems; i++) {
+                    int itemIndex = availableItemIndices[i];
                     std::string itemText = std::to_string(i + 1) + ". " + 
                                          playerInventory.getHealingItem(itemIndex).getName() + 
                                          " (+" + std::to_string(playerInventory.getHealingItem(itemIndex).getHealAmount()) + 
@@ -127,19 +125,18 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                     lineCount++;
                 }
                 
-                // Display right column items
-                for (int i = 0; i < 4 && rightColumn[i] != -1; i++) {
-                    int itemIndex = rightColumn[i];
-                    std::string itemText = std::to_string(i + 5) + ". " + 
+                // Display right column items (if any)
+                for (int i = leftColumnItems; i < availableItems; i++) {
+                    int itemIndex = availableItemIndices[i];
+                    std::string itemText = std::to_string(i + 1) + ". " + 
                                          playerInventory.getHealingItem(itemIndex).getName() + 
                                          " (+" + std::to_string(playerInventory.getHealingItem(itemIndex).getHealAmount()) + 
                                          " HP, x" + std::to_string(playerInventory.getHealingItem(itemIndex).getQuantity()) + ")";
-                    // Add to existing line if there's space, or create new line
-                    if (lineCount - 2 - i > 0 && lineCount - 2 - i <= 4) {
-                        text[lineCount - 4 + i] += "     " + itemText; // Add spacing and right column item
-                    } else {
-                        text[lineCount] = "     " + itemText;
-                        lineCount++;
+                    
+                    // Add to the corresponding left column line
+                    int leftLineIndex = lineCount - availableItems + i;
+                    if (leftLineIndex >= 2 && leftLineIndex < lineCount) {
+                        text[leftLineIndex] += "     " + itemText; // Add spacing and right column item
                     }
                 }
                 
@@ -157,15 +154,10 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     
                     if (itemChoice > 0 && itemChoice <= availableItems) {
-                        // Find the actual item index
-                        int actualIndex = -1;
-                        if (itemChoice <= 4 && leftColumn[itemChoice - 1] != -1) {
-                            actualIndex = leftColumn[itemChoice - 1] + 1; // +1 because useHealingItem expects 1-based index
-                        } else if (itemChoice > 4 && rightColumn[itemChoice - 5] != -1) {
-                            actualIndex = rightColumn[itemChoice - 5] + 1;
-                        }
+                        // Use the continuous numbering to get the actual inventory index
+                        int actualInventoryIndex = availableItemIndices[itemChoice - 1];
                         
-                        if (actualIndex != -1 && playerInventory.useHealingItem(actualIndex, player)) {
+                        if (playerInventory.useHealingItem(actualInventoryIndex + 1, player)) { // +1 because useHealingItem expects 1-based index
                             text[0] = "You used a healing item!";
                             text[1] = "Your health: " + std::to_string(player.getHealth());
                             lineCount = 2;
@@ -197,26 +189,24 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                 text[1] = "Select an item to use:";
                 lineCount = 2;
                 
-                // Show available damage items in two columns (4 and 4)
+                // Create a list of available items with continuous numbering
+                int availableItemIndices[8]; // Store actual inventory indices of available items
                 int availableItems = 0;
-                int leftColumn[4] = {-1, -1, -1, -1};  // Store item indices for left column
-                int rightColumn[4] = {-1, -1, -1, -1}; // Store item indices for right column
                 
-                // Collect available items and organize in columns
+                // Collect available items
                 for (int i = 0; i < playerInventory.getDamageItemCount() && availableItems < 8; i++) {
                     if (playerInventory.getDamageItem(i).isAvailable()) {
-                        if (availableItems < 4) {
-                            leftColumn[availableItems] = i;
-                        } else {
-                            rightColumn[availableItems - 4] = i;
-                        }
+                        availableItemIndices[availableItems] = i;
                         availableItems++;
                     }
                 }
                 
+                // Display items in two columns with continuous numbering
+                int leftColumnItems = (availableItems + 1) / 2;  // Ceiling division
+                
                 // Display left column items
-                for (int i = 0; i < 4 && leftColumn[i] != -1; i++) {
-                    int itemIndex = leftColumn[i];
+                for (int i = 0; i < leftColumnItems; i++) {
+                    int itemIndex = availableItemIndices[i];
                     std::string itemText = std::to_string(i + 1) + ". " + 
                                          playerInventory.getDamageItem(itemIndex).getName() + 
                                          " (" + std::to_string(playerInventory.getDamageItem(itemIndex).getDamage()) + 
@@ -225,19 +215,18 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                     lineCount++;
                 }
                 
-                // Display right column items
-                for (int i = 0; i < 4 && rightColumn[i] != -1; i++) {
-                    int itemIndex = rightColumn[i];
-                    std::string itemText = std::to_string(i + 5) + ". " + 
+                // Display right column items (if any)
+                for (int i = leftColumnItems; i < availableItems; i++) {
+                    int itemIndex = availableItemIndices[i];
+                    std::string itemText = std::to_string(i + 1) + ". " + 
                                          playerInventory.getDamageItem(itemIndex).getName() + 
                                          " (" + std::to_string(playerInventory.getDamageItem(itemIndex).getDamage()) + 
                                          " DMG, x" + std::to_string(playerInventory.getDamageItem(itemIndex).getQuantity()) + ")";
-                    // Add to existing line if there's space, or create new line
-                    if (lineCount - 2 - i > 0 && lineCount - 2 - i <= 4) {
-                        text[lineCount - 4 + i] += "     " + itemText; // Add spacing and right column item
-                    } else {
-                        text[lineCount] = "     " + itemText;
-                        lineCount++;
+                    
+                    // Add to the corresponding left column line
+                    int leftLineIndex = lineCount - availableItems + i;
+                    if (leftLineIndex >= 2 && leftLineIndex < lineCount) {
+                        text[leftLineIndex] += "     " + itemText; // Add spacing and right column item
                     }
                 }
                 
@@ -255,15 +244,10 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     
                     if (itemChoice > 0 && itemChoice <= availableItems) {
-                        // Find the actual item index
-                        int actualIndex = -1;
-                        if (itemChoice <= 4 && leftColumn[itemChoice - 1] != -1) {
-                            actualIndex = leftColumn[itemChoice - 1] + 1; // +1 because useDamageItem expects 1-based index
-                        } else if (itemChoice > 4 && rightColumn[itemChoice - 5] != -1) {
-                            actualIndex = rightColumn[itemChoice - 5] + 1;
-                        }
+                        // Use the continuous numbering to get the actual inventory index
+                        int actualInventoryIndex = availableItemIndices[itemChoice - 1];
                         
-                        if (actualIndex != -1 && playerInventory.useDamageItem(actualIndex, player, enemy)) {
+                        if (playerInventory.useDamageItem(actualInventoryIndex + 1, player, enemy)) { // +1 because useDamageItem expects 1-based index
                             text[0] = "You used a damage item!";
                             text[1] = enemy.getName() + " health: " + std::to_string(enemy.getHealth());
                             lineCount = 2;
@@ -459,18 +443,27 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
                 text[1] = "Select an item to use:";
                 lineCount = 2;
                 
-                // Show available healing items
+                // Create a list of available items with continuous numbering
+                int availableItemIndices[8]; // Store actual inventory indices of available items
                 int availableItems = 0;
-                for (int i = 0; i < playerInventory.getHealingItemCount(); i++) {
+                
+                // Collect available items
+                for (int i = 0; i < playerInventory.getHealingItemCount() && availableItems < 8; i++) {
                     if (playerInventory.getHealingItem(i).isAvailable()) {
-                        std::string itemText = std::to_string(i+1) + ". " + 
-                                             playerInventory.getHealingItem(i).getName() + 
-                                             " (Heals " + std::to_string(playerInventory.getHealingItem(i).getHealAmount()) + 
-                                             " HP, Qty: " + std::to_string(playerInventory.getHealingItem(i).getQuantity()) + ")";
-                        text[lineCount] = itemText;
-                        lineCount++;
+                        availableItemIndices[availableItems] = i;
                         availableItems++;
                     }
+                }
+                
+                // Display items with continuous numbering
+                for (int i = 0; i < availableItems; i++) {
+                    int itemIndex = availableItemIndices[i];
+                    std::string itemText = std::to_string(i + 1) + ". " + 
+                                         playerInventory.getHealingItem(itemIndex).getName() + 
+                                         " (Heals " + std::to_string(playerInventory.getHealingItem(itemIndex).getHealAmount()) + 
+                                         " HP, Qty: " + std::to_string(playerInventory.getHealingItem(itemIndex).getQuantity()) + ")";
+                    text[lineCount] = itemText;
+                    lineCount++;
                 }
                 
                 if (availableItems > 0) {
@@ -486,8 +479,11 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     
-                    if (itemChoice > 0 && itemChoice <= playerInventory.getHealingItemCount()) {
-                        if (playerInventory.useHealingItem(itemChoice, player)) {
+                    if (itemChoice > 0 && itemChoice <= availableItems) {
+                        // Use the continuous numbering to get the actual inventory index
+                        int actualInventoryIndex = availableItemIndices[itemChoice - 1];
+                        
+                        if (playerInventory.useHealingItem(actualInventoryIndex + 1, player)) { // +1 because useHealingItem expects 1-based index
                             text[0] = "You used a healing item!";
                             text[1] = "Your health: " + std::to_string(player.getHealth());
                             lineCount = 2;
@@ -519,18 +515,27 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
                 text[1] = "Select an item to use:";
                 lineCount = 2;
                 
-                // Show available damage items
+                // Create a list of available items with continuous numbering
+                int availableItemIndices[8]; // Store actual inventory indices of available items
                 int availableItems = 0;
-                for (int i = 0; i < playerInventory.getDamageItemCount(); i++) {
+                
+                // Collect available items
+                for (int i = 0; i < playerInventory.getDamageItemCount() && availableItems < 8; i++) {
                     if (playerInventory.getDamageItem(i).isAvailable()) {
-                        std::string itemText = std::to_string(i+1) + ". " + 
-                                             playerInventory.getDamageItem(i).getName() + 
-                                             " (Dmg: " + std::to_string(playerInventory.getDamageItem(i).getDamage()) + 
-                                             ", Qty: " + std::to_string(playerInventory.getDamageItem(i).getQuantity()) + ")";
-                        text[lineCount] = itemText;
-                        lineCount++;
+                        availableItemIndices[availableItems] = i;
                         availableItems++;
                     }
+                }
+                
+                // Display items with continuous numbering
+                for (int i = 0; i < availableItems; i++) {
+                    int itemIndex = availableItemIndices[i];
+                    std::string itemText = std::to_string(i + 1) + ". " + 
+                                         playerInventory.getDamageItem(itemIndex).getName() + 
+                                         " (Dmg: " + std::to_string(playerInventory.getDamageItem(itemIndex).getDamage()) + 
+                                         ", Qty: " + std::to_string(playerInventory.getDamageItem(itemIndex).getQuantity()) + ")";
+                    text[lineCount] = itemText;
+                    lineCount++;
                 }
                 
                 if (availableItems > 0) {
@@ -546,11 +551,14 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     
-                    if (itemChoice > 0 && itemChoice <= playerInventory.getDamageItemCount()) {
+                    if (itemChoice > 0 && itemChoice <= availableItems) {
+                        // Use the continuous numbering to get the actual inventory index
+                        int actualInventoryIndex = availableItemIndices[itemChoice - 1];
+                        
                         // For boss combat, we need to create a temporary Enemy reference
                         // This is a workaround since DamageItem::use expects an Enemy reference
                         // We'll apply damage directly instead
-                        const DamageItem& item = playerInventory.getDamageItem(itemChoice - 1);
+                        const DamageItem& item = playerInventory.getDamageItem(actualInventoryIndex);
                         if (item.isAvailable()) {
                             boss.takeDamage(item.getDamage());
                             // Manually reduce item quantity (since we can't use the use() method directly)
