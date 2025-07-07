@@ -130,7 +130,7 @@ StructureMap Townmap[6] = {
    `""`"    "`"`""""`
         )"),
 
-    //Building 5: store - Here you can obtain items that will help you in your adventure. 
+    // Building 5: store - Here you can obtain items that will help you in your adventure.
     StructureMap("Shop", R"(
    ':.
      _________
@@ -369,13 +369,13 @@ inline void showBushEncounter(Map &gameMap)
 inline void generateCenterTown(char gameGrid[ROWS][COLUMNS])
 {
     // Place shop on the left side
-    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 8, 5);   // Shop on left side
-    
+    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 8, 5); // Shop on left side
+
     // Place other buildings with adjusted positions
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 4, 56);  // Church 
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 4, 25);  // Normal house type 1 
-    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 14, 70); // Normal house type 2 
-    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 14, 35); // Big house type 1 
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 4, 56);  // Church
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 4, 25);  // Normal house type 1
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 14, 70); // Normal house type 2
+    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 14, 35); // Big house type 1
 
     // Create transition zones - special characters that trigger map changes when the player approaches
     gameGrid[1][45] = 'N';           // North exit at top center
@@ -384,49 +384,49 @@ inline void generateCenterTown(char gameGrid[ROWS][COLUMNS])
     gameGrid[12][COLUMNS - 2] = 'E'; // East exit at right side
 }
 
-// Map Area 2: North District 
+// Map Area 2: North District
 inline void generateNorthTown(char gameGrid[ROWS][COLUMNS])
 {
     // Place shop on the left side
-    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 10, 5);  // Shop on left side
-    
+    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 10, 5); // Shop on left side
+
     // Arrange buildings in a different pattern than the center town for visual variety
-    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 4, 45);  // Normal house type 2 
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 4, 25);  // Church 
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 12, 70); // Normal house type 1 
-    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 14, 35); // Big house type 1 
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 4, 45);  // Normal house type 2
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 4, 25);  // Church
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 12, 70); // Normal house type 1
+    drawAsciiArt(gameGrid, Townmap[3].getAsciiArt(), 14, 35); // Big house type 1
 
     // Create return transition - only one exit back to the center (prevents getting lost)
     gameGrid[ROWS - 7][45] = 'S'; // South exit returns to Town Center
 }
 
-// Map Area 3: South District 
+// Map Area 3: South District
 inline void generateSouthTown(char gameGrid[ROWS][COLUMNS])
 {
     // Place shop on the left side
-    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 10, 5);   // Shop on left side
-    
+    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 10, 5); // Shop on left side
+
     // Use different building arrangements to create a unique feel for this district
-    drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 8, 45);  // Big house type 2 
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 25);  // Normal house type 1 
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 13, 70); // Church 
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 15, 35); // Normal house type 1 
+    drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 8, 45);  // Big house type 2
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 25);  // Normal house type 1
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 13, 70); // Church
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 15, 35); // Normal house type 1
 
     // Create return transition to center
     gameGrid[1][45] = 'N'; // North exit returns to Town Center
 }
 
-// Map Area 4: East District 
+// Map Area 4: East District
 inline void generateEastTown(char gameGrid[ROWS][COLUMNS])
 {
     // Place shop on the left side
-    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 12, 5);  // Shop on left side
-    
+    drawAsciiArt(gameGrid, Townmap[5].getAsciiArt(), 12, 5); // Shop on left side
+
     // Arrange buildings to suggest a commercial district with mixed architecture
-    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 3, 65);  // Church 
-    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 25);  // Normal house type 1 
-    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 70); // Normal house type 2 
-    drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 15, 35); // Big house type 2 
+    drawAsciiArt(gameGrid, Townmap[0].getAsciiArt(), 3, 65);  // Church
+    drawAsciiArt(gameGrid, Townmap[1].getAsciiArt(), 5, 25);  // Normal house type 1
+    drawAsciiArt(gameGrid, Townmap[2].getAsciiArt(), 12, 70); // Normal house type 2
+    drawAsciiArt(gameGrid, Townmap[4].getAsciiArt(), 15, 35); // Big house type 2
 
     // Create return transition to center
     gameGrid[12][1] = 'W'; // West exit returns to Town Center
@@ -436,7 +436,7 @@ inline void generateEastTown(char gameGrid[ROWS][COLUMNS])
 // These global variables track the player's current location and which map area they're exploring
 
 // Player coordinate system - tracks exact position within the current map
-static int playerX = 16;   // Player's row position (vertical coordinate) - starts in middle of map
+static int playerX = 14;   // Player's row position (vertical coordinate) - starts in middle of map
 static int playerY = 45;   // Player's column position (horizontal coordinate) - starts in center horizontally
 static int currentMap = 0; // Current map area identifier: 0=Center, 1=North, 2=South, 3=East District
 
@@ -743,21 +743,23 @@ inline void interact(Map &gameMap)
     }
 
     // ======== SHOP DETECTION ========
-// Check for shop interaction by looking for "ST" text directly above the player
-int checkRow = playerX - 1;  // One row above the player
-int checkCol = playerY - 1;  // Starting column for "ST" check
+    // Check for shop interaction by looking for "ST" text directly above the player
+    /*int checkRow = playerX - 1; // One row above the player
+    int checkCol = playerY - 1; // Starting column for "ST" check
 
-// Verify boundaries and look for "ST" pattern directly above player
-if (checkRow >= 0 && checkRow < ROWS && 
-    checkCol >= 0 && checkCol < COLUMNS - 1) {
-    
-    // Look for "ST" pattern which is unique to shops at playerY-1 position
-    if (gameGrid[checkRow][checkCol] == 'S' && gameGrid[checkRow][checkCol + 1] == 'T') {
-        // Execute shop menu
-        InventoryMenu::displayShopMenu();
-        return; // Exit interaction function
-    }
-}
+    // Verify boundaries and look for "ST" pattern directly above player
+    if (checkRow >= 0 && checkRow < ROWS &&
+        checkCol >= 0 && checkCol < COLUMNS - 1)
+    {
+
+        // Look for "ST" pattern which is unique to shops at playerY-1 position
+        if (gameGrid[checkRow][checkCol] == 'S' && gameGrid[checkRow][checkCol + 1] == 'T')
+        {
+            // Execute shop menu
+            InventoryMenu::displayShopMenu();
+            return; // Exit interaction function
+        }
+    }*/
 
     // ======== ADJACENT CELL DETECTION ========
     // Check all four cells adjacent to the player's current position
@@ -788,7 +790,15 @@ if (checkRow >= 0 && checkRow < ROWS &&
     // These characters represent different parts of ASCII art buildings
     for (char c : adj)
     {
-        if (c == '^' || c == '|' || c == '/' || c == '\\' || c == '_' || c == '+')
+        if(gameGrid[playerX - 1][playerY] == 'S' && gameGrid[playerX - 1][playerY + 1 ]== 'T'
+        || gameGrid[playerX - 1][playerY] == 'T' && gameGrid[playerX - 1][playerY - 1 ]== 'S'){
+
+            // Execute shop menu
+            InventoryMenu::displayShopMenu();
+            return; // Exit interaction function
+        }
+
+        else if(c == '^' || c == '|' || c == '/' || c == '\\' || c == '_' || c == '+')
         {
             // ======== BUILDING INTERACTION ========
             // All buildings now trigger direct boss battles
@@ -796,9 +806,13 @@ if (checkRow >= 0 && checkRow < ROWS &&
             std::cout << "A guardian emerges to defend the building!" << std::endl;
             std::cout << "Battle begins!" << std::endl;
 
-            // ======== BOSS BATTLE EXECUTION ========
-            Boss boss1 = createBoss1();
-            bool playerAlive = CombatBosss(playerSelected, boss1, gameMap);
+            // ======== ENEMY SELECTION ========
+            // Select a specific enemy instead of random
+            Enemy buildingEnemy = enemy[2]; // Cambia el 0 por el índice del enemigo que quieras
+            // Ejemplo: enemy[1], enemy[2], enemy[3], enemy[4], enemy[5]
+
+            // ======== COMBAT EXECUTION ========
+            bool playerAlive = Combat(playerSelected, buildingEnemy, gameMap);
 
             // ======== POST-BATTLE FEEDBACK ========
             if (playerAlive)

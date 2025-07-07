@@ -1,4 +1,4 @@
-Kaelren
-Sun Jul 06 15:03:49 2025
-Combat Area
-18 15 45 6
+Rhaekor
+Sun Jul 06 22:11:24 2025
+Starting Village
+0 15 45 0
