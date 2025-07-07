@@ -3,7 +3,11 @@
 
 #include "ItemFactory.h"
 #include "Inventory.h"
+#include "map.h"  // For using the map grid system
 #include <iostream>
+#include <iomanip>
+#include <conio.h>  // For _getch()
+#include <cstdlib>  // For system()
 
 // Forward declarations for global variables
 extern int playerGold;
@@ -11,7 +15,12 @@ extern Inventory playerInventory;
 
 class InventoryMenu {
 public:
-    // ==================== INVENTORY MENU ====================
+    
+    // Shows inventory as a clean visual list using the map grid system
+    static void displayInventoryList() {
+        // Implementation will be in map.h to avoid circular dependency
+        // This function will show a clean list of items with quantities and gold
+    }
     
     static void displayInventoryMenu() {
         std::cout << "\n=== INVENTORY ===" << std::endl;
@@ -37,27 +46,8 @@ public:
         }
     }
     
-    // ==================== SHOP MENU ====================
     
-    static void displayShopMenu() {
-        std::cout << "\n=== ITEM SHOP ===" << std::endl;
-        std::cout << "Your Gold: " << playerGold << std::endl;
-        
-        ItemFactory::showShopItems();
-        
-        std::cout << "\nEnter item ID to buy (0 to exit): ";
-        int itemId;
-        std::cin >> itemId;
-        
-        if (itemId > 0) {
-            if (ItemFactory::buyItem(itemId, playerInventory, playerGold)) {
-                std::cout << "Purchase successful!" << std::endl;
-                std::cout << "Remaining Gold: " << playerGold << std::endl;
-            } else {
-                std::cout << "Purchase failed! Check if you have enough gold." << std::endl;
-            }
-        }
-    }
+    
     
     // ==================== QUICK INVENTORY DISPLAY ====================
     

@@ -43,9 +43,7 @@ public:
           specialAttack(specialAttack),      // Set special attack power for powerful abilities
           maxHealth(health),                 // Set maximum health equal to starting health
           enemiesKilled(0)                   // Initialize enemy counter to 0 (no enemies defeated yet)
-    {
-        // Constructor body is empty - all initialization is handled in the member initializer list above
-    }
+    {}
 
     // ======== PLAYER NAME CUSTOMIZATION ========
     // Method to set a custom name for the player character

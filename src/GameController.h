@@ -15,6 +15,7 @@
 #include "configurationDifficulty.h" // Difficulty settings and enemy stat modifiers
 #include "unique_character.h"       // Character creation and selection system
 #include "map.h"                    // Map display, navigation, and world management
+#include "enemy_utils.h"            // Enemy difficulty scaling functions
 
 // ======== EXTERNAL DEPENDENCIES ========
 // Forward declarations for global variables and functions defined in other modules
@@ -161,6 +162,7 @@ void GameController::handleNewGame()
     // ======== DIFFICULTY CONFIGURATION ========
     configurationDifficulty selectedConfig = displayDifficultySelection(); // Get difficulty choice
     SaveManager::setCurrentDifficulty(selectedConfig);                     // Store difficulty for game balance
+    applyDifficultyEnemies(selectedConfig);                                 // Apply difficulty scaling to all enemies
 
     // ======== SAVE SLOT MANAGEMENT ========
     // Find an available save slot or handle the case where all slots are occupied
@@ -188,7 +190,8 @@ void GameController::handleNewGame()
                      0,                                 // Current map ID (start at map 0)
                      15,                               // Starting X coordinate
                      45,                               // Starting Y coordinate  
-                     0);                               // Initial enemy kill count
+                     0,                                // Initial enemy kill count
+                     100);                             // Starting gold amount
     SaveManager::saveGameData(saveSlot, newGame);      // Write the game data to file
 
     // ======== SUCCESS FEEDBACK ========
@@ -290,6 +293,7 @@ void GameController::handleDeathScreen()
                 // ======== WORLD STATE RESTORATION ========
                 SaveManager::updatePlayerPosition(mostRecentSave.currentMapX, mostRecentSave.currentMapY); // Restore map position
                 SaveManager::setCurrentDifficulty(mostRecentSave.difficultyConfig);                        // Restore difficulty settings
+                applyDifficultyEnemies(mostRecentSave.difficultyConfig);                                    // Apply difficulty scaling to enemies
                 
                 // ======== PROGRESSION DATA RESTORATION ========
                 // Critical: Restore the enemy defeat counters to maintain progression accuracy
