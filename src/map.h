@@ -526,77 +526,56 @@ inline void initializePlayer(char gameGrid[ROWS][COLUMNS])
 // This implements the progression system where players must defeat enemies before advancing
 // Parameters: gameGrid - current map grid, transitionChar - the character representing the transition direction
 static bool bossDefeated[4] = {false, false, false, false}; // Control de boss por mapa
+static int bossesDefeatedCount = 0; // Contador global de bosses derrotados
+
+// Devuelve el boss correspondiente al mapa
+inline Boss createBossForMap(int mapId) {
+    switch(mapId) {
+        case 0: return createBoss1();
+        case 1: return createBoss2();
+        case 2: return createBoss3();
+        case 3: return createBoss4();
+        default: return createBoss1();
+    }
+}
+
 inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
 {
-    // ======== TRANSITION CALCULATION (ANTES DEL COMBATE) ========
     int newMap = currentMap;
     int newX = playerX, newY = playerY;
     switch (transitionChar)
     {
     case 'N':
-        if (currentMap == 0)
-        {
-            newMap = 1;
-            newX = ROWS - 8;
-            newY = 45;
-        }
-        else if (currentMap == 2)
-        {
-            newMap = 0;
-            newX = ROWS - 8;
-            newY = 45;
-        }
+        if (currentMap == 0) { newMap = 1; newX = ROWS - 8; newY = 45; }
+        else if (currentMap == 2) { newMap = 0; newX = ROWS - 8; newY = 45; }
         break;
     case 'S':
-        if (currentMap == 0)
-        {
-            newMap = 2;
-            newX = 2;
-            newY = 45;
-        }
-        else if (currentMap == 1)
-        {
-            newMap = 0;
-            newX = 2;
-            newY = 45;
-        }
+        if (currentMap == 0) { newMap = 2; newX = 2; newY = 45; }
+        else if (currentMap == 1) { newMap = 0; newX = 2; newY = 45; }
         break;
     case 'E':
-        if (currentMap == 0)
-        {
-            newMap = 3;
-            newX = 12;
-            newY = 2;
-        }
+        if (currentMap == 0) { newMap = 3; newX = 12; newY = 2; }
         break;
     case 'W':
-        if (currentMap == 3)
-        {
-            newMap = 0;
-            newX = 12;
-            newY = COLUMNS - 3;
-        }
+        if (currentMap == 3) { newMap = 0; newX = 12; newY = COLUMNS - 3; }
         break;
     }
 
     // ======== PROGRESSION GATE CHECK ========
     if (!playerSelected.canAdvanceToNextMap())
     {
-        // Display informative message about why the transition is blocked
         std::cout << " You need to defeat " << (5 - playerSelected.getEnemiesKilled())
                   << " more enemies before you can advance to the next area!\n";
-
-        // Show current progress to help the player understand their goal
         std::cout << "Current enemies defeated: " << playerSelected.getEnemiesKilled() << "/5\n";
         std::cout << "Press any key to continue...";
         _getch();
         return false;
     }
 
-    // ======== SI YA DERROTÓ AL BOSS EN ESTE MAPA, SOLO AVANZA ========
-    if (bossDefeated[newMap])
+    // ======== SI YA DERROTÓ AL BOSS EN EL MAPA ACTUAL, SOLO AVANZA ========
+    if (bossDefeated[currentMap])
     {
-        std::cout << "You have already defeated the area guardian!" << std::endl;
+        std::cout << "You have already defeated the area guardian here!" << std::endl;
         std::cout << "You advance to the next area!"<< std::endl;
         std::cout << ""<< std::endl;
         std::cout << "Press any key to continue..."<< std::endl;
@@ -612,24 +591,20 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
     }
 
     // ======== BOSS BATTLE REQUIREMENT ========
-    {
-        // If player has defeated 5 enemies, trigger boss battle before allowing map transition
     std::cout << "\nYou have defeated enough enemies to advance!" << std::endl;
     std::cout << "But first, you must face the area guardian..." << std::endl;
     std::cout << "A powerful boss emerges to challenge you!" << std::endl;
     std::cout << "Press any key to begin the boss battle...";
-        _getch();
-    }
+    _getch();
 
     // ======== BOSS BATTLE EXECUTION ========
-    Boss areaBoss = createBoss1();
+    Boss areaBoss = createBossForMap(currentMap);
     Map gameMap;
     bool playerWonBossBattle = CombatBosss(playerSelected, areaBoss, gameMap);
 
     // ======== BOSS BATTLE RESULT HANDLING ========
     if (!playerWonBossBattle)
     {
-        // Player lost the boss battle
         std::cout << "\nYou were defeated by the area guardian!" << std::endl;
         std::cout << "You must try again to advance to the next area." << std::endl;
         std::cout << "Press any key to continue...";
@@ -637,17 +612,19 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
         return false;
     }
 
-    // Si gana, marca el boss como derrotado para ese mapa
-    bossDefeated[newMap] = true;
+    // Si gana, marca el boss como derrotado para ese mapa y suma al contador
+    bossDefeated[currentMap] = true;
+    bossesDefeatedCount++;
 
-    // Mensaje de victoria
-    {
-       // Player won the boss battle - proceed with map transition
     std::cout << "\nYou have defeated the area guardian!" << std::endl;
     std::cout << "You can now advance to the next area!" << std::endl;
     std::cout << "Press any key to continue...";
     _getch();
 
+    // ======== FINAL DEL JUEGO ========
+    if (bossesDefeatedCount == 4) {
+        // Llama aquí la función de final de juego de Story.h
+        // Story::showEndingOnMap();
     }
 
     // ======== EXECUTE TRANSITION ========
@@ -1073,7 +1050,7 @@ inline void showShopInPanel(Map &gameMap)
             std::string wishes = "May your journey be prosperous!";
             int wishesRow = 12;
             int wishesCol = (COLUMNS - wishes.length()) / 2;
-            drawTextOnMap(farewellGrid, wishes, wishesRow, wishesCol);
+            drawTextOnMap(farewellGrid, wishes, farewellRow, wishesCol);
             
             std::string exitInstr[MAX_LINEAS];
             exitInstr[0] = "Farewell, brave adventurer!";
