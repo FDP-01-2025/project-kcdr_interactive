@@ -17,14 +17,13 @@
 using namespace std;
 
 // Global variables for player inventory and gold
-int playerGold = 1000;  // Starting gold
+int playerGold = 0;  // Will be initialized by ItemFactory
 Inventory playerInventory;
 
 int main()
 {
-    // Initialize player with starter items and additional gold
-    ItemFactory::giveStarterItems(playerInventory);
-    ItemFactory::giveStarterGold(playerGold);
+    // Initialize new player with starter items and gold
+    ItemFactory::initializeNewPlayer(playerInventory, playerGold);
     
     GameMenu::displayTitleScreen();  // Epic title screen
     GameMenu::displayMainMenu();     // Complete main menu
