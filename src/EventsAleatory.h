@@ -5,10 +5,10 @@
 #include <cstdlib>
 #include <conio.h> 
 #include <ctime>
-#include <string> // to be able to use string data type
+#include <string> // For std::string type
 
 
-// Include the .h files that will be used in the random events
+// Include the .h files used in random events
 #include "Player.h"
 #include "Enemy.h"
 
@@ -18,7 +18,7 @@ void clearScreen();
 
 const int MAX_EVENT_LINES = 6;
 
-// Initialize random events
+// Initialize random events (seed the random number generator)
 inline void InitializeEvent()
 {
     // srand sets the seed for the random number generator
@@ -28,11 +28,10 @@ inline void InitializeEvent()
     // because srand() expects an unsigned int as a seed.
 }
 
-
-// Función que verifica si ocurre un encuentro aleatorio
+// Function that checks if a random encounter occurs
 inline bool cheekRandomEncounter(){
     double probality = rand() % 100;
-    return (probality < 8); // 8% de probabilidad
+    return (probality < 8); // 8% probability
 }
 
 // Function that handles random encounters using the panel system

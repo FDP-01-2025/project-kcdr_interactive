@@ -96,7 +96,7 @@ configurationDifficulty selectDifficult()
                 gameMap.display();
                 _getch();
                 
-                return configurationDifficulty(-10, -3); // Enemigos mas debiles
+                return configurationDifficulty(-10, -3); // Weaker enemies
             }
             break;
             
@@ -120,7 +120,7 @@ configurationDifficulty selectDifficult()
                 gameMap.display();
                 _getch();
                 
-                return configurationDifficulty(0, 0); // Enemigos con stats base
+                return configurationDifficulty(0, 0); // enemies with basic stats
             }
             break;
             
@@ -144,7 +144,7 @@ configurationDifficulty selectDifficult()
                 gameMap.display();
                 _getch();
                 
-                return configurationDifficulty(15, 8); //Enemigos mas fuertes
+                return configurationDifficulty(15, 8); //Stronger enemies
             }
             break;
             
@@ -191,7 +191,7 @@ configurationDifficulty selectDifficult()
             }
             break;
         }
-    } while (true); // El ciclo solo termina con un return válido
+    } while (true); 
 }
 
 #endif
