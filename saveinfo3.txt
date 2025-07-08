@@ -1,4 +1,4 @@
 Cerephios
-Mon Jul 07 15:02:03 2025
-Starting Village
-0 15 45 0
+Mon Jul 07 16:46:27 2025
+Combat Area
+1 15 45 1
