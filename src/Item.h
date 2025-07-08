@@ -6,7 +6,7 @@
 #include "Player.h"
 #include "Enemy.h"
 
-// ==================== CLASE PARA ITEMS DE CURACIÓN ====================
+// ==================== CLASS FOR HEALING ITEMS ====================
 class HealingItem
 {
 private:
@@ -15,29 +15,29 @@ private:
     int quantity;
 
 public:
-    // Constructor por defecto
+    // Default constructor
     HealingItem() : name(""), healAmount(0), quantity(0) {}
     
-    // Constructor para items de curación
+    // Constructor for healing items
     HealingItem(std::string n, int heal, int qty = 1)
     : name(n), healAmount(heal), quantity(qty) {}
 
-    // Función que cura al jugador
+    // Function that heals the player
     void use(Player& player);
 
-    // Getters para obtener información del item
+    // Getters to obtain item information
     std::string getName() const {return name;}
     int getQuantity() const {return quantity;}
     int getHealAmount() const {return healAmount;}
     
-    // Método para verificar si hay items disponibles
+    // Method to check if items are available
     bool isAvailable() const {return quantity > 0;}
     
-    // Método para añadir más items al inventario
+    // Method to add more items to the inventory
     void addQuantity(int amount) {quantity += amount;}
 };
 
-// ==================== CLASE PARA ITEMS DE DAÑO ====================
+// ==================== CLASS FOR DAMAGE ITEMS ====================
 class DamageItem
 {
 private:
@@ -46,31 +46,31 @@ private:
     int quantity;
 
 public:
-    // Constructor por defecto
+    // Default constructor
     DamageItem() : name(""), damage(0), quantity(0) {}
     
-    // Constructor para items de daño
+    // Constructor for damage items
     DamageItem(std::string n, int dmg, int qty = 1)
     : name(n), damage(dmg), quantity(qty) {}
 
-    // Función que aplica daño a un enemigo
+    // Function that applies damage to an enemy
     void use(Player& player, Enemy& target);
     
-    // Getters para obtener información del item
+    // Getters to obtain item information
     std::string getName() const {return name;}
     int getQuantity() const {return quantity;}
     int getDamage() const {return damage;}
     
-    // Método para verificar si hay items disponibles
+    // Method to check if items are available
     bool isAvailable() const {return quantity > 0;}
     
-    // Método para añadir más items al inventario
+    // Method to add more items to the inventory
     void addQuantity(int amount) {quantity += amount;}
 };
 
-// ==================== IMPLEMENTACIONES ====================
+// ==================== IMPLEMENTATIONS ====================
 
-// Implementación de la función use para HealingItem
+// Implementation of the use function for HealingItem
 inline void HealingItem::use(Player& player) {
     if (quantity > 0) {
         player.heal(healAmount);
@@ -81,7 +81,7 @@ inline void HealingItem::use(Player& player) {
     }
 }
 
-// Implementación de la función use para DamageItem
+// Implementation of the use function for DamageItem
 inline void DamageItem::use(Player& player, Enemy& target) {
     if (quantity > 0) {
         target.receiveDamage(damage);

@@ -7,7 +7,7 @@
 class Inventory
 {
 private:
-    // Arrays fijos en lugar de vectores
+    // Fixed arrays instead of vectors
     static const int MAX_HEALING_ITEMS = 15;
     static const int MAX_DAMAGE_ITEMS = 8;
 
@@ -18,18 +18,18 @@ private:
     int damageItemCount;
 
 public:
-    // Constructor - inicializa contadores
+    // Constructor - initializes counters
     Inventory()
     {
         healingItemCount = 0;
         damageItemCount = 0;
     }
 
-    // ==================== MÉTODOS PARA AÑADIR ITEMS ====================
+    // ==================== METHODS TO ADD ITEMS ====================
 
     void addHealingItem(const HealingItem &item)
     {
-        // Buscar si ya existe el item para sumar cantidades
+        // Search if the item already exists to sum quantities
         for (int i = 0; i < healingItemCount; i++)
         {
             if (healingItems[i].getName() == item.getName())
@@ -40,7 +40,7 @@ public:
                 return;
             }
         }
-        // Si no existe y hay espacio, añadirlo como nuevo
+        // If it doesn't exist and there is space, add it as new
         if (healingItemCount < MAX_HEALING_ITEMS)
         {
             healingItems[healingItemCount] = item;
@@ -58,7 +58,7 @@ public:
 
     void addDamageItem(const DamageItem &item)
     {
-        // Buscar si ya existe el item para sumar cantidades
+        // Search if the item already exists to sum quantities
         for (int i = 0; i < damageItemCount; i++)
         {
             if (damageItems[i].getName() == item.getName())
@@ -69,7 +69,7 @@ public:
                 return;
             }
         }
-        // Si no existe y hay espacio, añadirlo como nuevo
+        // If it doesn't exist and there is space, add it as new
         if (damageItemCount < MAX_DAMAGE_ITEMS)
         {
             damageItems[damageItemCount] = item;
@@ -85,7 +85,7 @@ public:
         }
     }
 
-    // ==================== MÉTODOS PARA MOSTRAR INVENTARIO ====================
+    // ==================== METHODS TO SHOW INVENTORY ====================
 
     void showHealingItems() const
     {
@@ -133,7 +133,7 @@ public:
         showDamageItems();
     }
 
-    // ==================== MÉTODOS PARA USAR ITEMS ====================
+    // ==================== METHODS TO USE ITEMS ====================
 
     bool useHealingItem(int index, Player &player)
     {
@@ -175,24 +175,24 @@ public:
 
     // ==================== GETTERS ====================
 
-    // Devuelve el número de items de curación
+    // Returns the number of healing items
     int getHealingItemCount() const { return healingItemCount; }
 
-    // Devuelve el número de items de daño
+    // Returns the number of damage items
     int getDamageItemCount() const { return damageItemCount; }
 
-    // Devuelve un item de curación específico por índice
+    // Returns a specific healing item by index
     const HealingItem &getHealingItem(int index) const { return healingItems[index]; }
 
-    // Devuelve un item de daño específico por índice
+    // Returns a specific damage item by index
     const DamageItem &getDamageItem(int index) const { return damageItems[index]; }
 
-    // Limpia completamente el inventario (para cargar partidas guardadas)
+    // Completely clears the inventory (for loading saved games)
     void clearAllItems()
     {
         healingItemCount = 0;
         damageItemCount = 0;
-        // No necesitamos limpiar los arrays ya que el contador controla qué elementos son válidos
+        // No need to clear the arrays since the counter controls which elements are valid
     }
 
     bool hasHealingItems() const
@@ -215,29 +215,29 @@ public:
         return false;
     }
 
-    // ==================== MÉTODOS PARA VERIFICAR ESPACIO ====================
+    // ==================== METHODS TO CHECK SPACE ====================
 
-    // Verifica si hay espacio para más items de curación
+    // Checks if there is space for more healing items
     bool hasSpaceForHealingItems() const {
         return healingItemCount < MAX_HEALING_ITEMS;
     }
     
-    // Verifica si hay espacio para más items de daño
+    // Checks if there is space for more damage items
     bool hasSpaceForDamageItems() const {
         return damageItemCount < MAX_DAMAGE_ITEMS;
     }
     
-    // Verifica si el inventario de curación está lleno
+    // Checks if the healing inventory is full
     bool isHealingInventoryFull() const {
         return healingItemCount >= MAX_HEALING_ITEMS;
     }
     
-    // Verifica si el inventario de daño está lleno
+    // Checks if the damage inventory is full
     bool isDamageInventoryFull() const {
         return damageItemCount >= MAX_DAMAGE_ITEMS;
     }
     
-    // Muestra el estado del inventario (espacios usados/totales)
+    // Shows the inventory status (used/total slots)
     void showInventoryStatus() const {
         std::cout << "\n=== INVENTORY STATUS ===" << std::endl;
         std::cout << "Healing Items: " << healingItemCount << "/" << MAX_HEALING_ITEMS;

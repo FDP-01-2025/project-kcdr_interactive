@@ -1,4 +1,0 @@
-Valdrik
-Mon Jul 07 17:04:54 2025
-Combat Area
-5 15 45 5

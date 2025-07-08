@@ -5,36 +5,36 @@
 #include <string>
 #include "Player.h"
 
-//Clase para items de curacion
+// Class for healing items
 class HealingItem
 {
-//Declaracion de variables privadas para items de curacion
+// Declaration of private variables for healing items
 private:
     std::string name;
     int healAmount;
     int quantity;
 
 public:
-    //Constructor para items de curacion
+    // Constructor for healing items
     HealingItem(std::string n, int heal, int qty = 1)
     : name(n), healAmount(heal), quantity(qty) {}
 
-    //Funcion que cura al jugador
+    // Function that heals the player
     void use(Player& player);
 
-    //Getters para obtener información del item
+    // Getters to obtain item information
     std::string getName() const {return name;}
     int getQuantity() const {return quantity;}
     int getHealAmount() const {return healAmount;}
     
-    //Metodo para verificar si hay items disponibles
+    // Method to check if items are available
     bool isAvailable() const {return quantity > 0;}
     
-    //Metodo para añadir más items al inventario
+    // Method to add more items to the inventory
     void addQuantity(int amount) {quantity += amount;}
 };
 
-// Implementacion de la funcion use
+// Implementation of the use function
 inline void HealingItem::use(Player& player) {
     if (quantity > 0) {
         player.heal(healAmount);

@@ -612,7 +612,7 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
         return false;
     }
 
-    // Si gana, marca el boss como derrotado para ese mapa y suma al contador
+    // If the player wins, mark the boss as defeated for that map and increment the counter
     bossDefeated[currentMap] = true;
     bossesDefeatedCount++;
 
@@ -621,10 +621,9 @@ inline bool changeMap(char gameGrid[ROWS][COLUMNS], char transitionChar)
     std::cout << "Press any key to continue...";
     _getch();
 
-    // ======== FINAL DEL JUEGO ========
+    // ======== END OF GAME ========
     if (bossesDefeatedCount == 4) {
-        // Llama aquí la función de final de juego de Story.h
-        // Story::showEndingOnMap();
+        Story::showFinalScreenOnMap();
     }
 
     // ======== EXECUTE TRANSITION ========
@@ -816,31 +815,9 @@ inline void interact(Map &gameMap)
         else if (c == '^' || c == '|' || c == '/' || c == '\\' || c == '_' || c == '+')
         {
             // ======== BUILDING INTERACTION ========
-            // All buildings now trigger direct boss battles
-            std::cout << "\nYou approach a building..." << std::endl;
-            std::cout << "A guardian emerges to defend the building!" << std::endl;
-            std::cout << "Battle begins!" << std::endl;
-
-            // ======== ENEMY SELECTION ========
-            // Select a specific enemy instead of random
-            Enemy buildingEnemy = enemy[2]; // Cambia el 0 por el índice del enemigo que quieras
-            // Ejemplo: enemy[1], enemy[2], enemy[3], enemy[4], enemy[5]
-
-            // ======== COMBAT EXECUTION ========
-            bool playerAlive = Combat(playerSelected, buildingEnemy, gameMap);
-
-            // ======== POST-BATTLE FEEDBACK ========
-            if (playerAlive)
-            {
-                std::cout << "You survived the battle! Continue exploring the map...\n";
-            }
-            else
-            {
-                std::cout << "Game Over. Try again.\n";
-            }
-
-            // ======== USER ACKNOWLEDGMENT ========
-            std::cout << "Press any key to continue...";
+            std::cout << "It is a house in ruins, you can't access it." << std::endl;
+        std::cout << "continue exploring the map" << std::endl;
+        std::cout << "Press any key to continue...";
             _getch(); // Wait for player to acknowledge the message
             return;   // Exit interaction function
         }
@@ -1556,7 +1533,7 @@ bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[])
     }
 
     // ======== ENEMY SELECTION ========
-    // Randomly select an enemy from the zone-specific range for variety in encounters
+    // Randomly select an enemy from the zone-specific range for progression and variety
     int enemyRange = maxEnemyIndex - minEnemyIndex + 1;           // Calculate number of enemies in range
     int randomEnemyIndex = minEnemyIndex + (rand() % enemyRange); // Generate random index within zone range
     Enemy wildEnemy = enemies[randomEnemyIndex];                  // Create a copy of the selected enemy for this battle
