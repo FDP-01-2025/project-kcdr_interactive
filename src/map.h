@@ -148,7 +148,7 @@ StructureMap Townmap[6] = {
    ':.
      _________
     /  \______\
-    |  |''ST''|
+    |  |''TT''|
     |  |'|  |'|
     "`"`"    "`
  )"),
@@ -805,7 +805,7 @@ inline void interact(Map &gameMap)
     // These characters represent different parts of ASCII art buildings
     for (char c : adj)
     {
-        if (gameGrid[playerX - 1][playerY] == 'S' && gameGrid[playerX - 1][playerY + 1] == 'T' || gameGrid[playerX - 1][playerY] == 'T' && gameGrid[playerX - 1][playerY - 1] == 'S')
+        if (gameGrid[playerX - 1][playerY] == 'T')
         {
             // Execute shop menu using the grid system
             showShopInGrid(gameMap);
