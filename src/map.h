@@ -27,6 +27,9 @@ const int MAX_LINEAS = 7; // Maximum number of text lines that can be displayed 
 #include "InventoryMenu.h"
 #include "GameItems.h"  // For shop items
 
+// Forward declarations to avoid circular dependencies
+void saveCurrentProgress(const std::string& location);
+
 // ======== REQUIRED LIBRARIES ========
 // Standard C++ libraries needed for game functionality
 #include <string>   // For std::string operations (text handling)
@@ -148,7 +151,7 @@ StructureMap Townmap[6] = {
    ':.
      _________
     /  \______\
-    |  |''ST''|
+    |  |''TT''|
     |  |'|  |'|
     "`"`"    "`
  )"),
@@ -454,6 +457,14 @@ static int playerX = 14;   // Player's row position (vertical coordinate) - star
 static int playerY = 45;   // Player's column position (horizontal coordinate) - starts in center horizontally
 static int currentMap = 0; // Current map area identifier: 0=Center, 1=North, 2=South, 3=East District
 
+// ======== POSITION SYNCHRONIZATION FUNCTION ========
+// This function synchronizes local map position variables with global save system variables
+// Call this when loading a game to ensure position consistency
+void synchronizePlayerPosition() {
+    // Get current global position from save system
+    SaveManager::getCurrentPlayerPosition(playerX, playerY);
+}
+
 // ======== MAP GENERATION DISPATCHER ========
 // Function to generate the appropriate map layout based on the player's current location
 // This centralizes map generation and makes it easy to add new areas
@@ -702,6 +713,10 @@ inline bool movePlayer(Map &gameMap, char direction)
             playerY = newY;                   // Update player's horizontal coordinate
             gameGrid[playerX][playerY] = 'O'; // Place player character at new position
 
+            // ======== SYNCHRONIZE GLOBAL POSITION ========
+            // Update global position variables for save system
+            SaveManager::updatePlayerPosition(playerX, playerY);
+
             // ======== GRID SYNCHRONIZATION ========
             // Copy our modified grid back to the Map object to make changes persistent
             for (int i = 0; i < ROWS; i++)
@@ -805,7 +820,7 @@ inline void interact(Map &gameMap)
     // These characters represent different parts of ASCII art buildings
     for (char c : adj)
     {
-        if (gameGrid[playerX - 1][playerY] == 'S' && gameGrid[playerX - 1][playerY + 1] == 'T' || gameGrid[playerX - 1][playerY] == 'T' && gameGrid[playerX - 1][playerY - 1] == 'S')
+        if (gameGrid[playerX - 1][playerY] == 'T')
         {
             // Execute shop menu using the grid system
             showShopInGrid(gameMap);
@@ -1101,6 +1116,12 @@ inline void showShopInPanel(Map &gameMap)
                     break;
             }
             
+            // ======== AUTO-SAVE AFTER PURCHASE ========
+            if (purchaseSuccess) {
+                // Save the game state immediately after a successful purchase
+                saveCurrentProgress("shop");
+            }
+            
             // ======== SHOW PURCHASE RESULT ========
             Map resultMap;
             char (&resultGrid)[ROWS][COLUMNS] = resultMap.getGrid();
@@ -1322,6 +1343,12 @@ inline void showShopInGrid(Map &gameMap)
                     break;
             }
             
+            // ======== AUTO-SAVE AFTER PURCHASE ========
+            if (purchaseSuccess) {
+                // Save the game state immediately after a successful purchase
+                saveCurrentProgress("shop");
+            }
+            
             // ======== SHOW PURCHASE RESULT ========
             gameMap.reset();
             
@@ -1400,6 +1427,10 @@ inline void showShopInGrid(Map &gameMap)
 // It handles map display, input processing, and coordinates all game systems
 inline void playGame()
 {
+    // ======== POSITION SYNCHRONIZATION ========
+    // Sync local map variables with global save system variables
+    synchronizePlayerPosition();
+    
     // ======== GAME INITIALIZATION ========
     InitializeEvent(); // Set up the random event system for encounters
     Map gameMap;       // Create the main map object that will handle display and message panels
