@@ -27,6 +27,9 @@ const int MAX_LINEAS = 7; // Maximum number of text lines that can be displayed 
 #include "InventoryMenu.h"
 #include "GameItems.h"  // For shop items
 
+// Forward declarations to avoid circular dependencies
+void saveCurrentProgress(const std::string& location);
+
 // ======== REQUIRED LIBRARIES ========
 // Standard C++ libraries needed for game functionality
 #include <string>   // For std::string operations (text handling)
@@ -148,7 +151,7 @@ StructureMap Townmap[6] = {
    ':.
      _________
     /  \______\
-    |  |''ST''|
+    |  |''TT''|
     |  |'|  |'|
     "`"`"    "`
  )"),
@@ -817,7 +820,7 @@ inline void interact(Map &gameMap)
     // These characters represent different parts of ASCII art buildings
     for (char c : adj)
     {
-        if (gameGrid[playerX - 1][playerY] == 'S' && gameGrid[playerX - 1][playerY + 1] == 'T' || gameGrid[playerX - 1][playerY] == 'T' && gameGrid[playerX - 1][playerY - 1] == 'S')
+        if (gameGrid[playerX - 1][playerY] == 'T')
         {
             // Execute shop menu using the grid system
             showShopInGrid(gameMap);
@@ -1113,6 +1116,12 @@ inline void showShopInPanel(Map &gameMap)
                     break;
             }
             
+            // ======== AUTO-SAVE AFTER PURCHASE ========
+            if (purchaseSuccess) {
+                // Save the game state immediately after a successful purchase
+                saveCurrentProgress("shop");
+            }
+            
             // ======== SHOW PURCHASE RESULT ========
             Map resultMap;
             char (&resultGrid)[ROWS][COLUMNS] = resultMap.getGrid();
@@ -1332,6 +1341,12 @@ inline void showShopInGrid(Map &gameMap)
                         itemCost = 150;
                     }
                     break;
+            }
+            
+            // ======== AUTO-SAVE AFTER PURCHASE ========
+            if (purchaseSuccess) {
+                // Save the game state immediately after a successful purchase
+                saveCurrentProgress("shop");
             }
             
             // ======== SHOW PURCHASE RESULT ========

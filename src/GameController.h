@@ -170,19 +170,23 @@ void GameController::handleNewGame()
     applyDifficultyEnemies(selectedConfig);                                 // Apply difficulty scaling to all enemies
 
     // ======== SAVE SLOT MANAGEMENT ========
-    // Find an available save slot or handle the case where all slots are occupied
-    int emptySlot = SaveManager::findEmptySlot();           // Search for first empty slot
+    // Use the single available save slot
+    int emptySlot = 1;                                      // Always use slot 1 (only slot available)
     std::string saveSlot = "Game" + std::to_string(emptySlot); // Create save slot identifier
     
-    if (emptySlot > 5) // MAX_SAVE_SLOTS - all slots are occupied
+    // ======== SAVE SLOT OVERWRITE HANDLING ========
+    // Check if the single slot is occupied and prompt for overwrite confirmation
+    if (SaveManager::countExistingSaves() > 0) 
     {
-        // ======== SAVE SLOT OVERFLOW HANDLING ========
-        // When all slots are full, allow user to choose which save to overwrite
         MenuSystem::clearScreen();
-        displayAllSaves();  // Show all existing saves for user reference
-        std::cout << "\nAll save slots are full. Choose slot to overwrite (1-5): ";
-        int choice = MenuSystem::getValidatedInput(1, 5);      // Get user's choice
-        saveSlot = "Game" + std::to_string(choice);            // Update save slot to user's choice
+        std::cout << "\nA saved game already exists. Do you want to overwrite it? (y/n): ";
+        char choice;
+        std::cin >> choice;
+        std::cin.ignore();
+        
+        if (choice != 'y' && choice != 'Y') {
+            return; // User chose not to overwrite, return to main menu
+        }
     }
 
     // ======== GAME DATA CREATION ========
@@ -212,8 +216,8 @@ void GameController::handleNewGame()
 }
 
 // ======== LOAD GAME WORKFLOW MANAGEMENT ========
-// This function handles the complete process of loading existing saved games
-// It manages save file validation, user selection, and error handling for missing saves
+// This function handles the complete process of loading the single saved game
+// It validates save file existence and loads the game automatically
 void GameController::handleLoadGame()
 {
     // ======== SAVE SYSTEM REFRESH ========
@@ -221,45 +225,25 @@ void GameController::handleLoadGame()
     SaveManager::loadExistingSaves();
     
     // ======== SAVE AVAILABILITY CHECK ========
-    // Verify that at least one save file exists before showing the load interface
-    bool hasAnySave = false;                                    // Flag to track save existence
+    // Check if the single save slot contains a saved game
     std::map<std::string, GameData>& saves = SaveManager::getGameSaves(); // Get reference to save data
+    std::string saveKey = "Game1";  // Only slot available
     
-    // ======== SAVE SLOT ITERATION ========
-    // Check each of the 5 available save slots for existing save data
-    for (int i = 1; i <= 5; i++)
+    // ======== NO SAVE FOUND HANDLING ========
+    // If no save file exists, provide helpful feedback and redirect to new game creation
+    if (!saves[saveKey].exists)
     {
-        std::string saveKey = "Game" + std::to_string(i);   // Generate save slot identifier
-        if (saves[saveKey].exists)                          // Check if this slot contains valid save data
-        {
-            hasAnySave = true;  // Found at least one save file
-            break;              // Exit loop early since we only need to know if any exist
-        }
-    }
-    
-    // ======== NO SAVES FOUND HANDLING ========
-    // If no save files exist, provide helpful feedback and redirect to new game creation
-    if (!hasAnySave)
-    {
-        showErrorMessage("No saved quests found in the archives."); // Inform user with thematic message
+        showErrorMessage("No saved quest found in the archives."); // Inform user with thematic message
         handleNewGame();                                           // Redirect to new game creation
         return;                                                    // Exit function
     }
 
-    // ======== SAVE SELECTION INTERFACE ========
-    // Display available saves and get user's choice
-    MenuSystem::clearScreen();     // Clear screen for clean display
-    displayAllSaves();            // Show detailed information about all save slots
-    
-    // ======== USER INPUT AND VALIDATION ========
-    int selectedSave = MenuSystem::getValidatedInput(1, 5); // Get user's save slot choice (1-5)
-    
-    // ======== SAVE LOADING ATTEMPT ========
-    // Try to load the selected save and handle potential failures
-    if (!SaveManager::loadSave(selectedSave))
+    // ======== AUTOMATIC SAVE LOADING ========
+    // Load the single available save without user selection
+    if (!SaveManager::loadSave(1))
     {
-        showErrorMessage("Selected save slot is empty!"); // Inform user of invalid selection
-        return;                                           // Return to previous menu
+        showErrorMessage("Failed to load saved quest!"); // Inform user of load failure
+        return;                                          // Return to previous menu
     }
 
     // ======== SUCCESSFUL LOAD FEEDBACK AND GAME START ========
@@ -458,37 +442,28 @@ void GameController::displayAllSaves()
     char (&grid)[ROWS][COLUMNS] = gameMap.getGrid();
     gameMap.reset();
     
-    std::string title = "SAVE SLOT SELECTION";
+    std::string title = "SAVED GAME INFORMATION";
     int titleCol = (COLUMNS - title.length()) / 2;
     for (int i = 0; i < title.length(); ++i) grid[5][titleCol + i] = title[i];
     
     std::map<std::string, GameData>& saves = SaveManager::getGameSaves();
     
     int row = 8;
-    for (int i = 1; i <= 5; i++)
+    std::string saveKey = "Game1";  // Only slot available
+    std::string slotInfo;
+    
+    if (saves[saveKey].exists)
     {
-        std::string saveKey = "Game" + std::to_string(i);
-        std::string slotInfo;
-        
-        if (saves[saveKey].exists)
-        {
-            slotInfo = std::to_string(i) + ". " + saves[saveKey].characterName + 
-                      " - " + saves[saveKey].creationDate.substr(0, 10);
-        }
-        else
-        {
-            slotInfo = std::to_string(i) + ". Empty Slot";
-        }
-        
-        int slotCol = (COLUMNS - slotInfo.length()) / 2;
-        for (int j = 0; j < slotInfo.length(); ++j) grid[row][slotCol + j] = slotInfo[j];
-        row++;
+        slotInfo = "Saved Game: " + saves[saveKey].characterName + 
+                  " - " + saves[saveKey].creationDate.substr(0, 10);
+    }
+    else
+    {
+        slotInfo = "No saved game found";
     }
     
-    // Add prompt message
-    std::string prompt = "Select save to load (1-5):";
-    int promptCol = (COLUMNS - prompt.length()) / 2;
-    for (int i = 0; i < prompt.length(); ++i) grid[15][promptCol + i] = prompt[i];
+    int slotCol = (COLUMNS - slotInfo.length()) / 2;
+    for (int j = 0; j < slotInfo.length(); ++j) grid[row][slotCol + j] = slotInfo[j];
     
     gameMap.display();
 }
