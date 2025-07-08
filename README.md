@@ -106,8 +106,15 @@ Se emplean funciones para centrar y formatear texto en el grid.
 3. **Nombre completo:** [Kevin Vladimir Rodriguez Alvarado]  
    **Carnet:** [00039425]
 
+  ## Link de los diagramas  
+
+  https://drive.google.com/file/d/1fSZxHB4dRFUcre_ctgWz_VOCyYwcfalo/view?usp=sharing
+
 ## Instrucciones de Ejecución
 
 1. Clona este repositorio en tu máquina local:
    ```bash
    git clone [https://github.com/FDP-01-2025/project-kcdr_interactive.git]
+
+
+   
