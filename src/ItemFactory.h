@@ -3,15 +3,15 @@
 
 #include "gameItems.h"
 #include "Inventory.h"
-#include <cstdlib>  // Para rand() y srand()
-#include <ctime>    // Para time()
+#include <cstdlib>  // For rand() and srand()
+#include <ctime>    // For time()
 
 class ItemFactory {
 public:
-    // ==================== INICIALIZACIÓN ====================
+    // ==================== INITIALIZATION ====================
     
     static void initializeRandomSeed() {
-        srand(time(nullptr));  // Inicializa el generador de números aleatorios
+        srand(time(nullptr));  // Initializes the random number generator
     }
     
     // ==================== STARTER PACK ====================
@@ -19,14 +19,14 @@ public:
     static void giveStarterItems(Inventory& inventory) {
         std::cout << "\n=== Receiving Starter Pack ===" << std::endl;
         
-        // Dar pociones pequeñas 
-        int smallPotionsToGive = 2;  // Cambiar este número para dar más o menos pociones
+        // Give small potions
+        int smallPotionsToGive = 2;  // Change this number to give more or fewer potions
         for (int i = 0; i < smallPotionsToGive; i++) {
             inventory.addHealingItem(GameItems::smallPotion);
         }
         
-        // Dar cuchillos arrojadizos 
-        int knivesToGive = 3;  // Cambiar este número para dar más o menos cuchillos
+        // Give throwing knives
+        int knivesToGive = 3;  // Change this number to give more or fewer knives
         for (int i = 0; i < knivesToGive; i++) {
             inventory.addDamageItem(GameItems::throwingKnife);
         }
@@ -37,7 +37,7 @@ public:
     }
     
     static void giveStarterGold(int& playerGold) {
-        playerGold += 100;  // Oro inicial para poder comprar algunas cosas
+        playerGold += 100;  // Initial gold to buy some things
         std::cout << "\n=== Starting Gold ===" << std::endl;
         std::cout << "You start your adventure with 100 gold coins!" << std::endl;
         std::cout << "Current Gold: " << playerGold << std::endl;
@@ -66,22 +66,22 @@ public:
         
         bool gotReward = false;
         
-        // ==================== RECOMPENSAS DE ORO ====================
-        // 60% de probabilidad de conseguir oro (más común que items)
+        // ==================== GOLD REWARDS ====================
+        // 60% chance to get gold (more common than items)
         if (rand() % 100 < 60) {
             int goldAmount = 0;
             int goldRoll = rand() % 100;
             
-            if (goldRoll < 30) {        // 30% - Poco oro (3-7)
+            if (goldRoll < 30) {        // 30% - Little gold (3-7)
                 goldAmount = 3 + rand() % 5;
                 std::cout << "Found " << goldAmount << " gold coins!" << std::endl;
-            } else if (goldRoll < 20) { // 20% - Oro moderado (8-15)
+            } else if (goldRoll < 20) { // 20% - Moderate gold (8-15)
                 goldAmount = 8 + rand() % 8;
                 std::cout << "Nice! Found " << goldAmount << " gold coins!" << std::endl;
-            } else if (goldRoll < 8) {  // 8% - Buen oro (16-25)
+            } else if (goldRoll < 8) {  // 8% - Good gold (16-25)
                 goldAmount = 16 + rand() % 10;
                 std::cout << "Great! Found " << goldAmount << " gold coins!" << std::endl;
-            } else {                    // 2% - Mucho oro (26-40)
+            } else {                    // 2% - Lots of gold (26-40)
                 goldAmount = 26 + rand() % 15;
                 std::cout << "JACKPOT! Found " << goldAmount << " gold coins!" << std::endl;
             }
@@ -90,29 +90,29 @@ public:
             gotReward = true;
         }
         
-        // ==================== RECOMPENSAS DE ITEMS ====================
-        // 15% de probabilidad de conseguir Small Health Potion
+        // ==================== ITEM REWARDS ====================
+        // 15% chance to get Small Health Potion
         if (rand() % 100 < 15) {
             inventory.addHealingItem(GameItems::smallPotion);
             std::cout << "Lucky! Found a Small Health Potion!" << std::endl;
             gotReward = true;
         }
         
-        // 8% de probabilidad de conseguir Bread
+        // 8% chance to get Bread
         if (rand() % 100 < 8) {
             inventory.addHealingItem(GameItems::bread);
             std::cout << "Found some Bread!" << std::endl;
             gotReward = true;
         }
         
-        // 5% de probabilidad de conseguir Throwing Knife
+        // 5% chance to get Throwing Knife
         if (rand() % 100 < 5) {
             inventory.addDamageItem(GameItems::throwingKnife);
             std::cout << "Found a Throwing Knife!" << std::endl;
             gotReward = true;
         }
         
-        // 2% de probabilidad de conseguir algo especial (Medium Potion o Shuriken)
+        // 2% chance to get something special (Medium Potion or Shuriken)
         if (rand() % 100 < 2) {
             if (rand() % 2 == 0) {
                 inventory.addHealingItem(GameItems::mediumPotion);
@@ -124,7 +124,7 @@ public:
             gotReward = true;
         }
         
-        // 1% de probabilidad de conseguir algo muy raro
+        // 1% chance to get something very rare
         if (rand() % 100 < 1) {
             inventory.addHealingItem(GameItems::largePotion);
             std::cout << "VERY RARE! Large Health Potion found!" << std::endl;

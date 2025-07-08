@@ -21,29 +21,23 @@ class Enemy;
 #include "unique_character.h"
 #include "enemy_draw.h"
 
-#ifdef _WIN32
+
 #include <conio.h>
-#else
-#include <unistd.h>
-#endif
-// ===== Limpiar la pantalla =====
+
+// ===== Clear the screen =====
 void clearScreen()
 {
-#ifdef _WIN32
+
     system("cls");
-#else
-    std::cout << "\033[2J\033[1;1H";
-#endif
+
 }
 
-// ===== Esperar pulsación de tecla para avanzar =====
+// ===== Wait for key press to continue =====
 void waitForKey()
 {
-#ifdef _WIN32
+
     _getch();
-#else
-    std::cin.get();
-#endif
+
 }
 
 // ===== Draw a Decorative Health Bar (Safe for Console Width) =====

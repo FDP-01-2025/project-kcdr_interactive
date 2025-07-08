@@ -16,6 +16,7 @@
 #include "unique_character.h"       // Character creation and selection system
 #include "map.h"                    // Map display, navigation, and world management
 #include "enemy_utils.h"            // Enemy difficulty scaling functions
+#include "Story.h"
 
 // ======== EXTERNAL DEPENDENCIES ========
 // Forward declarations for global variables and functions defined in other modules
@@ -196,6 +197,11 @@ void GameController::handleNewGame()
 
     // ======== SUCCESS FEEDBACK ========
     showSuccessMessage("Quest log saved successfully!"); // Inform user of successful save
+
+    
+    // ======== STORY PROLOGUE ========
+    Story::showPrologueOnMap();
+    
 
     // ======== GAME LAUNCH ========
     playGame();     // Start the main gameplay loop
