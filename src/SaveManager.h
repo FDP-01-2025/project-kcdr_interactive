@@ -124,6 +124,18 @@ public:
     {
         return playerSelected.getCurrentEnemiesKilled();
     }
+    
+    // Reset all global game state for new game
+    static void resetGameState()
+    {
+        ::resetGlobalGameState();
+    }
+    
+    // Get current player position
+    static void getCurrentPlayerPosition(int& x, int& y)
+    {
+        ::getCurrentPlayerPosition(x, y);
+    }
 };
 
 #endif // SAVE_MANAGER_H

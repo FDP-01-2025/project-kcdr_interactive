@@ -58,6 +58,8 @@ extern int playerGold;                 // Global player gold amount
 extern Inventory playerInventory;      // Global player inventory
 int getCurrentMapId();                 // Function to get current map identifier
 void setCurrentMapId(int mapId);       // Function to set current map identifier
+void resetGlobalGameState();           // Function to reset all global game variables
+void getCurrentPlayerPosition(int& x, int& y); // Function to get current player position
 
 // ===============================================================================
 // GAMEDATA STRUCTURE - COMPREHENSIVE SAVE DATA CONTAINER
@@ -544,6 +546,10 @@ bool loadSpecificSave(int slotNumber)
         return false;  // Save slot is empty or invalid
     }
 
+    // ======== RESET GAME STATE BEFORE LOADING ========
+    // Clear all global variables to ensure clean state before loading save data
+    resetGlobalGameState();
+
     // Create local copy of save data (avoiding pointer issues)
     GameData loadedGame = gameSaves[saveKey];
     
@@ -792,6 +798,43 @@ void saveCurrentProgress(const std::string& location)
     // ======== PERFORM THE SAVE OPERATION ========
     // Write updated data to both binary and metadata files
     saveCompleteGameData(currentSaveSlot, updatedData);
+}
+
+// ===============================================================================
+// GAME STATE RESET FUNCTION
+// ===============================================================================
+// This function resets all global game variables to their initial state
+// Call this before creating a new game to ensure clean state
+void resetGlobalGameState() {
+    // Reset player to empty state
+    playerSelected = Player(0, 0, 0, 0);
+    selectedName = "";
+    
+    // Reset economy
+    ::playerGold = 100;  // Default starting gold
+    
+    // Clear inventory completely
+    playerInventory.clearAllItems();
+    
+    // Reset position tracking
+    currentPlayerX = 15;
+    currentPlayerY = 45;
+    
+    // Reset enemy tracking
+    totalEnemiesDefeated = 0;
+    
+    // Reset difficulty to neutral
+    currentDifficulty = configurationDifficulty(0, 0);
+    
+    // Reset current map ID
+    setCurrentMapId(0);
+}
+
+// ======== GET CURRENT PLAYER POSITION ========
+// Retrieves the current player position coordinates
+void getCurrentPlayerPosition(int& x, int& y) {
+    x = currentPlayerX;
+    y = currentPlayerY;
 }
 
 #endif

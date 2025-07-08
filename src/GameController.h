@@ -125,6 +125,10 @@ void GameController::runMainMenu()
 // It handles character creation, difficulty selection, save management, and game initialization
 void GameController::handleNewGame()
 {
+    // ======== GAME STATE RESET ========
+    // Reset all global variables to ensure clean state for new game
+    SaveManager::resetGameState();
+    
     // ======== SCREEN PREPARATION ========
     MenuSystem::clearScreen();     // Clear console for clean display
     
@@ -289,6 +293,10 @@ void GameController::handleDeathScreen()
             
             if (foundSave)
             {
+                // ======== RESET GAME STATE BEFORE RESTORATION ========
+                // Clear all global variables to ensure clean state before loading checkpoint data
+                SaveManager::resetGameState();
+                
                 // ======== COMPLETE GAME STATE RESTORATION ========
                 // Restore all aspects of the player's saved state
                 
