@@ -3,10 +3,9 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <conio.h> 
+#include <conio.h>
 #include <ctime>
 #include <string> // For std::string type
-
 
 // Include the .h files used in random events
 #include "Player.h"
@@ -29,14 +28,13 @@ inline void InitializeEvent()
 }
 
 // Function that checks if a random encounter occurs
-inline bool cheekRandomEncounter(){
+inline bool cheekRandomEncounter()
+{
     double probality = rand() % 100;
     return (probality < 8); // 8% probability
 }
 
 // Function that handles random encounters using the panel system
 bool RandomEncounter(Player &player, Map &gameMap, Enemy enemies[]);
-
-
 
 #endif

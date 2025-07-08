@@ -147,8 +147,7 @@ Enemy enemy[12] = {
 |     |     ||
  \    \___//
   \__/   \__/
-)")
-};
+)")};
 
 // ===== Function to Draw Any Enemy on the Map =====
 
@@ -160,8 +159,8 @@ Enemy enemy[12] = {
 void drawEnemy(const Enemy &e, char map[ROWS][COLUMNS], int row, int col)
 {
     // Get the ASCII art string of the enemy using the class method
-    std::string art = e.getAsciiArt(); 
-    
+    std::string art = e.getAsciiArt();
+
     // Initialize row and column counters relative to the ASCII art being drawn
     int currentRow = 0;
     int currentCol = 0;
@@ -190,8 +189,8 @@ void drawEnemy(const Enemy &e, char map[ROWS][COLUMNS], int row, int col)
 void drawBoss(const Boss &e, char map[ROWS][COLUMNS], int row, int col)
 {
     // Get the ASCII art string of the enemy using the class method
-    std::string art = e.getAsciiArt(); 
-    
+    std::string art = e.getAsciiArt();
+
     // Initialize row and column counters relative to the ASCII art being drawn
     int currentRow = 0;
     int currentCol = 0;

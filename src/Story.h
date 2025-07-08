@@ -24,7 +24,6 @@ void Story::showPrologueOnMap()
     char (&grid)[ROWS][COLUMNS] = gameMap.getGrid();
     gameMap.reset();
 
-    
     std::string line0 = "Your siblings have been kidnapped by the forces of evil.";
     std::string line1 = "Explore the villages, collect items and gold, fight against your enemies";
     std::string line2 = "and give freedom back to your brothers ";
@@ -74,7 +73,6 @@ void Story::showFinalScreenOnMap()
     char (&grid)[ROWS][COLUMNS] = gameMap.getGrid();
     gameMap.reset();
 
-    
     std::string line0 = "You have defeated all your enemies";
     std::string line1 = "You have rescued your brothers and with that,";
     std::string line2 = "you have given hope back to the world.";

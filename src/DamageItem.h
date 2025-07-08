@@ -6,7 +6,7 @@
 #include "Player.h"
 #include "Enemy.h"
 
-//Clase para items de daño
+// Class for damage items
 class DamageItem
 {
 private:
@@ -15,33 +15,37 @@ private:
     int quantity;
 
 public:
-    //Constructor para items de daño
+    // Constructor for damage items
     DamageItem(std::string n, int dmg, int qty = 1)
-    : name(n), damage(dmg), quantity(qty) {}
+        : name(n), damage(dmg), quantity(qty) {}
 
-    //Funcion que aplica daño a un enemigo
-    void use(Player& player, Enemy& target);
-    
-    //Getters para obtener información del item
-    std::string getName() const {return name;}
-    int getQuantity() const {return quantity;}
-    int getDamage() const {return damage;}
-    
-    //Metodo para verificar si hay items disponibles
-    bool isAvailable() const {return quantity > 0;}
-    
-    //Metodo para añadir más items al inventario
-    void addQuantity(int amount) {quantity += amount;}
+    // Function that applies damage to an enemy
+    void use(Player &player, Enemy &target);
+
+    // Getters to obtain item information
+    std::string getName() const { return name; }
+    int getQuantity() const { return quantity; }
+    int getDamage() const { return damage; }
+
+    // Method to check if items are available
+    bool isAvailable() const { return quantity > 0; }
+
+    // Method to add more items to the inventory
+    void addQuantity(int amount) { quantity += amount; }
 };
 
-// Implementacion de la funcion use
-inline void DamageItem::use(Player& player, Enemy& target) {
-    if (quantity > 0) {
+// Implementation of the use function
+inline void DamageItem::use(Player &player, Enemy &target)
+{
+    if (quantity > 0)
+    {
         target.receiveDamage(damage);
         quantity--;
-        std::cout << player.getName() << " used " << name << " on " << target.getName() 
+        std::cout << player.getName() << " used " << name << " on " << target.getName()
                   << " dealing " << damage << " damage! Remaining: " << quantity << std::endl;
-    } else {
+    }
+    else
+    {
         std::cout << "No " << name << " left!" << std::endl;
     }
 }

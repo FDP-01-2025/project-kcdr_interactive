@@ -1,5 +1,5 @@
 #ifndef BOSS_DRAW_H // Header guard: prevents multiple inclusions of this file during compilation process
-#define BOSS_DRAW_H     // Defines the BOSS_DRAW_H preprocessor macro to mark this file as included
+#define BOSS_DRAW_H // Defines the BOSS_DRAW_H preprocessor macro to mark this file as included
 
 // ======== BOSS VISUAL REPRESENTATION SYSTEM ========
 // This specialized header file manages ASCII art data for final boss encounters in the game
@@ -45,7 +45,7 @@ const std::string bossArt[4] = {
     // ======== BOSS 1: ARCANE SOVEREIGN ========
     // Second-tier final boss - Necromancer queen with command over death magic
     // VISUAL DESIGN: Features mystical staff, flowing robes, and arcane symbols
-    // DIMENSIONS: 12 lines tall, maximum 19 characters wide  
+    // DIMENSIONS: 12 lines tall, maximum 19 characters wide
     // THEMATIC ELEMENTS: Central staff (_/I\_) represents magical focus, symmetrical design shows balance of power
     R"(
          _/I\_
@@ -105,8 +105,7 @@ const std::string bossArt[4] = {
        / |     | \
       /__|_____|__\
         |_______|
-)"
-};
+)"};
 
 // ======== BOSS ART RETRIEVAL SYSTEM ========
 // This section provides the interface for accessing boss ASCII art based on boss identification
@@ -116,21 +115,29 @@ const std::string bossArt[4] = {
 // This allows the combat system to display the correct boss art without knowing array indices
 // Parameters: bossName - string identifier for the boss type
 // Returns: std::string containing the complete ASCII art for the specified boss
-inline std::string getBossAsciiArt(const std::string& bossName) {
+inline std::string getBossAsciiArt(const std::string &bossName)
+{
     // ======== BOSS NAME MATCHING SYSTEM ========
     // Use string comparison to determine which boss art to return
     // This approach allows for easy boss identification and art retrieval
-    
-    if (bossName == "Queen of Shadows") {
-        return bossArt[0];  // Return first boss art (dark magic master)
-    } else if (bossName == "Arcane Sovereign") {
-        return bossArt[1];  // Return second boss art (necromancer queen)
-    } else if (bossName == "Crystal Queen") {
-        return bossArt[2];  // Return third boss art (elemental wielder)
-    } else if (bossName == "Void Sovereign") {
-        return bossArt[3];  // Return fourth boss art (ultimate antagonist)
+
+    if (bossName == "Queen of Shadows")
+    {
+        return bossArt[0]; // Return first boss art (dark magic master)
     }
-    
+    else if (bossName == "Arcane Sovereign")
+    {
+        return bossArt[1]; // Return second boss art (necromancer queen)
+    }
+    else if (bossName == "Crystal Queen")
+    {
+        return bossArt[2]; // Return third boss art (elemental wielder)
+    }
+    else if (bossName == "Void Sovereign")
+    {
+        return bossArt[3]; // Return fourth boss art (ultimate antagonist)
+    }
+
     // ======== FALLBACK MECHANISM ========
     // If an unrecognized boss name is provided, return the first boss art as default
     // This prevents crashes and ensures the game can continue even with invalid boss names

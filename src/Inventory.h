@@ -218,36 +218,43 @@ public:
     // ==================== METHODS TO CHECK SPACE ====================
 
     // Checks if there is space for more healing items
-    bool hasSpaceForHealingItems() const {
+    bool hasSpaceForHealingItems() const
+    {
         return healingItemCount < MAX_HEALING_ITEMS;
     }
-    
+
     // Checks if there is space for more damage items
-    bool hasSpaceForDamageItems() const {
+    bool hasSpaceForDamageItems() const
+    {
         return damageItemCount < MAX_DAMAGE_ITEMS;
     }
-    
+
     // Checks if the healing inventory is full
-    bool isHealingInventoryFull() const {
+    bool isHealingInventoryFull() const
+    {
         return healingItemCount >= MAX_HEALING_ITEMS;
     }
-    
+
     // Checks if the damage inventory is full
-    bool isDamageInventoryFull() const {
+    bool isDamageInventoryFull() const
+    {
         return damageItemCount >= MAX_DAMAGE_ITEMS;
     }
-    
+
     // Shows the inventory status (used/total slots)
-    void showInventoryStatus() const {
+    void showInventoryStatus() const
+    {
         std::cout << "\n=== INVENTORY STATUS ===" << std::endl;
         std::cout << "Healing Items: " << healingItemCount << "/" << MAX_HEALING_ITEMS;
-        if (isHealingInventoryFull()) {
+        if (isHealingInventoryFull())
+        {
             std::cout << " (FULL)";
         }
         std::cout << std::endl;
-        
+
         std::cout << "Damage Items: " << damageItemCount << "/" << MAX_DAMAGE_ITEMS;
-        if (isDamageInventoryFull()) {
+        if (isDamageInventoryFull())
+        {
             std::cout << " (FULL)";
         }
         std::cout << std::endl;

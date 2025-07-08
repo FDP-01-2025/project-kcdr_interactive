@@ -21,7 +21,6 @@ class Enemy;
 #include "unique_character.h"
 #include "enemy_draw.h"
 
-
 #include <conio.h>
 
 // ===== Clear the screen =====
@@ -29,7 +28,6 @@ void clearScreen()
 {
 
     system("cls");
-
 }
 
 // ===== Wait for key press to continue =====
@@ -37,23 +35,25 @@ void waitForKey()
 {
 
     _getch();
-
 }
 
 // ===== Draw a Decorative Health Bar (Safe for Console Width) =====
 void drawHealthBar(char map[ROWS][COLUMNS], int row, int col, int currentHealth, int maxHealth, const std::string &label)
 {
     int barWidth = 20;
-    
+
     // Calculate proportional fill based on current/max health
     int fillAmount = 0;
-    if (maxHealth > 0) {
+    if (maxHealth > 0)
+    {
         fillAmount = (currentHealth * barWidth) / maxHealth;
     }
-    
+
     // Ensure fill amount is within valid bounds
-    if (fillAmount > barWidth) fillAmount = barWidth;
-    if (fillAmount < 0) fillAmount = 0;
+    if (fillAmount > barWidth)
+        fillAmount = barWidth;
+    if (fillAmount < 0)
+        fillAmount = 0;
 
     std::string full = label + " [";
 
@@ -96,12 +96,13 @@ void drawCombatMessage(char map[ROWS][COLUMNS], const std::string texto[], int l
     for (int c = 0; c < COLUMNS; ++c)
         map[MESSAGE_START_ROW - 1][c] = '-';
 
-    // Draw bottom border  
+    // Draw bottom border
     for (int c = 0; c < COLUMNS; ++c)
         map[ROWS - 1][c] = '-';
 
     // Draw content with fixed side borders
-    for (int r = MESSAGE_START_ROW; r < ROWS - 1; ++r) {
+    for (int r = MESSAGE_START_ROW; r < ROWS - 1; ++r)
+    {
         map[r][0] = '|';
         map[r][COLUMNS - 1] = '|';
     }
@@ -172,7 +173,7 @@ void drawCombatScreenBoss(Map &map, const Player &player, const Boss &boss, bool
 
     // Draw characters
     drawSelectedCharacter(grid, 8, 5); // Player character
-    drawBoss(boss, grid, 8, 50);      // Use drawBoss instead of drawEnemy
+    drawBoss(boss, grid, 8, 50);       // Use drawBoss instead of drawEnemy
 
     // Draw names with health values
     drawNameWithHealth(grid, 1, 5, player.getName(), player.getHealth(), player.getMaxHealth());
@@ -181,7 +182,7 @@ void drawCombatScreenBoss(Map &map, const Player &player, const Boss &boss, bool
     // Draw health bars with proper proportional display
     drawHealthBar(grid, 2, 5, player.getHealth(), player.getMaxHealth(), "HP");
     drawHealthBar(grid, 2, 50, boss.getHealth(), boss.getMaxHealth(), "HP");
-    
+
     // Draw message/options in bottom part of screen
     drawCombatMessage(grid, map.getPanelTexto(), map.getPanelLineCount());
 
