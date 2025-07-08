@@ -5,6 +5,19 @@
 #include <string>
 #include <limits>  // Required for std::numeric_limits
 #include <cstdlib> // Required for rand()
+#include <windows.h> // For Sleep function (Windows only)
+#include <conio.h>   // For _getch()
+#include <sstream>   // For capturing cout output
+
+// Combat pace control functions
+void combatPause(int milliseconds = 1500) {
+    Sleep(milliseconds); // Pause for specified milliseconds (Windows)
+}
+
+void combatWaitForKey(const std::string& message = "\nPress any key to continue...") {
+    std::cout << message;
+    _getch();
+}
 
 // Forward declarations
 class Player;
@@ -75,6 +88,10 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
         case 1:
             damage = player.getAttack();
             text[0] = "You used a normal attack!";
+            map.setPanelText(1, text);
+            drawCombatScreen(map, player, enemy, false);
+            combatPause(1000); // Pause 1 second to show attack message
+            
             enemy.receiveDamage(damage);
             text[1] = enemy.getName() + " health: " + std::to_string(enemy.getHealth());
             lineCount = 2;
@@ -82,6 +99,10 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
         case 2:
             damage = player.getSpecialAttack();
             text[0] = "You used a special attack!";
+            map.setPanelText(1, text);
+            drawCombatScreen(map, player, enemy, false);
+            combatPause(1000); // Pause 1 second to show attack message
+            
             enemy.receiveDamage(damage);
             text[1] = enemy.getName() + " health: " + std::to_string(enemy.getHealth());
             lineCount = 2;
@@ -274,7 +295,11 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             break;
         default:
             damage = player.getAttack();
-            text[0] = "Invalid option. Normal attack used by default.";
+            text[0] = "Invalid option! Using normal attack by default.";
+            map.setPanelText(1, text);
+            drawCombatScreen(map, player, enemy, false);
+            combatPause(1500); // Pause 1.5 seconds to show invalid option message
+            
             enemy.receiveDamage(damage);
             text[1] = enemy.getName() + " health: " + std::to_string(enemy.getHealth());
             lineCount = 2;
@@ -303,30 +328,130 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             GameMenu::incrementEnemiesDefeated();
             GameMenu::saveProgressAfterCombat("Combat Area");
             
-            // Give enemy-specific drops
+            // Show victory message first
+            text[0] = enemy.getName() + " was defeated!";
+            text[1] = "Victory is yours!";
+            lineCount = 2;
+            map.setPanelText(lineCount, text);
+            drawCombatScreen(map, player, enemy, false);
+            combatPause(2000); // Pause 2 seconds to celebrate victory
+            
+            // Show collecting drops message
+            text[0] = "Searching for battle rewards...";
+            text[1] = "Looking through the defeated enemy...";
+            lineCount = 2;
+            map.setPanelText(lineCount, text);
+            drawCombatScreen(map, player, enemy, false);
+            combatPause(1500); // Pause 1.5 seconds for suspense
+            
+            // Store player state before drops
+            int goldBefore = playerGold;
+            int healingItemsBefore = 0;
+            int damageItemsBefore = 0;
+            
+            // Count items before drops
+            for (int i = 0; i < playerInventory.getHealingItemCount(); i++) {
+                if (playerInventory.getHealingItem(i).isAvailable()) {
+                    healingItemsBefore += playerInventory.getHealingItem(i).getQuantity();
+                }
+            }
+            for (int i = 0; i < playerInventory.getDamageItemCount(); i++) {
+                if (playerInventory.getDamageItem(i).isAvailable()) {
+                    damageItemsBefore += playerInventory.getDamageItem(i).getQuantity();
+                }
+            }
+            
+            // Temporarily capture cout to suppress direct printing from giveDropsToPlayer
+            std::streambuf* orig = std::cout.rdbuf();
+            std::ostringstream buffer;
+            std::cout.rdbuf(buffer.rdbuf());
+            
+            // Give enemy-specific drops (output will be captured)
             enemy.giveDropsToPlayer(playerInventory, playerGold);
             
-            text[0] = enemy.getName() + " was defeated!";
-
-            text[1] = "You received battle rewards!";
-            text[2] = "Gold: " + std::to_string(playerGold);
-            lineCount = 3;
-
-            text[1] = "Press any key to continue...";
-            lineCount = 2;
-
-
+            // Restore cout
+            std::cout.rdbuf(orig);
+            
+            // Calculate what was gained
+            int goldGained = playerGold - goldBefore;
+            int healingItemsGained = 0;
+            int damageItemsGained = 0;
+            
+            // Count items after drops
+            for (int i = 0; i < playerInventory.getHealingItemCount(); i++) {
+                if (playerInventory.getHealingItem(i).isAvailable()) {
+                    healingItemsGained += playerInventory.getHealingItem(i).getQuantity();
+                }
+            }
+            for (int i = 0; i < playerInventory.getDamageItemCount(); i++) {
+                if (playerInventory.getDamageItem(i).isAvailable()) {
+                    damageItemsGained += playerInventory.getDamageItem(i).getQuantity();
+                }
+            }
+            healingItemsGained -= healingItemsBefore;
+            damageItemsGained -= damageItemsBefore;
+            
+            // Show each reward with pauses
+            if (goldGained > 0) {
+                text[0] = "*** TREASURE FOUND! ***";
+                text[1] = "You found " + std::to_string(goldGained) + " gold coins!";
+                lineCount = 2;
+                map.setPanelText(lineCount, text);
+                drawCombatScreen(map, player, enemy, false);
+                combatPause(2000); // Pause 2 seconds to enjoy the gold
+            }
+            
+            if (healingItemsGained > 0) {
+                text[0] = "*** HEALING ITEMS FOUND! ***";
+                text[1] = "You found " + std::to_string(healingItemsGained) + " healing item(s)!";
+                lineCount = 2;
+                map.setPanelText(lineCount, text);
+                drawCombatScreen(map, player, enemy, false);
+                combatPause(2000); // Pause 2 seconds to see healing items
+            }
+            
+            if (damageItemsGained > 0) {
+                text[0] = "*** WEAPONS FOUND! ***";
+                text[1] = "You found " + std::to_string(damageItemsGained) + " weapon(s)!";
+                lineCount = 2;
+                map.setPanelText(lineCount, text);
+                drawCombatScreen(map, player, enemy, false);
+                combatPause(2000); // Pause 2 seconds to see weapons
+            }
+            
+            // Show final rewards summary
+            text[0] = "=== BATTLE REWARDS SUMMARY ===";
+            if (goldGained > 0 || healingItemsGained > 0 || damageItemsGained > 0) {
+                text[1] = "Gold: +" + std::to_string(goldGained) + " (Total: " + std::to_string(playerGold) + ")";
+                if (healingItemsGained > 0 || damageItemsGained > 0) {
+                    text[2] = "Items: +" + std::to_string(healingItemsGained + damageItemsGained) + " new items!";
+                    lineCount = 3;
+                } else {
+                    lineCount = 2;
+                }
+            } else {
+                text[1] = "No items found this time...";
+                text[2] = "Total Gold: " + std::to_string(playerGold);
+                lineCount = 3;
+            }
             map.setPanelText(lineCount, text);
-
             drawCombatScreen(map, player, enemy, false);
-            std::cout << "\nPress any key to continue...";
-            _getch(); // Single controlled pause
+            combatPause(2000); // Pause 2 seconds to read rewards
+            
+            combatWaitForKey("\nPress any key to continue...");
             break;
         }
 
         // Enemy turn: normal attack
         int enemyDamage = enemy.getAttack();
         std::string enemyAction = enemy.getName() + " attacks with " + std::to_string(enemyDamage) + " damage!";
+
+        // Show enemy attack message first
+        text[0] = enemyAction;
+        text[1] = ""; // Clear second line
+        map.setPanelText(2, text);
+        drawCombatScreen(map, player, enemy, false);
+        combatPause(1200); // Pause 1.2 seconds to show enemy attack message
 
         // Apply damage with mitigation inside receiveDamage
         player.receiveDamage(enemyDamage);
@@ -343,15 +468,22 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
 
         if (player.getHealth() <= 0)
         {
+            // Show dramatic defeat message
             text[0] = "You were defeated in battle...";
-            text[1] = "Press any key to continue...";
+            text[1] = "Your vision fades to black...";
             lineCount = 2;
-
             map.setPanelText(lineCount, text);
-
             drawCombatScreen(map, player, enemy, false);
-            std::cout << "\nPress any key to continue...";
-            _getch(); // Single controlled pause
+            combatPause(2500); // Pause 2.5 seconds for dramatic effect
+            
+            // Show final message
+            text[0] = "GAME OVER";
+            text[1] = "Your adventure has ended...";
+            lineCount = 2;
+            map.setPanelText(lineCount, text);
+            drawCombatScreen(map, player, enemy, false);
+            
+            combatWaitForKey("\nPress any key to continue...");
             isPlayerAlive = false;
             
             // Show death screen
@@ -590,7 +722,11 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             break;
         default:
             damage = player.getAttack();
-            text[0] = "Invalid option. Normal attack used by default.";
+            text[0] = "Invalid option! Using normal attack by default.";
+            map.setPanelText(1, text);
+            drawCombatScreenBoss(map, player, boss, false);
+            combatPause(1500); // Pause 1.5 seconds to show invalid option message
+            
             boss.takeDamage(damage);
             text[1] = boss.getName() + " health: " + std::to_string(boss.getHealth());
             lineCount = 2;
@@ -616,15 +752,23 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             GameMenu::incrementEnemiesDefeated();
             GameMenu::saveProgressAfterCombat("Boss Arena");
             
+            // Show epic victory message
             text[0] = "*** " + boss.getName() + " HAS BEEN DEFEATED! ***";
-            text[1] = "Victory is yours!";
-            text[2] = "Press any key to continue...";
-            lineCount = 3;
-
+            text[1] = "The mighty boss falls before you!";
+            lineCount = 2;
             map.setPanelText(lineCount, text);
             drawCombatScreenBoss(map, player, boss, false);
-            std::cout << "\nPress any key to continue...";
-            _getch(); // Single controlled pause
+            combatPause(3000); // Pause 3 seconds for epic victory
+            
+            // Show final victory message
+            text[0] = "*** LEGENDARY VICTORY! ***";
+            text[1] = "You have proven yourself a true hero!";
+            text[2] = "The realm is safer thanks to your bravery!";
+            lineCount = 3;
+            map.setPanelText(lineCount, text);
+            drawCombatScreenBoss(map, player, boss, false);
+            
+            combatWaitForKey("\nPress any key to continue...");
             break;
         }
 
@@ -656,15 +800,23 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
 
         if (player.getHealth() <= 0)
         {
+            // Show dramatic boss defeat message
             text[0] = "*** YOU HAVE BEEN DEFEATED ***";
             text[1] = boss.getName() + " stands victorious...";
-            text[2] = "Press any key to continue...";
-            lineCount = 3;
-
+            lineCount = 2;
             map.setPanelText(lineCount, text);
             drawCombatScreenBoss(map, player, boss, false);
-            std::cout << "\nPress any key to continue...";
-            _getch(); // Single controlled pause
+            combatPause(3000); // Pause 3 seconds for dramatic boss defeat
+            
+            // Show final defeat message
+            text[0] = "THE BOSS REIGNS SUPREME";
+            text[1] = "You fought valiantly, but it was not enough...";
+            text[2] = "The realm remains in darkness...";
+            lineCount = 3;
+            map.setPanelText(lineCount, text);
+            drawCombatScreenBoss(map, player, boss, false);
+            
+            combatWaitForKey("\nPress any key to continue...");
             isPlayerAlive = false;
             
             // Show death screen
