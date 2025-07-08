@@ -3,18 +3,20 @@
 
 #include <iostream>
 #include <string>
-#include <limits>  // Required for std::numeric_limits
-#include <cstdlib> // Required for rand()
+#include <limits>    // Required for std::numeric_limits
+#include <cstdlib>   // Required for rand()
 #include <windows.h> // For Sleep function (Windows only)
 #include <conio.h>   // For _getch()
 #include <sstream>   // For capturing cout output
 
 // Combat pace control functions
-void combatPause(int milliseconds = 1500) {
+void combatPause(int milliseconds = 1500)
+{
     Sleep(milliseconds); // Pause for specified milliseconds (Windows)
 }
 
-void combatWaitForKey(const std::string& message = "\nPress any key to continue...") {
+void combatWaitForKey(const std::string &message = "\nPress any key to continue...")
+{
     std::cout << message;
     _getch();
 }
@@ -70,13 +72,14 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
 
         int option = 0;
         std::cin >> option;
-        
+
         // Clear input buffer to prevent issues
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        
+
         // Validate input
-        if (option < 1 || option > 4) {
+        if (option < 1 || option > 4)
+        {
             option = 1; // Default to normal attack
         }
 
@@ -91,7 +94,7 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             map.setPanelText(1, text);
             drawCombatScreen(map, player, enemy, false);
             combatPause(1000); // Pause 1 second to show attack message
-            
+
             enemy.receiveDamage(damage);
             text[1] = enemy.getName() + " health: " + std::to_string(enemy.getHealth());
             lineCount = 2;
@@ -102,102 +105,120 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             map.setPanelText(1, text);
             drawCombatScreen(map, player, enemy, false);
             combatPause(1000); // Pause 1 second to show attack message
-            
+
             enemy.receiveDamage(damage);
             text[1] = enemy.getName() + " health: " + std::to_string(enemy.getHealth());
             lineCount = 2;
             break;
         case 3:
             // Use healing item - First check if player needs healing
-            if (player.getHealth() >= player.getMaxHealth()) {
+            if (player.getHealth() >= player.getMaxHealth())
+            {
                 text[0] = "Your health is already full!";
                 text[1] = "No need to use healing items.";
                 lineCount = 2;
                 playerUsedTurn = false; // Don't consume turn if health is full
             }
-            else if (playerInventory.hasHealingItems()) {
+            else if (playerInventory.hasHealingItems())
+            {
                 text[0] = "=== HEALING ITEMS ===";
                 text[1] = "Select an item to use:";
                 lineCount = 2;
-                
+
                 // Create a list of available items with continuous numbering
                 int availableItemIndices[8]; // Store actual inventory indices of available items
                 int availableItems = 0;
-                
+
                 // Collect available items
-                for (int i = 0; i < playerInventory.getHealingItemCount() && availableItems < 8; i++) {
-                    if (playerInventory.getHealingItem(i).isAvailable()) {
+                for (int i = 0; i < playerInventory.getHealingItemCount() && availableItems < 8; i++)
+                {
+                    if (playerInventory.getHealingItem(i).isAvailable())
+                    {
                         availableItemIndices[availableItems] = i;
                         availableItems++;
                     }
                 }
-                
+
                 // Display items in two columns with continuous numbering
-                int leftColumnItems = (availableItems + 1) / 2;  // Ceiling division
-                
+                int leftColumnItems = (availableItems + 1) / 2; // Ceiling division
+
                 // Display left column items
-                for (int i = 0; i < leftColumnItems; i++) {
+                for (int i = 0; i < leftColumnItems; i++)
+                {
                     int itemIndex = availableItemIndices[i];
-                    std::string itemText = std::to_string(i + 1) + ". " + 
-                                         playerInventory.getHealingItem(itemIndex).getName() + 
-                                         " (+" + std::to_string(playerInventory.getHealingItem(itemIndex).getHealAmount()) + 
-                                         " HP, x" + std::to_string(playerInventory.getHealingItem(itemIndex).getQuantity()) + ")";
+                    std::string itemText = std::to_string(i + 1) + ". " +
+                                           playerInventory.getHealingItem(itemIndex).getName() +
+                                           " (+" + std::to_string(playerInventory.getHealingItem(itemIndex).getHealAmount()) +
+                                           " HP, x" + std::to_string(playerInventory.getHealingItem(itemIndex).getQuantity()) + ")";
                     text[lineCount] = itemText;
                     lineCount++;
                 }
-                
+
                 // Display right column items (if any)
-                for (int i = leftColumnItems; i < availableItems; i++) {
+                for (int i = leftColumnItems; i < availableItems; i++)
+                {
                     int itemIndex = availableItemIndices[i];
-                    std::string itemText = std::to_string(i + 1) + ". " + 
-                                         playerInventory.getHealingItem(itemIndex).getName() + 
-                                         " (+" + std::to_string(playerInventory.getHealingItem(itemIndex).getHealAmount()) + 
-                                         " HP, x" + std::to_string(playerInventory.getHealingItem(itemIndex).getQuantity()) + ")";
-                    
+                    std::string itemText = std::to_string(i + 1) + ". " +
+                                           playerInventory.getHealingItem(itemIndex).getName() +
+                                           " (+" + std::to_string(playerInventory.getHealingItem(itemIndex).getHealAmount()) +
+                                           " HP, x" + std::to_string(playerInventory.getHealingItem(itemIndex).getQuantity()) + ")";
+
                     // Add to the corresponding left column line
                     int leftLineIndex = lineCount - availableItems + i;
-                    if (leftLineIndex >= 2 && leftLineIndex < lineCount) {
+                    if (leftLineIndex >= 2 && leftLineIndex < lineCount)
+                    {
                         text[leftLineIndex] += "     " + itemText; // Add spacing and right column item
                     }
                 }
-                
-                if (availableItems > 0) {
+
+                if (availableItems > 0)
+                {
                     text[lineCount] = "Enter item number (0 to cancel): ";
                     lineCount++;
-                    
+
                     map.setPanelText(lineCount, text);
                     clearScreen();
                     drawCombatScreen(map, player, enemy, false);
-                    
+
                     int itemChoice = 0;
                     std::cin >> itemChoice;
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                    
-                    if (itemChoice > 0 && itemChoice <= availableItems) {
+
+                    if (itemChoice > 0 && itemChoice <= availableItems)
+                    {
                         // Use the continuous numbering to get the actual inventory index
                         int actualInventoryIndex = availableItemIndices[itemChoice - 1];
-                        
-                        if (playerInventory.useHealingItem(actualInventoryIndex + 1, player)) { // +1 because useHealingItem expects 1-based index
+
+                        if (playerInventory.useHealingItem(actualInventoryIndex + 1, player))
+                        { // +1 because useHealingItem expects 1-based index
                             text[0] = "You used a healing item!";
                             text[1] = "Your health: " + std::to_string(player.getHealth());
                             lineCount = 2;
-                        } else {
+                        }
+                        else
+                        {
                             text[0] = "Couldn't use that item!";
                             lineCount = 1;
                             playerUsedTurn = false;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         text[0] = "Cancelled item use.";
                         lineCount = 1;
                         playerUsedTurn = false;
                     }
-                } else {
+                }
+                else
+                {
                     text[0] = "No healing items available!";
                     lineCount = 1;
                     playerUsedTurn = false;
                 }
-            } else {
+            }
+            else
+            {
                 text[0] = "No healing items available!";
                 lineCount = 1;
                 playerUsedTurn = false; // Don't consume turn if no items
@@ -205,89 +226,106 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             break;
         case 4:
             // Use damage item
-            if (playerInventory.hasDamageItems()) {
+            if (playerInventory.hasDamageItems())
+            {
                 text[0] = "=== DAMAGE ITEMS ===";
                 text[1] = "Select an item to use:";
                 lineCount = 2;
-                
+
                 // Create a list of available items with continuous numbering
                 int availableItemIndices[8]; // Store actual inventory indices of available items
                 int availableItems = 0;
-                
+
                 // Collect available items
-                for (int i = 0; i < playerInventory.getDamageItemCount() && availableItems < 8; i++) {
-                    if (playerInventory.getDamageItem(i).isAvailable()) {
+                for (int i = 0; i < playerInventory.getDamageItemCount() && availableItems < 8; i++)
+                {
+                    if (playerInventory.getDamageItem(i).isAvailable())
+                    {
                         availableItemIndices[availableItems] = i;
                         availableItems++;
                     }
                 }
-                
+
                 // Display items in two columns with continuous numbering
-                int leftColumnItems = (availableItems + 1) / 2;  // Ceiling division
-                
+                int leftColumnItems = (availableItems + 1) / 2; // Ceiling division
+
                 // Display left column items
-                for (int i = 0; i < leftColumnItems; i++) {
+                for (int i = 0; i < leftColumnItems; i++)
+                {
                     int itemIndex = availableItemIndices[i];
-                    std::string itemText = std::to_string(i + 1) + ". " + 
-                                         playerInventory.getDamageItem(itemIndex).getName() + 
-                                         " (" + std::to_string(playerInventory.getDamageItem(itemIndex).getDamage()) + 
-                                         " DMG, x" + std::to_string(playerInventory.getDamageItem(itemIndex).getQuantity()) + ")";
+                    std::string itemText = std::to_string(i + 1) + ". " +
+                                           playerInventory.getDamageItem(itemIndex).getName() +
+                                           " (" + std::to_string(playerInventory.getDamageItem(itemIndex).getDamage()) +
+                                           " DMG, x" + std::to_string(playerInventory.getDamageItem(itemIndex).getQuantity()) + ")";
                     text[lineCount] = itemText;
                     lineCount++;
                 }
-                
+
                 // Display right column items (if any)
-                for (int i = leftColumnItems; i < availableItems; i++) {
+                for (int i = leftColumnItems; i < availableItems; i++)
+                {
                     int itemIndex = availableItemIndices[i];
-                    std::string itemText = std::to_string(i + 1) + ". " + 
-                                         playerInventory.getDamageItem(itemIndex).getName() + 
-                                         " (" + std::to_string(playerInventory.getDamageItem(itemIndex).getDamage()) + 
-                                         " DMG, x" + std::to_string(playerInventory.getDamageItem(itemIndex).getQuantity()) + ")";
-                    
+                    std::string itemText = std::to_string(i + 1) + ". " +
+                                           playerInventory.getDamageItem(itemIndex).getName() +
+                                           " (" + std::to_string(playerInventory.getDamageItem(itemIndex).getDamage()) +
+                                           " DMG, x" + std::to_string(playerInventory.getDamageItem(itemIndex).getQuantity()) + ")";
+
                     // Add to the corresponding left column line
                     int leftLineIndex = lineCount - availableItems + i;
-                    if (leftLineIndex >= 2 && leftLineIndex < lineCount) {
+                    if (leftLineIndex >= 2 && leftLineIndex < lineCount)
+                    {
                         text[leftLineIndex] += "     " + itemText; // Add spacing and right column item
                     }
                 }
-                
-                if (availableItems > 0) {
+
+                if (availableItems > 0)
+                {
                     text[lineCount] = "Enter item number (0 to cancel): ";
                     lineCount++;
-                    
+
                     map.setPanelText(lineCount, text);
                     clearScreen();
                     drawCombatScreen(map, player, enemy, false);
-                    
+
                     int itemChoice = 0;
                     std::cin >> itemChoice;
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                    
-                    if (itemChoice > 0 && itemChoice <= availableItems) {
+
+                    if (itemChoice > 0 && itemChoice <= availableItems)
+                    {
                         // Use the continuous numbering to get the actual inventory index
                         int actualInventoryIndex = availableItemIndices[itemChoice - 1];
-                        
-                        if (playerInventory.useDamageItem(actualInventoryIndex + 1, player, enemy)) { // +1 because useDamageItem expects 1-based index
+
+                        if (playerInventory.useDamageItem(actualInventoryIndex + 1, player, enemy))
+                        { // +1 because useDamageItem expects 1-based index
                             text[0] = "You used a damage item!";
                             text[1] = enemy.getName() + " health: " + std::to_string(enemy.getHealth());
                             lineCount = 2;
-                        } else {
+                        }
+                        else
+                        {
                             text[0] = "Couldn't use that item!";
                             lineCount = 1;
                             playerUsedTurn = false;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         text[0] = "Cancelled item use.";
                         lineCount = 1;
                         playerUsedTurn = false;
                     }
-                } else {
+                }
+                else
+                {
                     text[0] = "No damage items available!";
                     lineCount = 1;
                     playerUsedTurn = false;
                 }
-            } else {
+            }
+            else
+            {
                 text[0] = "No damage items available!";
                 lineCount = 1;
                 playerUsedTurn = false; // Don't consume turn if no items
@@ -299,7 +337,7 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             map.setPanelText(1, text);
             drawCombatScreen(map, player, enemy, false);
             combatPause(1500); // Pause 1.5 seconds to show invalid option message
-            
+
             enemy.receiveDamage(damage);
             text[1] = enemy.getName() + " health: " + std::to_string(enemy.getHealth());
             lineCount = 2;
@@ -309,25 +347,26 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
         // Display the result of player's action
         map.setPanelText(lineCount, text);
         drawCombatScreen(map, player, enemy, false);
-        
+
         // Pause to show action result
         std::cout << "\nPress any key to continue...";
         _getch();
 
         // Only continue to enemy turn if player actually used their turn
-        if (!playerUsedTurn) {
+        if (!playerUsedTurn)
+        {
             continue; // Skip enemy turn and let player choose again
         }
 
-        //Logica cuando el enemigo es derrotado
+        // Logica cuando el enemigo es derrotado
         if (enemy.getHealth() <= 0)
         {
             player.addEnemyKill();
-            
+
             // Increment global enemy counter and save progress
             GameMenu::incrementEnemiesDefeated();
             GameMenu::saveProgressAfterCombat("Combat Area");
-            
+
             // Show victory message first
             text[0] = enemy.getName() + " was defeated!";
             text[1] = "Victory is yours!";
@@ -335,7 +374,7 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             map.setPanelText(lineCount, text);
             drawCombatScreen(map, player, enemy, false);
             combatPause(2000); // Pause 2 seconds to celebrate victory
-            
+
             // Show collecting drops message
             text[0] = "Searching for battle rewards...";
             text[1] = "Looking through the defeated enemy...";
@@ -343,56 +382,65 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             map.setPanelText(lineCount, text);
             drawCombatScreen(map, player, enemy, false);
             combatPause(1500); // Pause 1.5 seconds for suspense
-            
+
             // Store player state before drops
             int goldBefore = playerGold;
             int healingItemsBefore = 0;
             int damageItemsBefore = 0;
-            
+
             // Count items before drops
-            for (int i = 0; i < playerInventory.getHealingItemCount(); i++) {
-                if (playerInventory.getHealingItem(i).isAvailable()) {
+            for (int i = 0; i < playerInventory.getHealingItemCount(); i++)
+            {
+                if (playerInventory.getHealingItem(i).isAvailable())
+                {
                     healingItemsBefore += playerInventory.getHealingItem(i).getQuantity();
                 }
             }
-            for (int i = 0; i < playerInventory.getDamageItemCount(); i++) {
-                if (playerInventory.getDamageItem(i).isAvailable()) {
+            for (int i = 0; i < playerInventory.getDamageItemCount(); i++)
+            {
+                if (playerInventory.getDamageItem(i).isAvailable())
+                {
                     damageItemsBefore += playerInventory.getDamageItem(i).getQuantity();
                 }
             }
-            
+
             // Temporarily capture cout to suppress direct printing from giveDropsToPlayer
-            std::streambuf* orig = std::cout.rdbuf();
+            std::streambuf *orig = std::cout.rdbuf();
             std::ostringstream buffer;
             std::cout.rdbuf(buffer.rdbuf());
-            
+
             // Give enemy-specific drops (output will be captured)
             enemy.giveDropsToPlayer(playerInventory, playerGold);
-            
+
             // Restore cout
             std::cout.rdbuf(orig);
-            
+
             // Calculate what was gained
             int goldGained = playerGold - goldBefore;
             int healingItemsGained = 0;
             int damageItemsGained = 0;
-            
+
             // Count items after drops
-            for (int i = 0; i < playerInventory.getHealingItemCount(); i++) {
-                if (playerInventory.getHealingItem(i).isAvailable()) {
+            for (int i = 0; i < playerInventory.getHealingItemCount(); i++)
+            {
+                if (playerInventory.getHealingItem(i).isAvailable())
+                {
                     healingItemsGained += playerInventory.getHealingItem(i).getQuantity();
                 }
             }
-            for (int i = 0; i < playerInventory.getDamageItemCount(); i++) {
-                if (playerInventory.getDamageItem(i).isAvailable()) {
+            for (int i = 0; i < playerInventory.getDamageItemCount(); i++)
+            {
+                if (playerInventory.getDamageItem(i).isAvailable())
+                {
                     damageItemsGained += playerInventory.getDamageItem(i).getQuantity();
                 }
             }
             healingItemsGained -= healingItemsBefore;
             damageItemsGained -= damageItemsBefore;
-            
+
             // Show each reward with pauses
-            if (goldGained > 0) {
+            if (goldGained > 0)
+            {
                 text[0] = "*** TREASURE FOUND! ***";
                 text[1] = "You found " + std::to_string(goldGained) + " gold coins!";
                 lineCount = 2;
@@ -400,8 +448,9 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                 drawCombatScreen(map, player, enemy, false);
                 combatPause(2000); // Pause 2 seconds to enjoy the gold
             }
-            
-            if (healingItemsGained > 0) {
+
+            if (healingItemsGained > 0)
+            {
                 text[0] = "*** HEALING ITEMS FOUND! ***";
                 text[1] = "You found " + std::to_string(healingItemsGained) + " healing item(s)!";
                 lineCount = 2;
@@ -409,8 +458,9 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                 drawCombatScreen(map, player, enemy, false);
                 combatPause(2000); // Pause 2 seconds to see healing items
             }
-            
-            if (damageItemsGained > 0) {
+
+            if (damageItemsGained > 0)
+            {
                 text[0] = "*** WEAPONS FOUND! ***";
                 text[1] = "You found " + std::to_string(damageItemsGained) + " weapon(s)!";
                 lineCount = 2;
@@ -418,18 +468,24 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
                 drawCombatScreen(map, player, enemy, false);
                 combatPause(2000); // Pause 2 seconds to see weapons
             }
-            
+
             // Show final rewards summary
             text[0] = "=== BATTLE REWARDS SUMMARY ===";
-            if (goldGained > 0 || healingItemsGained > 0 || damageItemsGained > 0) {
+            if (goldGained > 0 || healingItemsGained > 0 || damageItemsGained > 0)
+            {
                 text[1] = "Gold: +" + std::to_string(goldGained) + " (Total: " + std::to_string(playerGold) + ")";
-                if (healingItemsGained > 0 || damageItemsGained > 0) {
+                if (healingItemsGained > 0 || damageItemsGained > 0)
+                {
                     text[2] = "Items: +" + std::to_string(healingItemsGained + damageItemsGained) + " new items!";
                     lineCount = 3;
-                } else {
+                }
+                else
+                {
                     lineCount = 2;
                 }
-            } else {
+            }
+            else
+            {
                 text[1] = "No items found this time...";
                 text[2] = "Total Gold: " + std::to_string(playerGold);
                 lineCount = 3;
@@ -437,7 +493,7 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             map.setPanelText(lineCount, text);
             drawCombatScreen(map, player, enemy, false);
             combatPause(2000); // Pause 2 seconds to read rewards
-            
+
             combatWaitForKey("\nPress any key to continue...");
             break;
         }
@@ -461,7 +517,7 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
         lineCount = 2;
         map.setPanelText(lineCount, text);
         drawCombatScreen(map, player, enemy, false);
-        
+
         // Pause to show enemy attack result
         std::cout << "\nPress any key to continue...";
         _getch();
@@ -475,17 +531,17 @@ bool Combat(Player &player, Enemy &enemy, Map &map)
             map.setPanelText(lineCount, text);
             drawCombatScreen(map, player, enemy, false);
             combatPause(2500); // Pause 2.5 seconds for dramatic effect
-            
+
             // Show final message
             text[0] = "GAME OVER";
             text[1] = "Your adventure has ended...";
             lineCount = 2;
             map.setPanelText(lineCount, text);
             drawCombatScreen(map, player, enemy, false);
-            
+
             combatWaitForKey("\nPress any key to continue...");
             isPlayerAlive = false;
-            
+
             // Show death screen
             GameMenu::displayDeathScreen();
             break;
@@ -533,19 +589,20 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
 
         int option = 0;
         std::cin >> option;
-        
+
         // Clear input buffer to prevent issues
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        
+
         // Validate input
-        if (option < 1 || option > 4) {
+        if (option < 1 || option > 4)
+        {
             option = 1; // Default to normal attack
         }
 
         int damage = 0;
         bool playerUsedTurn = true; // Track if player's turn was consumed
-        
+
         switch (option)
         {
         case 1:
@@ -564,77 +621,93 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             break;
         case 3:
             // Use healing item - First check if player needs healing
-            if (player.getHealth() >= player.getMaxHealth()) {
+            if (player.getHealth() >= player.getMaxHealth())
+            {
                 text[0] = "Your health is already full!";
                 text[1] = "No need to use healing items.";
                 lineCount = 2;
                 playerUsedTurn = false; // Don't consume turn if health is full
             }
-            else if (playerInventory.hasHealingItems()) {
+            else if (playerInventory.hasHealingItems())
+            {
                 text[0] = "=== HEALING ITEMS ===";
                 text[1] = "Select an item to use:";
                 lineCount = 2;
-                
+
                 // Create a list of available items with continuous numbering
                 int availableItemIndices[8]; // Store actual inventory indices of available items
                 int availableItems = 0;
-                
+
                 // Collect available items
-                for (int i = 0; i < playerInventory.getHealingItemCount() && availableItems < 8; i++) {
-                    if (playerInventory.getHealingItem(i).isAvailable()) {
+                for (int i = 0; i < playerInventory.getHealingItemCount() && availableItems < 8; i++)
+                {
+                    if (playerInventory.getHealingItem(i).isAvailable())
+                    {
                         availableItemIndices[availableItems] = i;
                         availableItems++;
                     }
                 }
-                
+
                 // Display items with continuous numbering
-                for (int i = 0; i < availableItems; i++) {
+                for (int i = 0; i < availableItems; i++)
+                {
                     int itemIndex = availableItemIndices[i];
-                    std::string itemText = std::to_string(i + 1) + ". " + 
-                                         playerInventory.getHealingItem(itemIndex).getName() + 
-                                         " (Heals " + std::to_string(playerInventory.getHealingItem(itemIndex).getHealAmount()) + 
-                                         " HP, Qty: " + std::to_string(playerInventory.getHealingItem(itemIndex).getQuantity()) + ")";
+                    std::string itemText = std::to_string(i + 1) + ". " +
+                                           playerInventory.getHealingItem(itemIndex).getName() +
+                                           " (Heals " + std::to_string(playerInventory.getHealingItem(itemIndex).getHealAmount()) +
+                                           " HP, Qty: " + std::to_string(playerInventory.getHealingItem(itemIndex).getQuantity()) + ")";
                     text[lineCount] = itemText;
                     lineCount++;
                 }
-                
-                if (availableItems > 0) {
+
+                if (availableItems > 0)
+                {
                     text[lineCount] = "Enter item number (0 to cancel): ";
                     lineCount++;
-                    
+
                     map.setPanelText(lineCount, text);
                     clearScreen();
                     drawCombatScreenBoss(map, player, boss, false);
-                    
+
                     int itemChoice = 0;
                     std::cin >> itemChoice;
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                    
-                    if (itemChoice > 0 && itemChoice <= availableItems) {
+
+                    if (itemChoice > 0 && itemChoice <= availableItems)
+                    {
                         // Use the continuous numbering to get the actual inventory index
                         int actualInventoryIndex = availableItemIndices[itemChoice - 1];
-                        
-                        if (playerInventory.useHealingItem(actualInventoryIndex + 1, player)) { // +1 because useHealingItem expects 1-based index
+
+                        if (playerInventory.useHealingItem(actualInventoryIndex + 1, player))
+                        { // +1 because useHealingItem expects 1-based index
                             text[0] = "You used a healing item!";
                             text[1] = "Your health: " + std::to_string(player.getHealth());
                             lineCount = 2;
-                        } else {
+                        }
+                        else
+                        {
                             text[0] = "Couldn't use that item!";
                             lineCount = 1;
                             playerUsedTurn = false;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         text[0] = "Cancelled item use.";
                         lineCount = 1;
                         playerUsedTurn = false;
                     }
-                } else {
+                }
+                else
+                {
                     text[0] = "No healing items available!";
                     lineCount = 1;
                     playerUsedTurn = false;
                 }
-            } else {
+            }
+            else
+            {
                 text[0] = "No healing items available!";
                 lineCount = 1;
                 playerUsedTurn = false;
@@ -642,79 +715,94 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             break;
         case 4:
             // Use damage item (same logic as in regular combat)
-            if (playerInventory.hasDamageItems()) {
+            if (playerInventory.hasDamageItems())
+            {
                 text[0] = "=== DAMAGE ITEMS ===";
                 text[1] = "Select an item to use:";
                 lineCount = 2;
-                
+
                 // Create a list of available items with continuous numbering
                 int availableItemIndices[8]; // Store actual inventory indices of available items
                 int availableItems = 0;
-                
+
                 // Collect available items
-                for (int i = 0; i < playerInventory.getDamageItemCount() && availableItems < 8; i++) {
-                    if (playerInventory.getDamageItem(i).isAvailable()) {
+                for (int i = 0; i < playerInventory.getDamageItemCount() && availableItems < 8; i++)
+                {
+                    if (playerInventory.getDamageItem(i).isAvailable())
+                    {
                         availableItemIndices[availableItems] = i;
                         availableItems++;
                     }
                 }
-                
+
                 // Display items with continuous numbering
-                for (int i = 0; i < availableItems; i++) {
+                for (int i = 0; i < availableItems; i++)
+                {
                     int itemIndex = availableItemIndices[i];
-                    std::string itemText = std::to_string(i + 1) + ". " + 
-                                         playerInventory.getDamageItem(itemIndex).getName() + 
-                                         " (Dmg: " + std::to_string(playerInventory.getDamageItem(itemIndex).getDamage()) + 
-                                         ", Qty: " + std::to_string(playerInventory.getDamageItem(itemIndex).getQuantity()) + ")";
+                    std::string itemText = std::to_string(i + 1) + ". " +
+                                           playerInventory.getDamageItem(itemIndex).getName() +
+                                           " (Dmg: " + std::to_string(playerInventory.getDamageItem(itemIndex).getDamage()) +
+                                           ", Qty: " + std::to_string(playerInventory.getDamageItem(itemIndex).getQuantity()) + ")";
                     text[lineCount] = itemText;
                     lineCount++;
                 }
-                
-                if (availableItems > 0) {
+
+                if (availableItems > 0)
+                {
                     text[lineCount] = "Enter item number (0 to cancel): ";
                     lineCount++;
-                    
+
                     map.setPanelText(lineCount, text);
                     clearScreen();
                     drawCombatScreenBoss(map, player, boss, false);
-                    
+
                     int itemChoice = 0;
                     std::cin >> itemChoice;
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                    
-                    if (itemChoice > 0 && itemChoice <= availableItems) {
+
+                    if (itemChoice > 0 && itemChoice <= availableItems)
+                    {
                         // Use the continuous numbering to get the actual inventory index
                         int actualInventoryIndex = availableItemIndices[itemChoice - 1];
-                        
+
                         // For boss combat, we need to create a temporary Enemy reference
                         // This is a workaround since DamageItem::use expects an Enemy reference
                         // We'll apply damage directly instead
-                        const DamageItem& item = playerInventory.getDamageItem(actualInventoryIndex);
-                        if (item.isAvailable()) {
+                        const DamageItem &item = playerInventory.getDamageItem(actualInventoryIndex);
+                        if (item.isAvailable())
+                        {
                             boss.takeDamage(item.getDamage());
                             // Manually reduce item quantity (since we can't use the use() method directly)
-                            DamageItem& mutableItem = const_cast<DamageItem&>(item);
+                            DamageItem &mutableItem = const_cast<DamageItem &>(item);
                             mutableItem.addQuantity(-1);
                             text[0] = "You used " + item.getName() + "!";
                             text[1] = boss.getName() + " health: " + std::to_string(boss.getHealth());
                             lineCount = 2;
-                        } else {
+                        }
+                        else
+                        {
                             text[0] = "Couldn't use that item!";
                             lineCount = 1;
                             playerUsedTurn = false;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         text[0] = "Cancelled item use.";
                         lineCount = 1;
                         playerUsedTurn = false;
                     }
-                } else {
+                }
+                else
+                {
                     text[0] = "No damage items available!";
                     lineCount = 1;
                     playerUsedTurn = false;
                 }
-            } else {
+            }
+            else
+            {
                 text[0] = "No damage items available!";
                 lineCount = 1;
                 playerUsedTurn = false;
@@ -726,7 +814,7 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             map.setPanelText(1, text);
             drawCombatScreenBoss(map, player, boss, false);
             combatPause(1500); // Pause 1.5 seconds to show invalid option message
-            
+
             boss.takeDamage(damage);
             text[1] = boss.getName() + " health: " + std::to_string(boss.getHealth());
             lineCount = 2;
@@ -736,13 +824,14 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
         // Display the result of player's action
         map.setPanelText(lineCount, text);
         drawCombatScreenBoss(map, player, boss, false);
-        
+
         // Pause to show action result
         std::cout << "\nPress any key to continue...";
         _getch();
 
         // Only continue to boss turn if player actually used their turn
-        if (!playerUsedTurn) {
+        if (!playerUsedTurn)
+        {
             continue; // Skip boss turn and let player choose again
         }
 
@@ -751,7 +840,7 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             // Increment global enemy counter and save progress for boss defeat
             GameMenu::incrementEnemiesDefeated();
             GameMenu::saveProgressAfterCombat("Boss Arena");
-            
+
             // Show epic victory message
             text[0] = "*** " + boss.getName() + " HAS BEEN DEFEATED! ***";
             text[1] = "The mighty boss falls before you!";
@@ -759,7 +848,7 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             map.setPanelText(lineCount, text);
             drawCombatScreenBoss(map, player, boss, false);
             combatPause(3000); // Pause 3 seconds for epic victory
-            
+
             // Show final victory message
             text[0] = "*** LEGENDARY VICTORY! ***";
             text[1] = "You have proven yourself a true hero!";
@@ -767,7 +856,7 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             lineCount = 3;
             map.setPanelText(lineCount, text);
             drawCombatScreenBoss(map, player, boss, false);
-            
+
             combatWaitForKey("\nPress any key to continue...");
             break;
         }
@@ -781,11 +870,13 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
         {
             bossDamage = boss.getAttack();
             bossAction = boss.getName() + "uses a devastating attack for " + std::to_string(bossDamage) + " damage!";
-        }else{
+        }
+        else
+        {
             bossDamage = boss.getSpecialAttack();
             bossAction = boss.getName() + " unleashes a SPECIAL ATTACK for " + std::to_string(bossDamage) + " damage!";
         }
-        
+
         // Apply damage inside receiveDamage
         player.receiveDamage(bossDamage);
         text[0] = bossAction;
@@ -793,7 +884,7 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
         lineCount = 2;
         map.setPanelText(lineCount, text);
         drawCombatScreenBoss(map, player, boss, false);
-        
+
         // Pause to show boss attack result
         std::cout << "\nPress any key to continue...";
         _getch();
@@ -807,7 +898,7 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             map.setPanelText(lineCount, text);
             drawCombatScreenBoss(map, player, boss, false);
             combatPause(3000); // Pause 3 seconds for dramatic boss defeat
-            
+
             // Show final defeat message
             text[0] = "THE BOSS REIGNS SUPREME";
             text[1] = "You fought valiantly, but it was not enough...";
@@ -815,10 +906,10 @@ bool CombatBosss(Player &player, Boss &boss, Map &map)
             lineCount = 3;
             map.setPanelText(lineCount, text);
             drawCombatScreenBoss(map, player, boss, false);
-            
+
             combatWaitForKey("\nPress any key to continue...");
             isPlayerAlive = false;
-            
+
             // Show death screen
             GameMenu::displayDeathScreen();
             break;

@@ -1,7 +1,7 @@
 #ifndef ENEMY_H // Header guard: if ENEMY_H is not defined, define it now to avoid multiple inclusions
 #define ENEMY_H // Defines ENEMY_H so that this file content is not included again elsewhere
 
-// NOTE: Never use "using namespace std;" in a header file, as it can lead to name conflicts 
+// NOTE: Never use "using namespace std;" in a header file, as it can lead to name conflicts
 // across other translation units (good practice).
 
 #include <string>   // Includes the string library to use std::string for storing text
@@ -12,7 +12,8 @@
 class Inventory;
 
 // Definition of the Enemy class
-class Enemy {
+class Enemy
+{
 private:
     // ======== PRIVATE ATTRIBUTES ========
     std::string name;     // Name of the enemy (used for display or identification)
@@ -38,7 +39,7 @@ public:
     // Note: This is not a const method because it modifies the health value
 
     // Gives drops to player inventory based on enemy type
-    void giveDropsToPlayer(Inventory& inventory, int& playerGold) const;
+    void giveDropsToPlayer(Inventory &inventory, int &playerGold) const;
 
     // ======== GETTERS (ACCESSORS) ========
 
@@ -73,7 +74,8 @@ inline Enemy::Enemy(const std::string &name, int health, int attack, int defense
     : name(name), asciiArt(art), health(health), maxHealth(health), attack(attack), defense(defense) {}
 
 // Prints the enemy's name, health, attack, and defense to the console
-inline void Enemy::showStats() const {
+inline void Enemy::showStats() const
+{
     std::cout << "Name: " << name
               << "\nHP: " << health
               << "\nAttack: " << attack
@@ -83,47 +85,56 @@ inline void Enemy::showStats() const {
 
 // Applies damage to the enemy, reducing its health by (damage - defense)
 // Ensures that health doesn't drop below 0
-inline void Enemy::receiveDamage(int damage) {
+inline void Enemy::receiveDamage(int damage)
+{
     int netDamage = damage - defense; // Subtracts defense from incoming damage
 
-    if (netDamage > 0) {              // Only apply damage if it's positive
-        health -= netDamage;          // Subtract damage from health
-        if (health < 0)               // Prevent negative health
+    if (netDamage > 0)
+    {                        // Only apply damage if it's positive
+        health -= netDamage; // Subtract damage from health
+        if (health < 0)      // Prevent negative health
             health = 0;
     }
 }
 
 // Getter: returns the attack value of the enemy
-inline int Enemy::getAttack() const {
+inline int Enemy::getAttack() const
+{
     return attack;
 }
 
 // Getter: returns the current health of the enemy
-inline int Enemy::getHealth() const {
+inline int Enemy::getHealth() const
+{
     return health;
 }
 
 // Getter: returns the maximum health of the enemy
-inline int Enemy::getMaxHealth() const {
+inline int Enemy::getMaxHealth() const
+{
     return maxHealth;
 }
 
-inline int Enemy::getDefense() const{
+inline int Enemy::getDefense() const
+{
     return defense;
 }
 
 // Outputs the ASCII art to the console
-inline void Enemy::showArt() const {
+inline void Enemy::showArt() const
+{
     std::cout << asciiArt << std::endl;
 }
 
 // Getter: returns the name of the enemy
-inline std::string Enemy::getName() const {
+inline std::string Enemy::getName() const
+{
     return name;
 }
 
 // Getter: returns the ASCII art string for external use (e.g., to draw it)
-inline std::string Enemy::getAsciiArt() const {
+inline std::string Enemy::getAsciiArt() const
+{
     return asciiArt;
 }
 

@@ -2,13 +2,13 @@
  * ===============================================================================
  * SAVESYSTEM.H - Comprehensive Game Save/Load Management System
  * ===============================================================================
- * 
+ *
  * DESCRIPTION:
  * This file implements a complete save/load system for the RPG game, managing
  * player data, difficulty settings, map progress, and enemy tracking across
  * multiple save slots. It provides both file-based persistence and memory
  * management for game state.
- * 
+ *
  * KEY RESPONSIBILITIES:
  * - Multi-slot save game management (up to 5 slots)
  * - Complete game state persistence (player, difficulty, progress)
@@ -16,13 +16,13 @@
  * - Real-time game state tracking during gameplay
  * - Save slot validation and management
  * - Map-specific progress tracking
- * 
+ *
  * ARCHITECTURAL NOTES:
  * - Uses both binary (.dat) and text (.txt) files for data storage
  * - Implements comprehensive GameData structure for all game information
  * - Provides automatic save slot management and selection
  * - Integrates seamlessly with Player and difficulty systems
- * 
+ *
  * DESIGN PATTERNS:
  * - Singleton pattern: Global state management through static variables
  * - Data Transfer Object: GameData struct encapsulates all save information
@@ -36,30 +36,30 @@
 // ===============================================================================
 // SYSTEM DEPENDENCIES AND INCLUDES
 // ===============================================================================
-#include "Player.h"                    // Player class for character data management
-#include "configurationDifficulty.h"   // Difficulty settings and enemy scaling
-#include "Inventory.h"                 // Inventory system for items
-#include "GameItems.h"                 // Game item definitions for inventory restoration
-#include "enemy_utils.h"               // Enemy difficulty scaling functions
-#include <string>                      // String manipulation and storage
-#include <fstream>                     // File input/output operations
-#include <iostream>                    // Console output for debugging
-#include <map>                         // STL map for save slot management
-#include <ctime>                       // Time functions for save timestamps
+#include "Player.h"                  // Player class for character data management
+#include "configurationDifficulty.h" // Difficulty settings and enemy scaling
+#include "Inventory.h"               // Inventory system for items
+#include "GameItems.h"               // Game item definitions for inventory restoration
+#include "enemy_utils.h"             // Enemy difficulty scaling functions
+#include <string>                    // String manipulation and storage
+#include <fstream>                   // File input/output operations
+#include <iostream>                  // Console output for debugging
+#include <map>                       // STL map for save slot management
+#include <ctime>                     // Time functions for save timestamps
 
 // ===============================================================================
 // FORWARD DECLARATIONS - AVOIDING CIRCULAR DEPENDENCIES
 // ===============================================================================
 // These declarations prevent circular dependency issues while allowing access
 // to essential game components defined in other modules
-extern Player playerSelected;          // Global reference to current active player
-extern std::string selectedName;       // Currently selected character name
-extern int playerGold;                 // Global player gold amount
-extern Inventory playerInventory;      // Global player inventory
-int getCurrentMapId();                 // Function to get current map identifier
-void setCurrentMapId(int mapId);       // Function to set current map identifier
-void resetGlobalGameState();           // Function to reset all global game variables
-void getCurrentPlayerPosition(int& x, int& y); // Function to get current player position
+extern Player playerSelected;                  // Global reference to current active player
+extern std::string selectedName;               // Currently selected character name
+extern int playerGold;                         // Global player gold amount
+extern Inventory playerInventory;              // Global player inventory
+int getCurrentMapId();                         // Function to get current map identifier
+void setCurrentMapId(int mapId);               // Function to set current map identifier
+void resetGlobalGameState();                   // Function to reset all global game variables
+void getCurrentPlayerPosition(int &x, int &y); // Function to get current player position
 
 // ===============================================================================
 // GAMEDATA STRUCTURE - COMPREHENSIVE SAVE DATA CONTAINER
@@ -70,170 +70,214 @@ void getCurrentPlayerPosition(int& x, int& y); // Function to get current player
 struct GameData
 {
     // ======== METADATA AND IDENTIFICATION ========
-    std::string characterName;         // Player's chosen character name for identification
-    std::string creationDate;          // Timestamp when save was created (for organization)
-    std::string lastLocation;          // Human-readable location description for UI display
-    
+    std::string characterName; // Player's chosen character name for identification
+    std::string creationDate;  // Timestamp when save was created (for organization)
+    std::string lastLocation;  // Human-readable location description for UI display
+
     // ======== CORE GAME STATE ========
-    Player playerData;                 // Complete player object with all stats and progress
+    Player playerData;                        // Complete player object with all stats and progress
     configurationDifficulty difficultyConfig; // Game difficulty settings affecting enemy stats
-    
+
     // ======== INVENTORY AND ECONOMY ========
-    int playerGold;                    // Player's current gold amount
+    int playerGold; // Player's current gold amount
     // Healing Items (save each type with quantity)
-    int appleQuantity;                 // Apple healing items
-    int breadQuantity;                 // Bread healing items  
-    int meatQuantity;                  // Meat healing items
-    int smallPotionQuantity;           // Small health potions
-    int mediumPotionQuantity;          // Medium health potions
-    int herbTeaQuantity;               // Healing herb tea
-    int magicElixirQuantity;           // Magic elixir healing items
+    int appleQuantity;        // Apple healing items
+    int breadQuantity;        // Bread healing items
+    int meatQuantity;         // Meat healing items
+    int smallPotionQuantity;  // Small health potions
+    int mediumPotionQuantity; // Medium health potions
+    int herbTeaQuantity;      // Healing herb tea
+    int magicElixirQuantity;  // Magic elixir healing items
     // Damage Items (save each type with quantity)
-    int throwingKnifeQuantity;         // Throwing knife damage items
-    int shurikenQuantity;              // Shuriken damage items
-    int grenadeQuantity;               // Grenade damage items
-    int javelinQuantity;               // Javelin damage items
-    int fireballQuantity;              // Fire orb damage items
-    int lightningBoltQuantity;         // Lightning bolt damage items
-    
+    int throwingKnifeQuantity; // Throwing knife damage items
+    int shurikenQuantity;      // Shuriken damage items
+    int grenadeQuantity;       // Grenade damage items
+    int javelinQuantity;       // Javelin damage items
+    int fireballQuantity;      // Fire orb damage items
+    int lightningBoltQuantity; // Lightning bolt damage items
+
     // ======== PROGRESS TRACKING ========
-    int enemiesDefeated;               // Total number of enemies defeated across all gameplay
-    int currentMapX;                   // Player's current X coordinate on the map
-    int currentMapY;                   // Player's current Y coordinate on the map
-    int currentMapEnemiesKilled;       // Number of enemies killed in the current map only
-    int currentMapId;                  // Unique identifier for the current map/area
-    std::map<int, int> enemiesPerMap;  // Map ID -> Enemy count mapping for each visited area
-    bool exists;                       // Flag indicating whether this save slot contains valid data
+    int enemiesDefeated;              // Total number of enemies defeated across all gameplay
+    int currentMapX;                  // Player's current X coordinate on the map
+    int currentMapY;                  // Player's current Y coordinate on the map
+    int currentMapEnemiesKilled;      // Number of enemies killed in the current map only
+    int currentMapId;                 // Unique identifier for the current map/area
+    std::map<int, int> enemiesPerMap; // Map ID -> Enemy count mapping for each visited area
+    bool exists;                      // Flag indicating whether this save slot contains valid data
 
     // ======== DEFAULT CONSTRUCTOR ========
     // Creates an empty save slot with default values
     // Used for initializing empty save slots and providing safe fallback state
-    GameData() : playerData(0, 0, 0, 0), difficultyConfig(0, 0), 
+    GameData() : playerData(0, 0, 0, 0), difficultyConfig(0, 0),
                  playerGold(0), appleQuantity(0), breadQuantity(0), meatQuantity(0),
                  smallPotionQuantity(0), mediumPotionQuantity(0), herbTeaQuantity(0),
-                 magicElixirQuantity(0), throwingKnifeQuantity(0), shurikenQuantity(0), 
+                 magicElixirQuantity(0), throwingKnifeQuantity(0), shurikenQuantity(0),
                  grenadeQuantity(0), javelinQuantity(0), fireballQuantity(0), lightningBoltQuantity(0),
-                 enemiesDefeated(0), currentMapX(15), currentMapY(45), 
+                 enemiesDefeated(0), currentMapX(15), currentMapY(45),
                  currentMapEnemiesKilled(0), currentMapId(0), exists(false) {}
-    
+
     // ======== PARAMETERIZED CONSTRUCTOR ========
     // Creates a complete save data object with all necessary information
     // Used when creating new saves or updating existing ones with current game state
-    GameData(const std::string& name, const std::string& date, const std::string& location,
-             const Player& player, const configurationDifficulty& config, 
-             int defeated, int mapX, int mapY, int mapEnemies, int gold) 
+    GameData(const std::string &name, const std::string &date, const std::string &location,
+             const Player &player, const configurationDifficulty &config,
+             int defeated, int mapX, int mapY, int mapEnemies, int gold)
         : characterName(name), creationDate(date), lastLocation(location),
           playerData(player), difficultyConfig(config), playerGold(gold),
           appleQuantity(0), breadQuantity(0), meatQuantity(0),
           smallPotionQuantity(0), mediumPotionQuantity(0), herbTeaQuantity(0),
-          magicElixirQuantity(0), throwingKnifeQuantity(0), shurikenQuantity(0), 
+          magicElixirQuantity(0), throwingKnifeQuantity(0), shurikenQuantity(0),
           grenadeQuantity(0), javelinQuantity(0), fireballQuantity(0), lightningBoltQuantity(0),
-          enemiesDefeated(defeated), currentMapX(mapX), currentMapY(mapY), 
-          currentMapEnemiesKilled(mapEnemies), currentMapId(0), exists(true) {
-              // Copy the player's per-map enemy tracking data for complete state preservation
-              enemiesPerMap = player.getEnemiesKilledPerMap();
-              // Load inventory quantities from global inventory
-              loadInventoryFromGlobal(::playerInventory);
-          }
-    
+          enemiesDefeated(defeated), currentMapX(mapX), currentMapY(mapY),
+          currentMapEnemiesKilled(mapEnemies), currentMapId(0), exists(true)
+    {
+        // Copy the player's per-map enemy tracking data for complete state preservation
+        enemiesPerMap = player.getEnemiesKilledPerMap();
+        // Load inventory quantities from global inventory
+        loadInventoryFromGlobal(::playerInventory);
+    }
+
     // ======== INVENTORY EXTRACTION METHOD ========
     // Loads inventory quantities from the global inventory object
-    void loadInventoryFromGlobal(const Inventory& inventory) {
+    void loadInventoryFromGlobal(const Inventory &inventory)
+    {
         // Extract healing items quantities
-        for (int i = 0; i < inventory.getHealingItemCount(); i++) {
-            const HealingItem& item = inventory.getHealingItem(i);
-            if (item.getName() == "Apple" || item.getName() == "Red Apple") appleQuantity = item.getQuantity();
-            else if (item.getName() == "Bread") breadQuantity = item.getQuantity();
-            else if (item.getName() == "Cooked Meat") meatQuantity = item.getQuantity();
-            else if (item.getName() == "Small Health Potion") smallPotionQuantity = item.getQuantity();
-            else if (item.getName() == "Medium Health Potion") mediumPotionQuantity = item.getQuantity();
-            else if (item.getName() == "Healing Herb Tea") herbTeaQuantity = item.getQuantity();
-            else if (item.getName() == "Magic Elixir") magicElixirQuantity = item.getQuantity();
+        for (int i = 0; i < inventory.getHealingItemCount(); i++)
+        {
+            const HealingItem &item = inventory.getHealingItem(i);
+            if (item.getName() == "Apple" || item.getName() == "Red Apple")
+                appleQuantity = item.getQuantity();
+            else if (item.getName() == "Bread")
+                breadQuantity = item.getQuantity();
+            else if (item.getName() == "Cooked Meat")
+                meatQuantity = item.getQuantity();
+            else if (item.getName() == "Small Health Potion")
+                smallPotionQuantity = item.getQuantity();
+            else if (item.getName() == "Medium Health Potion")
+                mediumPotionQuantity = item.getQuantity();
+            else if (item.getName() == "Healing Herb Tea")
+                herbTeaQuantity = item.getQuantity();
+            else if (item.getName() == "Magic Elixir")
+                magicElixirQuantity = item.getQuantity();
         }
-        
+
         // Extract damage items quantities
-        for (int i = 0; i < inventory.getDamageItemCount(); i++) {
-            const DamageItem& item = inventory.getDamageItem(i);
-            if (item.getName() == "Throwing Knife") throwingKnifeQuantity = item.getQuantity();
-            else if (item.getName() == "Shuriken") shurikenQuantity = item.getQuantity();
-            else if (item.getName() == "Grenade") grenadeQuantity = item.getQuantity();
-            else if (item.getName() == "Javelin") javelinQuantity = item.getQuantity();
-            else if (item.getName() == "Fire Orb") fireballQuantity = item.getQuantity();
-            else if (item.getName() == "Lightning Bolt") lightningBoltQuantity = item.getQuantity();
+        for (int i = 0; i < inventory.getDamageItemCount(); i++)
+        {
+            const DamageItem &item = inventory.getDamageItem(i);
+            if (item.getName() == "Throwing Knife")
+                throwingKnifeQuantity = item.getQuantity();
+            else if (item.getName() == "Shuriken")
+                shurikenQuantity = item.getQuantity();
+            else if (item.getName() == "Grenade")
+                grenadeQuantity = item.getQuantity();
+            else if (item.getName() == "Javelin")
+                javelinQuantity = item.getQuantity();
+            else if (item.getName() == "Fire Orb")
+                fireballQuantity = item.getQuantity();
+            else if (item.getName() == "Lightning Bolt")
+                lightningBoltQuantity = item.getQuantity();
         }
     }
-    
+
     // ======== INVENTORY RESTORATION METHOD ========
     // Restores inventory quantities to the global inventory object
-    void restoreInventoryToGlobal(Inventory& inventory) const {
+    void restoreInventoryToGlobal(Inventory &inventory) const
+    {
         // Clear current inventory
         inventory.clearAllItems();
-        
+
         // Restore healing items
-        if (appleQuantity > 0) {
-            for (int i = 0; i < appleQuantity; i++) {
+        if (appleQuantity > 0)
+        {
+            for (int i = 0; i < appleQuantity; i++)
+            {
                 inventory.addHealingItem(GameItems::apple);
             }
         }
-        if (breadQuantity > 0) {
-            for (int i = 0; i < breadQuantity; i++) {
+        if (breadQuantity > 0)
+        {
+            for (int i = 0; i < breadQuantity; i++)
+            {
                 inventory.addHealingItem(GameItems::bread);
             }
         }
-        if (meatQuantity > 0) {
-            for (int i = 0; i < meatQuantity; i++) {
+        if (meatQuantity > 0)
+        {
+            for (int i = 0; i < meatQuantity; i++)
+            {
                 inventory.addHealingItem(GameItems::meat);
             }
         }
-        if (smallPotionQuantity > 0) {
-            for (int i = 0; i < smallPotionQuantity; i++) {
+        if (smallPotionQuantity > 0)
+        {
+            for (int i = 0; i < smallPotionQuantity; i++)
+            {
                 inventory.addHealingItem(GameItems::smallPotion);
             }
         }
-        if (mediumPotionQuantity > 0) {
-            for (int i = 0; i < mediumPotionQuantity; i++) {
+        if (mediumPotionQuantity > 0)
+        {
+            for (int i = 0; i < mediumPotionQuantity; i++)
+            {
                 inventory.addHealingItem(GameItems::mediumPotion);
             }
         }
-        if (herbTeaQuantity > 0) {
-            for (int i = 0; i < herbTeaQuantity; i++) {
+        if (herbTeaQuantity > 0)
+        {
+            for (int i = 0; i < herbTeaQuantity; i++)
+            {
                 inventory.addHealingItem(GameItems::herbTea);
             }
         }
-        if (magicElixirQuantity > 0) {
-            for (int i = 0; i < magicElixirQuantity; i++) {
+        if (magicElixirQuantity > 0)
+        {
+            for (int i = 0; i < magicElixirQuantity; i++)
+            {
                 inventory.addHealingItem(GameItems::magicElixir);
             }
         }
-        
+
         // Restore damage items
-        if (throwingKnifeQuantity > 0) {
-            for (int i = 0; i < throwingKnifeQuantity; i++) {
+        if (throwingKnifeQuantity > 0)
+        {
+            for (int i = 0; i < throwingKnifeQuantity; i++)
+            {
                 inventory.addDamageItem(GameItems::throwingKnife);
             }
         }
-        if (shurikenQuantity > 0) {
-            for (int i = 0; i < shurikenQuantity; i++) {
+        if (shurikenQuantity > 0)
+        {
+            for (int i = 0; i < shurikenQuantity; i++)
+            {
                 inventory.addDamageItem(GameItems::shuriken);
             }
         }
-        if (grenadeQuantity > 0) {
-            for (int i = 0; i < grenadeQuantity; i++) {
+        if (grenadeQuantity > 0)
+        {
+            for (int i = 0; i < grenadeQuantity; i++)
+            {
                 inventory.addDamageItem(GameItems::grenade);
             }
         }
-        if (javelinQuantity > 0) {
-            for (int i = 0; i < javelinQuantity; i++) {
+        if (javelinQuantity > 0)
+        {
+            for (int i = 0; i < javelinQuantity; i++)
+            {
                 inventory.addDamageItem(GameItems::javelin);
             }
         }
-        if (fireballQuantity > 0) {
-            for (int i = 0; i < fireballQuantity; i++) {
+        if (fireballQuantity > 0)
+        {
+            for (int i = 0; i < fireballQuantity; i++)
+            {
                 inventory.addDamageItem(GameItems::fireball);
             }
         }
-        if (lightningBoltQuantity > 0) {
-            for (int i = 0; i < lightningBoltQuantity; i++) {
+        if (lightningBoltQuantity > 0)
+        {
+            for (int i = 0; i < lightningBoltQuantity; i++)
+            {
                 inventory.addDamageItem(GameItems::lightningBolt);
             }
         }
@@ -253,17 +297,17 @@ static std::map<std::string, GameData> gameSaves;
 
 // ======== FILE NAMING CONSTANTS ========
 // Standardized prefixes for consistent file naming across the save system
-static const std::string SAVE_FILE_PREFIX = "savegame";    // Prefix for binary data files (.dat)
-static const std::string SAVE_INFO_PREFIX = "saveinfo";    // Prefix for metadata text files (.txt)
-static const int MAX_SAVE_SLOTS = 1;                       // Maximum number of save slots supported (single slot only)
+static const std::string SAVE_FILE_PREFIX = "savegame"; // Prefix for binary data files (.dat)
+static const std::string SAVE_INFO_PREFIX = "saveinfo"; // Prefix for metadata text files (.txt)
+static const int MAX_SAVE_SLOTS = 1;                    // Maximum number of save slots supported (single slot only)
 
 // ======== CURRENT GAME STATE TRACKING ========
 // Real-time tracking variables for the active game session
 // These maintain current state between save operations
-static int currentPlayerX = 15;                            // Player's current X coordinate (default spawn)
-static int currentPlayerY = 45;                            // Player's current Y coordinate (default spawn)
-static int totalEnemiesDefeated = 0;                       // Running total of all enemies defeated
-static configurationDifficulty currentDifficulty(0, 0);   // Current difficulty settings (neutral default)
+static int currentPlayerX = 15;                         // Player's current X coordinate (default spawn)
+static int currentPlayerY = 45;                         // Player's current Y coordinate (default spawn)
+static int totalEnemiesDefeated = 0;                    // Running total of all enemies defeated
+static configurationDifficulty currentDifficulty(0, 0); // Current difficulty settings (neutral default)
 
 // ===============================================================================
 // UTILITY FUNCTIONS FOR FILE MANAGEMENT
@@ -295,9 +339,9 @@ std::string getSaveInfoFileName(int slotNumber)
 // Used for timestamping save files and providing creation date information
 std::string getCurrentDateTime()
 {
-    time_t now = time(0);                     // Get current system time
-    std::string timeStr = ctime(&now);        // Convert to string format
-    
+    time_t now = time(0);              // Get current system time
+    std::string timeStr = ctime(&now); // Convert to string format
+
     // Remove trailing newline character that ctime() adds for cleaner output
     if (!timeStr.empty() && timeStr.back() == '\n')
     {
@@ -322,27 +366,27 @@ void saveGameState(const GameData &data, const std::string &filename)
 {
     std::ofstream file(filename);
     if (file.is_open())
-    { 
+    {
         // Write player stats in space-separated format for easy parsing
-        file << data.playerData.getHealth() << ' ' << data.playerData.getAttack() << ' ' 
+        file << data.playerData.getHealth() << ' ' << data.playerData.getAttack() << ' '
              << data.playerData.getDefense() << ' ' << data.playerData.getSpecialAttack() << ' '
              << data.playerData.getMaxHealth() << '\n';
-        
+
         // Write difficulty settings on second line
         file << data.difficultyConfig.enemyHealth << ' ' << data.difficultyConfig.enemyAttack << '\n';
-        
+
         // Write gold amount on third line
         file << data.playerGold << '\n';
-        
+
         // Write healing items quantities on fourth line
         file << data.appleQuantity << ' ' << data.breadQuantity << ' ' << data.meatQuantity << ' '
              << data.smallPotionQuantity << ' ' << data.mediumPotionQuantity << ' ' << data.herbTeaQuantity << ' '
              << data.magicElixirQuantity << '\n';
-        
+
         // Write damage items quantities on fifth line
         file << data.throwingKnifeQuantity << ' ' << data.shurikenQuantity << ' ' << data.grenadeQuantity << ' '
              << data.javelinQuantity << ' ' << data.fireballQuantity << ' ' << data.lightningBoltQuantity << std::endl;
-        
+
         file.close();
     }
 }
@@ -362,18 +406,21 @@ void loadGameState(GameData &data, const std::string &filename)
         int health, attack, defense, specialAttack, maxHealth;
         int enemyHealth, enemyAttack;
         int gold = 100; // Default gold if not present in old saves
-        
+
         // Temporary variables for inventory items (default to 0)
         int apple = 0, bread = 0, meat = 0, smallPotion = 0, mediumPotion = 0, herbTea = 0, magicElixir = 0;
         int throwingKnife = 0, shuriken = 0, grenade = 0, javelin = 0, fireball = 0, lightningBolt = 0;
 
         // Read player stats from first line (try to read maxHealth, fallback if not present)
         file >> health >> attack >> defense >> specialAttack;
-        if (file >> maxHealth) {
+        if (file >> maxHealth)
+        {
             // New save format with maxHealth
             data.playerData = Player(maxHealth, attack, defense, specialAttack);
             data.playerData.setHealth(health); // Set current health separately
-        } else {
+        }
+        else
+        {
             // Old save format without maxHealth - use health as maxHealth
             data.playerData = Player(health, attack, defense, specialAttack);
         }
@@ -381,13 +428,15 @@ void loadGameState(GameData &data, const std::string &filename)
         // Read difficulty settings from second line
         file >> enemyHealth >> enemyAttack;
         data.difficultyConfig = configurationDifficulty(enemyHealth, enemyAttack);
-        
+
         // Try to read gold from third line (may not exist in old saves)
-        if (file >> gold) {
+        if (file >> gold)
+        {
             data.playerGold = gold;
-            
+
             // Try to read healing items from fourth line
-            if (file >> apple >> bread >> meat >> smallPotion >> mediumPotion >> herbTea >> magicElixir) {
+            if (file >> apple >> bread >> meat >> smallPotion >> mediumPotion >> herbTea >> magicElixir)
+            {
                 data.appleQuantity = apple;
                 data.breadQuantity = bread;
                 data.meatQuantity = meat;
@@ -395,24 +444,31 @@ void loadGameState(GameData &data, const std::string &filename)
                 data.mediumPotionQuantity = mediumPotion;
                 data.herbTeaQuantity = herbTea;
                 data.magicElixirQuantity = magicElixir;
-                
+
                 // Try to read damage items from fifth line
-                if (file >> throwingKnife >> shuriken >> grenade >> javelin >> fireball >> lightningBolt) {
+                if (file >> throwingKnife >> shuriken >> grenade >> javelin >> fireball >> lightningBolt)
+                {
                     data.throwingKnifeQuantity = throwingKnife;
                     data.shurikenQuantity = shuriken;
                     data.grenadeQuantity = grenade;
                     data.javelinQuantity = javelin;
                     data.fireballQuantity = fireball;
                     data.lightningBoltQuantity = lightningBolt;
-                } else {
+                }
+                else
+                {
                     // Older save format without lightning bolt - set defaults
                     data.lightningBoltQuantity = 0;
                 }
-            } else {
+            }
+            else
+            {
                 // Even older save format - set all healing item defaults
                 data.magicElixirQuantity = 0;
             }
-        } else {
+        }
+        else
+        {
             // Old save format - set defaults
             data.playerGold = 100;
             data.appleQuantity = 0;
@@ -449,27 +505,27 @@ void loadAllExistingSaves()
     // Iterate through all possible save slots (1 to MAX_SAVE_SLOTS)
     for (int i = 1; i <= MAX_SAVE_SLOTS; i++)
     {
-        std::string saveKey = "Game" + std::to_string(i);    // Generate save slot identifier
-        std::string saveFile = getSaveFileName(i);           // Get binary save file path
-        std::string infoFile = getSaveInfoFileName(i);       // Get metadata file path
-        
+        std::string saveKey = "Game" + std::to_string(i); // Generate save slot identifier
+        std::string saveFile = getSaveFileName(i);        // Get binary save file path
+        std::string infoFile = getSaveInfoFileName(i);    // Get metadata file path
+
         // Check if save file exists by attempting to open it
         std::ifstream file(saveFile);
-        if (file.good())  // Save file exists, load the data
+        if (file.good()) // Save file exists, load the data
         {
             file.close();
-            
+
             // Create GameData object to load complete game state
             GameData tempData;
             loadGameState(tempData, saveFile);
-            
+
             // Initialize default metadata values in case info file is missing/corrupted
             std::string characterName = "Unknown";
             std::string date = "Unknown Date";
             std::string location = "Unknown Location";
             int enemies = 0;
-            int mapX = 15, mapY = 45;  // Default spawn coordinates
-            
+            int mapX = 15, mapY = 45; // Default spawn coordinates
+
             // Attempt to load metadata from info file
             std::ifstream infoFileStream(infoFile);
             if (infoFileStream.good())
@@ -481,7 +537,7 @@ void loadAllExistingSaves()
                 int mapEnemies = 0;
                 infoFileStream >> enemies >> mapX >> mapY >> mapEnemies;
                 infoFileStream.close();
-                
+
                 // Update loaded data with metadata
                 tempData.characterName = characterName;
                 tempData.creationDate = date;
@@ -491,7 +547,7 @@ void loadAllExistingSaves()
                 tempData.currentMapY = mapY;
                 tempData.currentMapEnemiesKilled = mapEnemies;
                 tempData.exists = true;
-                
+
                 gameSaves[saveKey] = tempData;
             }
             else
@@ -505,13 +561,13 @@ void loadAllExistingSaves()
                 tempData.currentMapY = mapY;
                 tempData.currentMapEnemiesKilled = 0;
                 tempData.exists = true;
-                
+
                 gameSaves[saveKey] = tempData;
             }
         }
-        else  // Save file doesn't exist, create empty slot
+        else // Save file doesn't exist, create empty slot
         {
-            gameSaves[saveKey] = GameData();  // Empty save slot
+            gameSaves[saveKey] = GameData(); // Empty save slot
         }
     }
 }
@@ -522,7 +578,7 @@ void loadAllExistingSaves()
 // Parameters:
 //   - saveSlot: Save slot identifier (e.g., "Game1", "Game2")
 //   - data: Complete GameData object containing all save information
-void saveCompleteGameData(const std::string& saveSlot, const GameData& data)
+void saveCompleteGameData(const std::string &saveSlot, const GameData &data)
 {
     // Extract slot number from save slot string (e.g., "Game1" -> 1)
     int slotNumber = std::stoi(saveSlot.substr(4));
@@ -531,20 +587,20 @@ void saveCompleteGameData(const std::string& saveSlot, const GameData& data)
 
     // Save binary game state (player stats + difficulty + inventory + gold)
     saveGameState(data, saveFile);
-    
+
     // Save metadata to text file for human readability and quick access
     std::ofstream info(infoFile);
     if (info.is_open())
     {
-        info << data.characterName << "\n";     // Character name for identification
-        info << data.creationDate << "\n";      // Save creation timestamp
-        info << data.lastLocation << "\n";      // Last known location description
+        info << data.characterName << "\n"; // Character name for identification
+        info << data.creationDate << "\n";  // Save creation timestamp
+        info << data.lastLocation << "\n";  // Last known location description
         // Save progress data: total enemies, coordinates, current map enemies
-        info << data.enemiesDefeated << " " << data.currentMapX << " " 
+        info << data.enemiesDefeated << " " << data.currentMapX << " "
              << data.currentMapY << " " << data.currentMapEnemiesKilled << "\n";
         info.close();
     }
-    
+
     // Update in-memory save data for immediate access
     gameSaves[saveSlot] = data;
 }
@@ -564,11 +620,11 @@ void saveCompleteGameData(const std::string& saveSlot, const GameData& data)
 bool loadSpecificSave(int slotNumber)
 {
     std::string saveKey = "Game" + std::to_string(slotNumber);
-    
+
     // Validate that the requested save slot contains data
     if (!gameSaves[saveKey].exists)
     {
-        return false;  // Save slot is empty or invalid
+        return false; // Save slot is empty or invalid
     }
 
     // ======== RESET GAME STATE BEFORE LOADING ========
@@ -577,38 +633,38 @@ bool loadSpecificSave(int slotNumber)
 
     // Create local copy of save data (avoiding pointer issues)
     GameData loadedGame = gameSaves[saveKey];
-    
+
     // ======== RESTORE PLAYER STATE ========
-    playerSelected = loadedGame.playerData;  // Restore complete player object
-    
+    playerSelected = loadedGame.playerData; // Restore complete player object
+
     // ======== RESTORE INVENTORY AND GOLD ========
     // Restore player's inventory from saved data
     loadedGame.restoreInventoryToGlobal(::playerInventory);
     // Restore player's gold amount
     ::playerGold = loadedGame.playerGold;
-    
+
     // ======== RESTORE PROGRESSION DATA ========
     // Restore per-map enemy tracking data for accurate progression
     playerSelected.setEnemiesKilledPerMap(loadedGame.enemiesPerMap);
     // Restore current map enemy count for accurate local progress
     playerSelected.setEnemiesKilled(loadedGame.currentMapEnemiesKilled);
-    
+
     // ======== RESTORE GAME METADATA ========
-    selectedName = loadedGame.characterName;         // Character name
-    currentPlayerX = loadedGame.currentMapX;         // Player X coordinate
-    currentPlayerY = loadedGame.currentMapY;         // Player Y coordinate
+    selectedName = loadedGame.characterName;           // Character name
+    currentPlayerX = loadedGame.currentMapX;           // Player X coordinate
+    currentPlayerY = loadedGame.currentMapY;           // Player Y coordinate
     totalEnemiesDefeated = loadedGame.enemiesDefeated; // Total kill count
     currentDifficulty = loadedGame.difficultyConfig;   // Difficulty settings
-    
+
     // ======== APPLY DIFFICULTY SCALING ========
     // Apply difficulty modifiers to all enemies based on loaded difficulty settings
     applyDifficultyEnemies(loadedGame.difficultyConfig);
-    
+
     // ======== RESTORE MAP STATE ========
     // Set the current map to match the saved state
     setCurrentMapId(loadedGame.currentMapId);
-    
-    return true;  // Save loaded successfully
+
+    return true; // Save loaded successfully
 }
 
 // ======== GET MOST RECENT SAVE ========
@@ -617,7 +673,7 @@ bool loadSpecificSave(int slotNumber)
 // Returns: true if a save was found, false if no saves exist
 // Parameters:
 //   - outSave: Reference to GameData object that will receive the found save data
-bool getMostRecentSave(GameData& outSave)
+bool getMostRecentSave(GameData &outSave)
 {
     // Search from highest slot number to lowest (reverse order)
     // This finds the most recently used slot in most cases
@@ -626,11 +682,11 @@ bool getMostRecentSave(GameData& outSave)
         std::string saveKey = "Game" + std::to_string(i);
         if (gameSaves[saveKey].exists)
         {
-            outSave = gameSaves[saveKey];   // Copy save data to output parameter
-            return true;                    // Found a valid save
+            outSave = gameSaves[saveKey]; // Copy save data to output parameter
+            return true;                  // Found a valid save
         }
     }
-    return false;  // No existing saves found
+    return false; // No existing saves found
 }
 
 // ======== FIND EMPTY SAVE SLOT ========
@@ -645,7 +701,7 @@ int findEmptySlot()
         std::string saveKey = "Game" + std::to_string(i);
         if (!gameSaves[saveKey].exists)
         {
-            return i;  // Found empty slot
+            return i; // Found empty slot
         }
     }
     // All slots are occupied, return value greater than max to indicate this
@@ -659,12 +715,12 @@ int findEmptySlot()
 int countExistingSaves()
 {
     int count = 0;
-    
+
     // Iterate through all possible save slots and count existing ones
     for (int i = 1; i <= MAX_SAVE_SLOTS; i++)
     {
         std::string saveKey = "Game" + std::to_string(i);
-        if (gameSaves[saveKey].exists) 
+        if (gameSaves[saveKey].exists)
         {
             count++;
         }
@@ -704,7 +760,7 @@ void updatePlayerPosition(int x, int y)
 // Called when difficulty is changed through game menus or progression events
 // Parameters:
 //   - difficulty: New difficulty configuration object containing enemy modifiers
-void setCurrentDifficulty(const configurationDifficulty& difficulty)
+void setCurrentDifficulty(const configurationDifficulty &difficulty)
 {
     currentDifficulty = difficulty;
 }
@@ -733,17 +789,22 @@ int getCurrentEnemyCount()
 // Returns: String describing the current map area based on coordinates
 // Location mapping based on coordinate ranges:
 //   - Western Woods: X < 10
-//   - Eastern Plains: X > 20  
+//   - Eastern Plains: X > 20
 //   - Northern Mountains: Y < 30
 //   - Southern Desert: Y > 60
 //   - Central Village: Default/middle area
 std::string getCurrentLocationString()
 {
-    if (currentPlayerX < 10) return "Western Woods";
-    else if (currentPlayerX > 20) return "Eastern Plains";
-    else if (currentPlayerY < 30) return "Northern Mountains";
-    else if (currentPlayerY > 60) return "Southern Desert";
-    else return "Central Village";
+    if (currentPlayerX < 10)
+        return "Western Woods";
+    else if (currentPlayerX > 20)
+        return "Eastern Plains";
+    else if (currentPlayerY < 30)
+        return "Northern Mountains";
+    else if (currentPlayerY > 60)
+        return "Southern Desert";
+    else
+        return "Central Village";
 }
 
 // ===============================================================================
@@ -755,7 +816,7 @@ std::string getCurrentLocationString()
 // Used by UI systems for displaying save slot information and management
 // Returns: Reference to the global gameSaves map containing all save data
 // WARNING: Direct modification of this map can corrupt save system state
-std::map<std::string, GameData>& getGameSavesMap()
+std::map<std::string, GameData> &getGameSavesMap()
 {
     return gameSaves;
 }
@@ -766,17 +827,17 @@ std::map<std::string, GameData>& getGameSavesMap()
 // the most recent game state, including position, progress, and statistics
 // Parameters:
 //   - location: Human-readable description of current location for metadata
-void saveCurrentProgress(const std::string& location)
+void saveCurrentProgress(const std::string &location)
 {
     // ======== ENSURE SAVE SYSTEM IS INITIALIZED ========
     // Make sure all existing saves are loaded before attempting to save
     loadAllExistingSaves();
-    
+
     // ======== FIND CURRENT CHARACTER'S SAVE SLOT ========
     // Search through all save slots to find the one belonging to current character
-    std::string currentSaveSlot = "Game1";  // Default to first slot if not found
+    std::string currentSaveSlot = "Game1"; // Default to first slot if not found
     bool slotFound = false;
-    
+
     for (int i = 1; i <= MAX_SAVE_SLOTS; i++)
     {
         std::string saveKey = "Game" + std::to_string(i);
@@ -785,12 +846,13 @@ void saveCurrentProgress(const std::string& location)
         {
             currentSaveSlot = saveKey;
             slotFound = true;
-            break;  // Found the correct save slot for this character
+            break; // Found the correct save slot for this character
         }
     }
-    
+
     // If no existing slot found for this character, find the first empty or use Game1
-    if (!slotFound) {
+    if (!slotFound)
+    {
         for (int i = 1; i <= MAX_SAVE_SLOTS; i++)
         {
             std::string saveKey = "Game" + std::to_string(i);
@@ -801,25 +863,25 @@ void saveCurrentProgress(const std::string& location)
             }
         }
     }
-    
+
     // ======== CREATE UPDATED SAVE DATA ========
     // Construct complete GameData object with current game state
     // NOTE: The GameData constructor automatically calls loadInventoryFromGlobal()
     // which extracts ALL current inventory items and quantities for saving
     GameData updatedData(selectedName, getCurrentDateTime(), location,
-                         playerSelected, currentDifficulty, 
-                         totalEnemiesDefeated, currentPlayerX, currentPlayerY, 
+                         playerSelected, currentDifficulty,
+                         totalEnemiesDefeated, currentPlayerX, currentPlayerY,
                          playerSelected.getCurrentEnemiesKilled(), ::playerGold);
-    
+
     // ======== ENSURE INVENTORY IS CAPTURED ========
     // Force refresh inventory data from global inventory to guarantee it's current
     updatedData.loadInventoryFromGlobal(::playerInventory);
-    
+
     // ======== INCLUDE MAP-SPECIFIC PROGRESS DATA ========
     // Ensure map progression and enemy tracking data is preserved
-    updatedData.currentMapId = getCurrentMapId();                          // Current map identifier
-    updatedData.enemiesPerMap = playerSelected.getEnemiesKilledPerMap();   // Per-map enemy tracking
-    
+    updatedData.currentMapId = getCurrentMapId();                        // Current map identifier
+    updatedData.enemiesPerMap = playerSelected.getEnemiesKilledPerMap(); // Per-map enemy tracking
+
     // ======== PERFORM THE SAVE OPERATION ========
     // Write updated data to both binary and metadata files
     saveCompleteGameData(currentSaveSlot, updatedData);
@@ -830,34 +892,36 @@ void saveCurrentProgress(const std::string& location)
 // ===============================================================================
 // This function resets all global game variables to their initial state
 // Call this before creating a new game to ensure clean state
-void resetGlobalGameState() {
+void resetGlobalGameState()
+{
     // Reset player to empty state
     playerSelected = Player(0, 0, 0, 0);
     selectedName = "";
-    
+
     // Reset economy
-    ::playerGold = 100;  // Default starting gold
-    
+    ::playerGold = 100; // Default starting gold
+
     // Clear inventory completely
     playerInventory.clearAllItems();
-    
+
     // Reset position tracking
     currentPlayerX = 15;
     currentPlayerY = 45;
-    
+
     // Reset enemy tracking
     totalEnemiesDefeated = 0;
-    
+
     // Reset difficulty to neutral
     currentDifficulty = configurationDifficulty(0, 0);
-    
+
     // Reset current map ID
     setCurrentMapId(0);
 }
 
 // ======== GET CURRENT PLAYER POSITION ========
 // Retrieves the current player position coordinates
-void getCurrentPlayerPosition(int& x, int& y) {
+void getCurrentPlayerPosition(int &x, int &y)
+{
     x = currentPlayerX;
     y = currentPlayerY;
 }

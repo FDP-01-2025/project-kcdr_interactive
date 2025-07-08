@@ -15,7 +15,8 @@
 #include "GameController.h"
 
 // GameMenu: Facade for menu, combat, and save/load operations
-class GameMenu {
+class GameMenu
+{
 public:
     // Title and menu display
     static void displayTitleScreen();
@@ -24,7 +25,7 @@ public:
 
     // Combat system integration
     static void incrementEnemiesDefeated();
-    static void saveProgressAfterCombat(const std::string& location);
+    static void saveProgressAfterCombat(const std::string &location);
     static int getCurrentEnemyCount();
     static void updatePlayerPosition(int x, int y);
 
@@ -34,40 +35,49 @@ public:
 };
 
 // Implementation
-void GameMenu::displayTitleScreen() {
+void GameMenu::displayTitleScreen()
+{
     TitleScreen::displayGameTitle();
     TitleScreen::displayIntroduction();
 }
 
-void GameMenu::displayMainMenu() {
+void GameMenu::displayMainMenu()
+{
     GameController::runMainMenu();
 }
 
-void GameMenu::displayDeathScreen() {
+void GameMenu::displayDeathScreen()
+{
     GameController::handleDeathScreen();
 }
 
-void GameMenu::incrementEnemiesDefeated() {
+void GameMenu::incrementEnemiesDefeated()
+{
     SaveManager::incrementEnemiesDefeated();
 }
 
-void GameMenu::saveProgressAfterCombat(const std::string& location) {
+void GameMenu::saveProgressAfterCombat(const std::string &location)
+{
     SaveManager::saveProgressAfterCombat(location);
 }
 
-int GameMenu::getCurrentEnemyCount() {
+int GameMenu::getCurrentEnemyCount()
+{
     return SaveManager::getCurrentEnemyCount();
 }
 
-void GameMenu::updatePlayerPosition(int x, int y) {
+void GameMenu::updatePlayerPosition(int x, int y)
+{
     SaveManager::updatePlayerPosition(x, y);
 }
 
-void GameMenu::resetMapEnemyCounter() {
+void GameMenu::resetMapEnemyCounter()
+{
     SaveManager::resetMapEnemyCounter();
 }
 
-int GameMenu::getCurrentMapEnemyCount() {
+int GameMenu::getCurrentMapEnemyCount()
+{
     return SaveManager::getCurrentMapEnemyCount();
 }
 
